@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Trからのぷろansitional//EN">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<title>DxBase2015ドキュメント(2015年)</title>
+</head>
+<body>
+<!-- 全体コンテナ　-->
+<div id="container">
+<div id="header">
+<h2>セットアップ</h2>
+</div>
+<!-- コンテンツ　-->
+<div id="contents">
+<h3>ゲーム作成の準備</h3>
+<br />
+<h4>コンパイラと入力インターフェイス</h4>
+　<b>DxBase2015</b>は<b>VisuakStdio2013のみ</b>でゲーム作成を行えます。作成したゲームは、<b>Windows8.1以上</b>で動作します。<br />
+　もしお持ちでない方は<b>Micrsoft社のサイト</b>から、<b>Visual Studio Community 2013 </b>を取得してください。（Community以外でもProfessional、Premiumで動作確認が取れてます。）<br />
+　チュートリアルやサンプルでは、ほとんどが<b>XBox360コントローラ</b>での操作になっています。キーボード及びマウス入力を得るには、<b>キーボード及びマウス入力のサンプル</b>をご確認ください。<br />
+<br />
+<h4>ダウンロードと解凍</h4>
+　<b>DxBase2015</b>は<b>GitHubに公開</b>されています。<br />
+　アドレスは
+<a href="https://github.com/WiZFramework/DxBase2015" target="_blank">https://github.com/WiZFramework/DxBase2015</a><br/>
+　です。<br/>
+　<b>上記サイト</b>にアクセスすると、<b>DownloadZIP</b>というボタンがありますので、そこで最新版をダウンロードしてください。解凍すると以下のようなディレクトリ構成になります。
+<p>&nbsp;</p>
+<img src="img/setup_a.jpg" width="30%"/>
+<p>図setup_a</p>
+<p>&nbsp;</p>
+　<b>Documentディレクトリ</b>には、このページを含めたドキュメントが入ってます。index.htmlをブラウザで開いてください。<br />
+　<b>Libsディレクトリ</b>には、フレームワーク本体や、<b>DirectXTKライブラリ</b>などが入ってます。このあと、Autodesk社の<b>FBX SDK（FBX Software Development Kit）</b>のヘッダとライブラリとコピーしていただきます。（FBXSDKのセットアップで解説します）<br />
+　<b>Tutorial001</b>など、<b>Tutorial</b>ではじまるディレクトリには、チュートリアルサンプルが入ってます。チュートリアルの解説には、このドキュメントにあります。<br />
+　<b>Sample001</b>などのディレクトリにはサンプルが入ってます、内容は、ドキュメントのindex.htmlを見てください。チュートリアル以外のサンプルには解説はありませんが、できるだけコメントを記述してますので、参考にしてください。<br />
+<br />
+<h4>FBXSDKのセットアップ</h4>
+　GitHubからのダウンロードには、<b>FBXモデル</b>の読み込みのためのライブラリが含まれてません。以下の手順でセットアップしたのち、必要なファイルを、<b>DxBase2015内</b>に配置して利用します。
+<ul class="mokuji">
+<li>Autodesk社の<b>FBX SDK（FBX Software Development Kit）</b>をセットアップします。</li>
+<li><b>FBX SDK</b>は検索エンジンなどで　<b>FBX SDK</b>　などで検索するとたどり着けます。そこからダウンロードのページに移り、<b>Windows</b>という項目の<b>FBX SDK 2016 VS2013</b>をダウンロードしてください。もしくはアーカイブの中の<b>FBX SDK 2015.1 VS2013 </b>でも動作確認されてます。</li>
+<li><b>FBX SDK</b>は実行ファイルになっていますので、そのままセットアップ可能です。</li>
+<li><b>FBX SDKのセットアップ</b>が済んだら、セットアップされたディレクトリ（デフォルトで「C:\Program Files\Autodesk\FBX\FBX SDK\2016.0」にエクスプローラで移動してください。</li>
+<li><b>FBX SDK</b>がセットアップされたディレクトリの<b>「include」</b>ディレクトリ内の、<b>fbxsdk.hというファイルと、fbxsdkディレクトリ</b>を、そのまま、<b>DxBase2015を解答したディレクトリ</b>の<b>「Libs\include」内</b>にコピーしてください。</li>
+<li><b>FBX SDK</b>がセットアップされたディレクトリの<b>「lib\vs2013\x86\debug」</b>ディレクトリ内の、<b>libfbxsdk-mt.libというファイルと、libfbxsdk.pdb</b>を、<b>DxBase2015</b>を解答したディレクトリの<b>「Libs\lib\Debug」内</b>にコピーしてください。</li>
+<li><b>FBX SDK</b>がセットアップされたディレクトリの<b>「lib\vs2013\x86\release」</b>ディレクトリ内の、<b>libfbxsdk-mt.lib</b>というファイルを、<b>DxBase2015</b>を解答したディレクトリの<b>「Libs\lib\Release」内</b>にコピーしてください。</li>
+</ul>
+<br/>
+<br/>
+　以上で、セットアップは完了です。お疲れ様でした。<br />
+<br />
+</div>
+<!-- /コンテンツ　-->
+<hr>
+<!-- フッタ　-->
+<ul class="foot_navi">
+<li><a href="index.html">目次</a></li>
+<li><a href="00_00.html">次ページ</a></li>
+</ul>
+<!-- /フッタ　-->
+
+
+</div>
+<!-- /全体コンテナ　-->
+</body>
+</html>
