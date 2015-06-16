@@ -10,6 +10,7 @@ namespace basedx11{
 	//構築と破棄
 	Box::Box(shared_ptr<Stage>& StagePtr, const Vector3& StartPos) :
 		GameObject(StagePtr),
+		m_Span(1.0f),
 		m_StartPos(StartPos)
 	{
 	}
@@ -27,20 +28,24 @@ namespace basedx11{
 		auto PtrDraw = AddComponent<BasicPNTDraw>();
 		PtrDraw->SetMeshResource(L"DEFAULT_CUBE");
 		PtrDraw->SetTextureResource(L"TRACE_TX");
-		//
+		//透明処理
 		SetAlphaActive(true);
 	}
 
 	//更新
 	void Box::Update(){
+		//前回のターンからの経過時間を求める
 		float ElapsedTime = App::GetApp()->GetElapsedTime();
 		auto PtrTransform = GetComponent<Transform>();
+		//位置の取得
 		auto Pos = PtrTransform->GetPosition();
-		static float Span = 1.0f;
-		Pos.x += Span * ElapsedTime;
-		if (abs(Pos.x) > 5.0f){
-			Span *= -1.0f;
+		//値を変化させる
+		Pos.x += m_Span * ElapsedTime;
+		if (abs(Pos.x) > 3.0f){
+			//もし左右3.0を超えたら反転
+			m_Span *= -1.0f;
 		}
+		//新しい位置を設定
 		PtrTransform->SetPosition(Pos);
 	}
 

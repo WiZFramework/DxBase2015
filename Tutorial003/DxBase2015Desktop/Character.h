@@ -10,6 +10,7 @@ namespace basedx11{
 	//--------------------------------------------------------------------------------------
 	class Box : public GameObject{
 		Vector3 m_StartPos;
+		float m_Span;	//移動方向のパラメータ
 	public:
 		//構築と破棄
 		Box(shared_ptr<Stage>& StagePtr, const Vector3& StartPos);
