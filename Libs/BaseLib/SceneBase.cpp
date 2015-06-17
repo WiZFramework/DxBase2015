@@ -288,16 +288,6 @@ namespace basedx11{
 		}
 	}
 
-
-
-	void GameObject::UpdateTransform(){
-		//Transformがなければ例外
-		auto Tptr = GetComponent<Transform>();
-		if (Tptr->IsUpdateActive()){
-			Tptr->Update();
-		}
-	}
-
 	void GameObject::DrawShadowmap(){
 		auto shadowptr = GetDynamicComponent<Shadowmap>(false);
 		if (shadowptr){
@@ -1421,7 +1411,7 @@ namespace basedx11{
 	//ステージ内の更新（シーンからよばれる）
 	void Stage::UpdateStage(){
 		//Transformコンポーネントの値をバックアップにコピー
-		for (auto ptr : pImpl->m_GameObjectVec){
+		for (auto ptr : GetGameObjectVec()){
 			if (ptr->IsUpdateActive()){
 				auto ptr2 = ptr->GetComponent<Transform>();
 				ptr2->SetToBefore();
@@ -1433,7 +1423,7 @@ namespace basedx11{
 			ptr2->SetToBefore();
 		}
 		//配置オブジェクトの更新1
-		for (auto ptr : pImpl->m_GameObjectVec){
+		for (auto ptr : GetGameObjectVec()){
 			if (ptr->IsUpdateActive()){
 				ptr->Update();
 			}
@@ -1443,7 +1433,7 @@ namespace basedx11{
 			Update();
 		}
 		//配置オブジェクトのコンポーネント更新1
-		for (auto ptr : pImpl->m_GameObjectVec){
+		for (auto ptr : GetGameObjectVec()){
 			if (ptr->IsUpdateActive()){
 				ptr->ComponentUpdate();
 			}
@@ -1453,7 +1443,7 @@ namespace basedx11{
 			ComponentUpdate();
 		}
 		//配置オブジェクトの更新2
-		for (auto ptr : pImpl->m_GameObjectVec){
+		for (auto ptr : GetGameObjectVec()){
 			if (ptr->IsUpdateActive()){
 				ptr->Update2();
 			}
@@ -1463,7 +1453,7 @@ namespace basedx11{
 			Update2();
 		}
 		//配置オブジェクトのコンポーネント更新2
-		for (auto ptr : pImpl->m_GameObjectVec){
+		for (auto ptr : GetGameObjectVec()){
 			if (ptr->IsUpdateActive()){
 				ptr->ComponentUpdate2();
 			}
@@ -1473,7 +1463,7 @@ namespace basedx11{
 			ComponentUpdate2();
 		}
 		//配置オブジェクトのコンポーネント更新3
-		for (auto ptr : pImpl->m_GameObjectVec){
+		for (auto ptr : GetGameObjectVec()){
 			if (ptr->IsUpdateActive()){
 				ptr->Update3();
 			}
@@ -1482,18 +1472,8 @@ namespace basedx11{
 		if (IsUpdateActive()){
 			Update3();
 		}
-		//配置オブジェクトの最後のTransform更新
-		for (auto ptr : pImpl->m_GameObjectVec){
-			if (ptr->IsUpdateActive()){
-				ptr->UpdateTransform();
-			}
-		}
-		//自身の最後のTransform更新
-		if (IsUpdateActive()){
-			UpdateTransform();
-		}
 		//子供ステージの更新
-		for (auto PtrChileStage : pImpl->m_ChildStageVec){
+		for (auto PtrChileStage : GetChileStageVec()){
 			PtrChileStage->UpdateStage();
 		}
 	}
