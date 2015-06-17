@@ -109,11 +109,10 @@ namespace basedx11{
 			CreateViews();
 			//プレートを作成する
 			CreatePlate();
+			//固定ボックスの作成
 			CreateFixedBox();
 			//ボックスの作成
 			CreateBox();
-
-
 		}
 		catch (...){
 			throw;

@@ -56,7 +56,6 @@ namespace basedx11{
 	}
 
 	//XV
-
 	void MoveObject::Update2(){
 		auto PtrRigit = GetComponent<Rigidbody>();
 		auto Velo = PtrRigit->GetVelocity();
