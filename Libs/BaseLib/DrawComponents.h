@@ -106,6 +106,11 @@ namespace basedx11{
 		bool IsOwnShadowActive() const;
 		void SetOwnShadowActive(bool b);
 
+		bool GetZBufferUse() const;
+		bool IsZBufferUse() const;
+		void SetZBufferUse(bool b);
+
+
 		size_t GetShaderVirsion() const;
 		void SetShaderVirsion(size_t v);
 

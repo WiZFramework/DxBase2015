@@ -339,11 +339,13 @@ namespace basedx11{
 		weak_ptr<MeshResource> m_MeshResource;	//メッシュリソース
 		weak_ptr<TextureResource> m_TextureResource;	//テクスチャリソース
 		ID3D11SamplerState* m_pSamplerState;	//サンプラーステート（オプション）
+		bool m_ZBufferUse;		//Zバッファを有効にするかどうか
 		size_t m_Virsion;		//シェーダーのバージョン
 		Impl() :
 			m_Diffuse(0.5f, 0.5f, 0.5f, 1.0f),
 			m_OwnShadowActive(false),
 			m_pSamplerState(nullptr),
+			m_ZBufferUse(true),
 			m_Virsion(2)
 		{}
 		~Impl(){}
@@ -365,6 +367,19 @@ namespace basedx11{
 	bool SimplePNTDraw::GetOwnShadowActive() const { return pImpl->m_OwnShadowActive; }
 	bool SimplePNTDraw::IsOwnShadowActive() const { return pImpl->m_OwnShadowActive; }
 	void SimplePNTDraw::SetOwnShadowActive(bool b){ pImpl->m_OwnShadowActive = b; }
+
+	bool SimplePNTDraw::GetZBufferUse() const{
+		return pImpl->m_ZBufferUse;
+
+	}
+	bool SimplePNTDraw::IsZBufferUse() const{
+		return pImpl->m_ZBufferUse;
+	}
+	void SimplePNTDraw::SetZBufferUse(bool b){
+		pImpl->m_ZBufferUse = b;
+	}
+
+
 
 	size_t SimplePNTDraw::GetShaderVirsion() const{
 		return pImpl->m_Virsion;
@@ -588,6 +603,17 @@ namespace basedx11{
 				pID3D11DeviceContext->PSSetShaderResources(1, 1, pNull);
 				pID3D11DeviceContext->PSSetSamplers(1, 1, pNullSR);
 			}
+
+			if (pImpl->m_ZBufferUse){
+				//デプスステンシルは使用する
+				pID3D11DeviceContext->OMSetDepthStencilState(RenderStatePtr->GetDepthDefault(), 0);
+			}
+			else{
+				//デプスステンシルは使用しない
+				pID3D11DeviceContext->OMSetDepthStencilState(RenderStatePtr->GetDepthNone(), 0);
+
+			}
+
 
 			//コンスタントバッファの設定
 			ID3D11Buffer* pConstantBuffer = CBSimple::GetPtr()->GetBuffer();
