@@ -34,7 +34,7 @@ namespace basedx11{
 		//	const wstring& m3   //第3メッセージ（発生した位置）
 		//	);
 		/*!
-		@breaf コンストクタ
+		@breaf コンストラクタ
 		@param const wstring& m1  第1メッセージ（警告文）
 		@param const wstring& m2  第2メッセージ（問題となったデータ）
 		@param const wstring& m3  第3メッセージ（発生した位置）
@@ -77,7 +77,7 @@ namespace basedx11{
 		//	const string& m3   //第3メッセージ（発生した位置）
 		//	);
 		/*!
-		@breaf コンストクタ
+		@breaf コンストラクタ
 		@param const string& m1  第1メッセージ（警告文）
 		@param const string& m2  第2メッセージ（問題となったデータ）
 		@param const string& m3  第3メッセージ（発生した位置）

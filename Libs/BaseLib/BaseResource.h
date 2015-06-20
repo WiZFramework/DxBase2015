@@ -21,7 +21,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		//	BaseResource();
 		/*!
-		@breaf プロテクトコンストクタ
+		@breaf プロテクトコンスラトクタ
 		@param なし
 		@return	なし
 		*/
@@ -51,7 +51,7 @@ namespace basedx11{
 		//	const wstring& FileName	//ファイル名
 		//	);
 		/*!
-		@breaf コンストクタ
+		@breaf コンストラクタ
 		@param const wstring& FileName	ファイル名
 		@return	なし
 		*/
@@ -96,7 +96,7 @@ namespace basedx11{
 		//	const wstring& FileName	//ファイル名
 		//	);
 		/*!
-		@breaf コンストクタ<br />
+		@breaf コンストラクタ<br />
 		ウェブファイル名を渡す
 		@param const wstring& FileName	ファイル名
 		@return	なし
@@ -150,7 +150,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		//	MeshResource();
 		/*!
-		@breaf プロテクトコンストクタ<br />
+		@breaf プロテクトコンストラクタ<br />
 		派生クラスから構築する
 		@param なし
 		@return	なし
@@ -279,7 +279,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		//	CommonMeshResource();
 		/*!
-		@breaf プライベートコンストクタ<br />
+		@breaf プライベートコンストラクタ<br />
 		構築はスタティック関数を利用する
 		@param なし
 		@return	なし
@@ -528,7 +528,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		//	AnimationData();
 		/*!
-		@breaf コンストクタ.
+		@breaf コンストラクタ.
 		@param なし
 		@return	なし
 		*/
@@ -545,7 +545,7 @@ namespace basedx11{
 		//		float FramesParSecond = 30.0f	//1秒あたりのフレーム数
 		//	);
 		/*!
-		@breaf コンストクタ.
+		@breaf コンストラクタ.
 		@param UINT StartFrame	スタートフレーム
 		@param UINT FrameLength	フレームの長さ
 		@param bool bLoop	ループするかどうか
@@ -580,7 +580,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		//	Bone();
 		/*!
-		@breaf コンストクタ.
+		@breaf コンストラクタ.
 		@param なし
 		@return	なし
 		*/
@@ -699,7 +699,7 @@ namespace basedx11{
 		//		bool NeedStatic = false	//スキンメッシュでもスタティックメッシュにするかどうか
 		//	);
 		/*!
-		@breaf コンストクタ.<br/>
+		@breaf コンストラクタ.<br/>
 		FBXメッシュからデータを読み出す
 		@param shared_ptr<FbxSceneResource> FbxSceneResourcePtr	FBXシーンリソース
 		@param FbxMesh* pFbxMesh	FBXメッシュリソース
@@ -852,7 +852,7 @@ namespace basedx11{
 		//		bool NeedStatic				//static構築をするかどうか
 		//	);
 		/*!
-		@breaf プロテクトコンストクタ.<br/>
+		@breaf プロテクトコンストラクタ.<br/>
 		FBXファイルからFBXシーンを構築する
 		@param const wstring& DataDir	データディレクトリ
 		@param const wstring& FileName	FBXファイル名

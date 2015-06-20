@@ -243,5 +243,232 @@ namespace basedx11{
 		EventDispatcher& operator=(const EventDispatcher&&) = delete;
 	};
 
+	//--------------------------------------------------------------------------------------
+	//	class Camera : public Object, public ShapeInterface ;
+	//	用途: カメラ（コンポーネントではない）
+	//--------------------------------------------------------------------------------------
+	class Camera : public Object, public ShapeInterface{
+	public:
+		//構築と破棄
+		explicit Camera();
+		virtual ~Camera();
+		//アクセサ
+		const Vector3& GetEye() const;
+		void SetEye(const Vector3& Eye);
+		void SetEye(float x, float y, float z);
+
+		const Vector3& GetAt() const;
+		void SetAt(const Vector3& At);
+		void SetAt(float x, float y, float z);
+
+		const Vector3& GetUp() const;
+		void SetUp(const Vector3& Up);
+		void SetUp(float x, float y, float z);
+
+		bool IsPers()const;
+		bool GetPers()const;
+		void SetPers(bool b);
+
+		float GetFovY() const;
+		void SetFovY(float f);
+
+		float GetAspect() const;
+		void SetAspect(float f);
+
+		float GetWidth() const;
+		void SetWidth(float f);
+
+		float GetHeight() const;
+		void SetHeight(float f);
+
+		float GetNear() const;
+		void SetNear(float f);
+
+		float GetFar() const;
+		void SetFar(float f);
+
+		shared_ptr<GameObject> GetCameraObject() const;
+		void SetCameraObject(const shared_ptr<GameObject>& Obj);
+		void ClearCameraObject(const shared_ptr<GameObject>& Obj);
+
+
+		void SetViewPort(const D3D11_VIEWPORT& v);
+
+		const Matrix4X4& GetViewMatrix() const;
+		const Matrix4X4& GetProjMatrix() const;
+		//操作
+		virtual void Update()override;
+		virtual void Update2(){}
+		virtual void Draw()override{}
+	private:
+		// pImplイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+	};
+
+	//--------------------------------------------------------------------------------------
+	//	class LookAtCamera : public Camera ;
+	//	用途: LookAtカメラ（コンポーネントではない）
+	//--------------------------------------------------------------------------------------
+	class LookAtCamera : public Camera{
+	public:
+		//構築と破棄
+		explicit LookAtCamera();
+		virtual ~LookAtCamera();
+		//アクセサ
+		shared_ptr<GameObject> GetTargetObject() const;
+		void SetTargetObject(const shared_ptr<GameObject>& Obj);
+
+		float GetToTargetLerp() const;
+		void SetToTargetLerp(float f);
+
+		//操作
+		virtual void Update() override;
+	private:
+		// pImplイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+	};
+
+
+	//--------------------------------------------------------------------------------------
+	//	class Light : public Object, public ShapeInterface ;
+	//	用途: ライト（コンポーネントではない）
+	//--------------------------------------------------------------------------------------
+	class Light : public Object, public ShapeInterface{
+	public:
+		explicit Light();
+		Light(
+			const Vector3& Directional,
+			const Color4& DiffuseColor,
+			const Color4& SpecularColor
+			);
+
+		virtual ~Light();
+		//アクセサ
+		const Vector3& GetDirectional() const;
+		void SetDirectional(const Vector3& Directional);
+		void SetDirectional(float x, float y, float z);
+		void SetPositionToDirectional(const Vector3& Position);
+		void SetPositionToDirectional(float x, float y, float z);
+
+		const Color4& GetDiffuseColor()const;
+		void SetDiffuseColor(const Color4& col);
+		void SetDiffuseColor(float r, float g, float b, float a);
+
+		const Color4& GetSpecularColor() const;
+		void SetSpecularColor(const Color4& col);
+		void SetSpecularColor(float r, float g, float b, float a);
+
+		virtual void Update()override{}
+		virtual void Update2()override{}
+		virtual void Draw()override{}
+	private:
+		// pImplイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+	};
+
+
+	//--------------------------------------------------------------------------------------
+	//	class MultiLight : public Object, public ShapeInterface ;
+	//	用途: マルチライト（コンポーネントではない）
+	//--------------------------------------------------------------------------------------
+	class MultiLight : public Object, public ShapeInterface{
+	public:
+		//構築と破棄
+		explicit MultiLight();
+		virtual ~MultiLight();
+		//アクセサ
+		//Lightの数
+		size_t GetLightCount() const;
+		//Lightの取得
+		shared_ptr<Light> GetLight(size_t Index)const;
+		//Lightのセット
+		void SetLight(size_t Index, shared_ptr<Light>& Ptr);
+		//配列の参照
+		vector< shared_ptr<Light> >& GetLightVec();
+		//Lightの追加
+		shared_ptr<Light> AddLight();
+		//Lightの削除
+		void RemoveLight(size_t Index);
+		//デフォルトのライティングの設定
+		void SetDefaultLighting();
+
+		//操作
+		virtual void Update()override;
+		virtual void Update2()override{}
+		virtual void Draw()override{}
+	private:
+		// pImplイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+	};
+
+
+	//--------------------------------------------------------------------------------------
+	//	class View: public Object, public ShapeInterface;
+	//	用途: ビュークラス（ビューポートとライト、カメラを管理、コンポーネントではない）
+	//--------------------------------------------------------------------------------------
+	class View : public Object, public ShapeInterface{
+		//テンプレートから呼ばれるサブ関数
+		void ResetParamatersSub(const D3D11_VIEWPORT& vp, const Color4& Col,
+		const shared_ptr<Camera>& CameraPtr, const shared_ptr<MultiLight>& MultiLightPtr);
+	public:
+		//構築と破棄
+		View();
+		virtual ~View();
+		//アクセサ
+		const D3D11_VIEWPORT& GetViewPort()const;
+		const D3D11_VIEWPORT* GetViewPortPtr()const;
+		void SetViewPort(const D3D11_VIEWPORT& v);
+		const Color4& GetBackColor() const;
+		void SetBackColor(const Color4& c);
+		shared_ptr<Camera> GetCamera() const;
+		void SetCamera(shared_ptr<Camera>& Ptr);
+
+		shared_ptr<MultiLight> GetMultiLight() const;
+		void SetMultiLight(shared_ptr<MultiLight>& Lights);
+
+		shared_ptr<MultiLight> SetDefaultLighting();
+
+
+		//操作
+		shared_ptr<Light> AddLight();
+
+		template<typename CameraType, typename LightType>
+		void ResetParamaters(const Rect2D<float>& ViewPortSize, Color4& Col, size_t LightCount, float MinDepth = 0.0f, float MaxDepth = 1.0f){
+			D3D11_VIEWPORT vp;
+			ZeroMemory(&vp, sizeof(vp));
+			vp.MinDepth = MinDepth;
+			vp.MaxDepth = MaxDepth;
+			vp.TopLeftX = ViewPortSize.left;
+			vp.TopLeftY = ViewPortSize.top;
+			vp.Width = ViewPortSize.Width();
+			vp.Height = ViewPortSize.Height();
+			//カメラを差し替える
+			auto CameraPtr = Object::CreateObject<CameraType>();
+			//ライトを差し替える
+			auto MultiLightPtr = Object::CreateObject<LightType>();
+			for (size_t i = 0; i < LightCount; i++){
+				MultiLightPtr->AddLight();
+			}
+			//サブ関数を使って設定
+			ResetParamatersSub(vp, Col,
+				dynamic_pointer_cast<Camera>(CameraPtr),
+				dynamic_pointer_cast<MultiLight>(MultiLightPtr));
+		}
+		//操作
+		virtual void Update()override;
+		virtual void Update2()override{}
+		virtual void Draw()override{}
+	private:
+		// pImplイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+	};
+
+
+
 }
 //end basedx11
