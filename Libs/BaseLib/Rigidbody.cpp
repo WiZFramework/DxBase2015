@@ -1428,6 +1428,10 @@ namespace basedx11{
 
 	//操作
 	void Collision::Update(){
+		//Collisionが有効かどうか
+		if (!IsUpdateActive()){
+			return;
+		}
 		//Fixedかどうか
 		if (IsFixed()){
 			return;
@@ -1454,10 +1458,17 @@ namespace basedx11{
 							//除外オブジェクトとはとは判定しない
 							continue;
 						}
+						//相手のCollisionを取得
 						auto CollisionPtr = ObjPtr->GetComponent<Collision>(false);
-						if (CollisionPtr && CollisionPtr->GetHitObject()){
-							//もうすでに相手がヒットしている
-							continue;
+						if (CollisionPtr){
+							if (!CollisionPtr->IsUpdateActive()){
+								//相手のCollisionが無効
+								continue;
+							}
+							if (CollisionPtr->GetHitObject()){
+								//もうすでに相手がヒットしている
+								continue;
+							}
 						}
 						auto CollisionSpherePtr = ObjPtr->GetComponent<CollisionSphere>(false);
 						auto CollisionCapsulePtr = ObjPtr->GetComponent<CollisionCapsule>(false);
@@ -1495,7 +1506,7 @@ namespace basedx11{
 		if (IsGameObjectActive()){
 			auto PtrSrcRigidbody = GetGameObject()->GetComponent<Rigidbody>();
 			if (IsFixed() || !GetHitObject()){
-				//動かないか、衝突してなければリターン
+				//動かないか、衝突してないか
 				return;
 			}
 			Vector3 HitNormal;	//衝突の法線
@@ -1534,8 +1545,8 @@ namespace basedx11{
 	//反発、追い出しなど事後処理
 	void Collision::Update2(){
 		auto PtrSrcGravity = GetGameObject()->GetComponent<Gravity>(false);
-		if (GetHitObject()){
-			//衝突している
+		if (GetHitObject() && IsUpdate2Active()){
+			//衝突していてかつIsUpdate2Activeなら
 			shared_ptr<void> PtrVoid = static_pointer_cast<void>(GetHitObject());
 			if (NeedSendEvent()){
 				//Sendイベントを出す

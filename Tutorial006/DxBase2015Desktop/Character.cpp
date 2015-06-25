@@ -214,8 +214,9 @@ namespace basedx11{
 		PtrTransform->SetRotation(m_Rotation);
 		PtrTransform->SetPosition(m_Position);
 
-		//操舵系のコンポーネントをつける場合はRigidbodyをつける
+		//反発を実装する場合はRigidbodyをつける
 		auto PtrRegid = AddComponent<Rigidbody>();
+		//衝突判定
 		auto PtrObb = AddComponent<CollisionObb>();
 		PtrObb->SetFixed(true);
 		PtrObb->SetDrawActive(true);
@@ -224,7 +225,6 @@ namespace basedx11{
 		auto ShadowPtr = AddComponent<Shadowmap>();
 		ShadowPtr->SetMeshResource(L"DEFAULT_CUBE");
 
-		//		auto PtrDraw = AddComponent<SimplePNTDraw>();
 		auto PtrDraw = AddComponent<BasicPNTDraw>();
 		PtrDraw->SetMeshResource(L"DEFAULT_CUBE");
 		PtrDraw->SetTextureResource(L"SKY_TX");

@@ -1,3 +1,9 @@
+/*!
+@file DeviceResources.h
+@brief Dx11デバイスリソース
+
+@copyright Copyright (c) 2015 WiZ Tamura Hiroki,Yamanoi Yasushi.
+*/
 
 #pragma once
 #include "stdafx.h"
@@ -7,7 +13,9 @@ namespace basedx11{
 
 	//--------------------------------------------------------------------------------------
 	//	class DeviceResources;
-	//	用途: Direct11デバイスなどクラス
+	/*!
+	DirectX11デバイスクラス
+	*/
 	//--------------------------------------------------------------------------------------
 	class DeviceResources {
 	public:
