@@ -1,3 +1,11 @@
+
+/*!
+@file DrawComponents.h
+@brief コンポーネント（描画系）
+
+@copyright Copyright (c) 2015 WiZ Tamura Hiroki,Yamanoi Yasushi.
+*/
+
 #pragma once
 #include "stdafx.h"
 

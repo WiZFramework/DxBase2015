@@ -1060,6 +1060,67 @@ namespace basedx11{
 
 
 	//--------------------------------------------------------------------------------------
+	//	struct InputTextManager::Impl;
+	//	用途: Implイディオム
+	//--------------------------------------------------------------------------------------
+	struct InputTextManager::Impl{
+		//フォーカスを持ってる入力ストリング
+		weak_ptr<InputStringSprite> m_FocusInputString;
+		Impl()
+		{}
+		~Impl(){}
+	};
+
+
+	//--------------------------------------------------------------------------------------
+	//	class InputTextManager : public GameObject;
+	//	用途: 入力テキストマネージャ
+	//--------------------------------------------------------------------------------------
+	//構築と消滅
+	InputTextManager::InputTextManager(const shared_ptr<Stage>& StagePtr) :
+		GameObject(StagePtr),
+		pImpl(new Impl())
+	{}
+	InputTextManager::~InputTextManager(){}
+
+	//初期化
+	void InputTextManager::Create(){
+		try{
+		}
+		catch (...){
+			throw;
+		}
+	}
+
+	//アクセサ
+	shared_ptr<InputStringSprite> InputTextManager::GetFocusInputString() const{
+		if (!pImpl->m_FocusInputString.expired()){
+			auto ShPtr = pImpl->m_FocusInputString.lock();
+			return ShPtr;
+		}
+		else{
+			return nullptr;
+		}
+	}
+	void InputTextManager::SetFocusInputString(const shared_ptr<InputStringSprite>& Ptr){
+		pImpl->m_FocusInputString = Ptr;
+	}
+
+
+	void InputTextManager::OnKeyDown(WPARAM wParam, LPARAM lParam){
+		if (GetFocusInputString()){
+			GetFocusInputString()->OnKeyDown(wParam, lParam);
+		}
+	}
+
+	void InputTextManager::OnChar(WPARAM wParam, LPARAM lParam){
+		if (GetFocusInputString()){
+			GetFocusInputString()->OnChar(wParam, lParam);
+		}
+	}
+
+
+	//--------------------------------------------------------------------------------------
 	//	struct Stage::Impl;
 	//	用途: Implイディオム
 	//--------------------------------------------------------------------------------------
@@ -1069,6 +1130,7 @@ namespace basedx11{
 		shared_ptr<RenderState> m_RenderState;					//レンダリングステート
 		vector< shared_ptr<GameObject> > m_GameObjectVec;	//オブジェクトの配列
 		shared_ptr<ParticleManager> m_ParticleManager;		//パーティクルマネージャ
+		shared_ptr<InputTextManager> m_InputTextManager;	//入力マネージャ
 		//シェアオブジェクトポインタのマップ
 		map<const wstring,weak_ptr<GameObject> > m_SharedMap;
 		//シェアグループのポインタのマップ
@@ -1155,6 +1217,7 @@ namespace basedx11{
 	shared_ptr<DefaultRenderTarget> Stage::GetDefaultRenderTarget() const { return pImpl->m_DefaultRenderTarget; }
 	shared_ptr<RenderState> Stage::GetRenderState() const { return pImpl->m_RenderState; }
 	shared_ptr<ParticleManager> Stage::GetParticleManager() const{ return pImpl->m_ParticleManager; }
+	shared_ptr<InputTextManager> Stage::GetInputTextManager() const{ return pImpl->m_InputTextManager; }
 
 
 	vector< shared_ptr<GameObject> >& Stage::GetGameObjectVec(){ return pImpl->m_GameObjectVec; }
@@ -1388,10 +1451,26 @@ namespace basedx11{
 
 
 	//仮想関数
+	void Stage::OnMessage(UINT message, WPARAM wParam, LPARAM lParam){
+		switch (message){
+		case WM_KEYDOWN:
+			GetInputTextManager()->OnKeyDown(wParam, lParam);
+			break;
+		case WM_CHAR:
+			GetInputTextManager()->OnChar(wParam, lParam);
+			break;
+		default:
+			break;
+		}
+	}
+
 	void Stage::PreCreate(){
 		GameObject::PreCreate();
 		//パーティクルマネージャの作成
 		pImpl->m_ParticleManager = Object::CreateObject<ParticleManager>(GetThis<Stage>());
+		//入力マネージャの作成
+		pImpl->m_InputTextManager = Object::CreateObject<InputTextManager>(GetThis<Stage>());
+
 
 		//頂点を作成するための配列
 		vector<VertexPosition> vertices = {
@@ -1954,7 +2033,11 @@ namespace basedx11{
 	shared_ptr<EventDispatcher> SceneBase::GetEventDispatcher() const{
 		return pImpl->m_EventDispatcher;
 	}
-
+	void SceneBase::OnMessage(UINT message, WPARAM wParam, LPARAM lParam){
+		if (pImpl->m_ActiveStage){
+			pImpl->m_ActiveStage->OnMessage(message,wParam, lParam);
+		}
+	}
 
 	void SceneBase::PreCreate(){
 		//イベント送信オブジェクト作成

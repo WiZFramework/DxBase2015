@@ -105,6 +105,47 @@ namespace basedx11{
 	};
 
 
+	//--------------------------------------------------------------------------------------
+	//	class InputStringSprite : publicStringSprite;
+	//	用途: InputStringSpriteコンポーネント
+	//	入力付文字列表示コンポーネント
+	//--------------------------------------------------------------------------------------
+	class InputStringSprite : public StringSprite{
+	public:
+		explicit InputStringSprite(const shared_ptr<GameObject>& GameObjectPtr);
+		virtual ~InputStringSprite();
+
+		bool GetKeyInput() const;
+		bool IsKeyInput() const;
+		void SetKeyInput(bool b);
+
+		bool IsFocus();
+		void SetFocus(bool b);
+
+		size_t GetCaret() const;
+		void SetCaret(size_t CaretIndex);
+
+		void AddText(const wstring& str);
+		void InsertText(const wstring& str);
+		void InsertText(const wstring& str, size_t CaretIndex);
+
+
+		//操作
+		virtual void OnKeyDown(WPARAM wParam, LPARAM lParam);
+		virtual void OnChar(WPARAM wParam, LPARAM lParam);
+
+		//virtual void Update()override;
+		//virtual void Draw()override;
+
+	private:
+		// pImplイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+
+	};
+
+
+
 
 
 }

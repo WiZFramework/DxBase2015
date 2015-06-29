@@ -15,22 +15,20 @@
 
 namespace basedx11{
 
-struct PlaneEX{
-	PlaneEX(){}
-	~PlaneEX(){}
+namespace PlaneEX{
 /**************************************************************************
- static float Dot(
+ static inline  float Dot(
 	const Plane& plane,		//計算もとの平面
 	const Vector4& other	//計算するVector4
  );
  用途: planeとotherの内積を返す
  戻り値: 内積
 ***************************************************************************/
-	static float Dot(const Plane& plane,const Vector4& other){
+	static inline  float Dot(const Plane& plane,const Vector4& other){
 		return ((Vector4)XMPlaneDot(XMVECTOR(plane),XMVECTOR(other))).x;
 	}
 /**************************************************************************
- static float DotCoord(
+ static inline  float DotCoord(
 	const Plane& plane,		//計算もとの平面
 	const Vector3& other	//相手のVector3
  );
@@ -38,11 +36,11 @@ struct PlaneEX{
  戻り値: 内積
  ＊あるポイントから平面までの符号付き距離を求めるのに便利である
 ***************************************************************************/
-	static float DotCoord(const Plane& plane,const Vector3& other){
+	static inline  float DotCoord(const Plane& plane,const Vector3& other){
 		return  ((Vector4)XMPlaneDotCoord(XMVECTOR(plane),XMVECTOR(other))).x;
 	}
 /**************************************************************************
- static float DotNormal(
+ static inline  float DotNormal(
 	const Plane& plane,		//計算もとの平面
 	const Vector3& other	//相手のVector3
  );
@@ -50,33 +48,33 @@ struct PlaneEX{
  戻り値: 内積
  ＊平面の法線ベクトルと別の法線ベクトルとの角度を算出するときに役立つ
 ***************************************************************************/
-	static float DotNormal(const Plane& plane,const Vector3& other){
+	static inline  float DotNormal(const Plane& plane,const Vector3& other){
 		return ((Vector4)XMPlaneDotNormal(XMVECTOR(plane),XMVECTOR(other))).x;
 	}
 /**************************************************************************
- static bool Equal(
+ static inline  bool Equal(
 	const Plane& plane,		//計算もとの平面
 	const Plane& other	//相手のPlane
  );
  用途:　planeと相手の平面が同じかどうかを調べる
  戻り値: 同じならtrue
 ***************************************************************************/
-	static bool Equal(const Plane& plane,const Plane& other){
+	static inline  bool Equal(const Plane& plane,const Plane& other){
 		return XMPlaneEqual(XMVECTOR(plane),XMVECTOR(other));
 	}
 /**************************************************************************
- static Plane FromPointNormal(
+ static inline  Plane FromPointNormal(
 	const Vector3& Point,	//平面上の点
 	const Vector3& Normal	//法線
  );
  用途:　点と法線から平面を作成して、返す
  戻り値: 作成したPlane
 ***************************************************************************/
-	static Plane FromPointNormal(const Vector3& Point,const Vector3& Normal){
+	static inline  Plane FromPointNormal(const Vector3& Point,const Vector3& Normal){
 		return (Plane)XMPlaneFromPointNormal(XMVECTOR(Point),XMVECTOR(Normal));
 	}
 /**************************************************************************
- static Plane FromPoints(
+ static inline  Plane FromPoints(
 	const Vector3& Point1,	//頂点1
 	const Vector3& Point2,	//頂点2
 	const Vector3& Point3	//頂点3
@@ -84,11 +82,11 @@ struct PlaneEX{
  用途:　３点から平面を作成して、返す
  戻り値: 作成したPlane
 ***************************************************************************/
-	static Plane FromPoints(const Vector3& Point1,const Vector3& Point2,const Vector3& Point3){
+	static inline  Plane FromPoints(const Vector3& Point1,const Vector3& Point2,const Vector3& Point3){
 		return (Plane)XMPlaneFromPoints(XMVECTOR(Point1),XMVECTOR(Point2),XMVECTOR(Point3));
 	}
 /**************************************************************************
- static Vector3 IntersectLine(
+ static inline  Vector3 IntersectLine(
 	const Plane& plane,		//計算もとの平面
 	const Vector3& LinePoint1,	//頂点1
 	const Vector3& LinePoint2	//頂点2
@@ -98,13 +96,13 @@ struct PlaneEX{
  ＊平面と直線が平行の場合は、戻る各値はQNaN（非数） になるので、
  　Vector3::IsNaN()などでチェックする
 ***************************************************************************/
-	static Vector3 IntersectLine(const Plane& plane,
+	static inline  Vector3 IntersectLine(const Plane& plane,
 		const Vector3& LinePoint1,const Vector3& LinePoint2){
 		return (Vector3)XMPlaneIntersectLine(XMVECTOR(plane),
 			XMVECTOR(LinePoint1),XMVECTOR(LinePoint2));
 	}
 /**************************************************************************
- static void IntersectPlane(
+ static inline  void IntersectPlane(
 	Vector3& RetLinePoint1,	//返される頂点1
 	Vector3& RetLinePoint2,	//返される頂点2
 	const Plane& plane,		//計算もとの平面
@@ -116,7 +114,7 @@ struct PlaneEX{
  ＊2つの平面が平行の場合は、戻る各値はQNaN（非数） になるので、
  　Vector3::IsNaN()などでチェックする
 ***************************************************************************/
-	static void IntersectPlane(Vector3& RetLinePoint1,Vector3& RetLinePoint2,
+	static inline  void IntersectPlane(Vector3& RetLinePoint1,Vector3& RetLinePoint2,
 		const Plane& plane,const Plane& other){
 		XMVECTOR Temp1,Temp2;
 		XMPlaneIntersectPlane(&Temp1,&Temp2,XMVECTOR(plane),XMVECTOR(other));
@@ -124,28 +122,28 @@ struct PlaneEX{
 		RetLinePoint2 = (Vector3)Temp2;
 	}
 /**************************************************************************
- static bool IsInfinite(
+ static inline  bool IsInfinite(
 	const Plane& plane		//計算もとの平面
  );
  用途:　planeの要素のいずれかが正または負の無限大かどうかを調べる
  戻り値: 正または負の無限大ならtrue
 ***************************************************************************/
-	static bool IsInfinite(const Plane& plane){
+	static inline  bool IsInfinite(const Plane& plane){
 		return XMPlaneIsInfinite(XMVECTOR(plane));
 	}
 /**************************************************************************
- static bool IsNaN(
+ static inline  bool IsNaN(
 	const Plane& plane		//計算もとの平面
  );
  用途:　Planeの要素のいずれかが NaNかどうかを調べる
  戻り値: NaNならtrue
  ＊thisは変更しない
 ***************************************************************************/
-	static bool IsNaN(const Plane& plane){
+	static inline  bool IsNaN(const Plane& plane){
 		return XMPlaneIsNaN(XMVECTOR(plane));
 	}
 /**************************************************************************
- static bool NearEqual(
+ static inline  bool NearEqual(
 	const Plane& plane,		//計算もとの平面
 	const Plane& other		//planeと比べられるもう一つの面
 	const Vector4& Epsilon	//各要素の許容範囲
@@ -153,156 +151,154 @@ struct PlaneEX{
  用途:　planeともう一つの平面がほぼ等しいかどうか調べる
  戻り値: ほぼ等しければtrue
 ***************************************************************************/
-	static bool NearEqual(const Plane& plane,const Plane& other,const Vector4& Epsilon){
+	static inline  bool NearEqual(const Plane& plane,const Plane& other,const Vector4& Epsilon){
 		return XMPlaneNearEqual(XMVECTOR(plane),XMVECTOR(other),Epsilon);
 	}
 /**************************************************************************
- static Plane Normalize(
+ static inline  Plane Normalize(
 	const Plane& plane		//計算もとの平面
  );
  用途:planeを正規化する
  戻り値:正規化した平面
 ***************************************************************************/
-	static Plane Normalize(const Plane& plane){
+	static inline  Plane Normalize(const Plane& plane){
 		return (Plane)XMPlaneNormalize(XMVECTOR(plane));
 	}
 /**************************************************************************
- static Plane NormalizeEst(
+ static inline  Plane NormalizeEst(
 	const Plane& plane		//計算もとの平面
  );
  用途:planeをx,y,zの係数が単位の法線ベクトルを形成するように、平面の係数を予測
  戻り値: 予測した平面
 ***************************************************************************/
-	static Plane NormalizeEst(const Plane& plane){
+	static inline  Plane NormalizeEst(const Plane& plane){
 		return (Plane)XMPlaneNormalizeEst(XMVECTOR(plane));
 	}
 /**************************************************************************
- static bool NotEqual(
+ static inline  bool NotEqual(
 	const Plane& plane,		//計算もとの平面
 	const Plane& other	//相手のPlane
  );
  用途:　planeと相手の平面が等しくないかどうかを調べる
  戻り値: 等しくないならtrue
 ***************************************************************************/
-	static bool NotEqual(const Plane& plane,const Plane& other){
+	static inline  bool NotEqual(const Plane& plane,const Plane& other){
 		return XMPlaneNotEqual(XMVECTOR(plane),XMVECTOR(other));
 	}
 /**************************************************************************
- static Plane Transform(
+ static inline  Plane Transform(
 	const Plane& plane,		//計算もとの平面
 	const XMMATRIX& m	//トランスフォームする行列
  );
  用途:planeをmでトランスフォームする
  戻り値: トランスフォームした平面
 ***************************************************************************/
-	static Plane Transform(const Plane& plane,const XMMATRIX& m){
+	static inline  Plane Transform(const Plane& plane,const XMMATRIX& m){
 		return (Plane)XMPlaneTransform(XMVECTOR(plane),m);
 	}
 //　XMPlaneTransformStream関数は、ラッピング関数は用意しない
 //　理由：パラメータに配列を渡す必要があり、ラッピングによって、最適化が損なわれる
 };
 
-struct Color4EX{
-	Color4EX(){}
-	~Color4EX(){}
+namespace Color4EX{
 	//比較
 /**************************************************************************
- static bool Equal(
+ static inline  bool Equal(
 	const Color4& Col,		//カラー
 	const Color4& other		//比較するカラー
  );
  用途: カラーがもう一つのカラーと等しいかどうかを検証する
  戻り値: 等しければtrue
 ***************************************************************************/
-	static bool Equal(const Color4& Col,const Color4& other){
+	static inline  bool Equal(const Color4& Col,const Color4& other){
 		return XMColorEqual(XMVECTOR(Col),XMVECTOR(other));
 	}
 /**************************************************************************
- static bool NotEqual(
+ static inline  bool NotEqual(
 	const Color4& Col,		//カラー
 	const Color4& other		//比較するカラー
  );
  用途: カラーがもう一つのカラーと等しくないかどうかを検証する
  戻り値: 等しくなければtrue
 ***************************************************************************/
-	static bool NotEqual(const Color4& Col,const Color4& other){
+	static inline  bool NotEqual(const Color4& Col,const Color4& other){
 		return XMColorNotEqual(XMVECTOR(Col),XMVECTOR(other));
 	}
 /**************************************************************************
- static bool Greater(
+ static inline  bool Greater(
 	const Color4& Col,		//カラー
 	const Color4& other		//比較するカラー
  );
  用途: カラーがもう一つのカラーより大きいかどうかを検証する
  戻り値: 大きければtrue
 ***************************************************************************/
-	static bool Greater(const Color4& Col,const Color4& other){
+	static inline  bool Greater(const Color4& Col,const Color4& other){
 		return XMColorGreater(XMVECTOR(Col),XMVECTOR(other));
 	}
 /**************************************************************************
- static bool GreaterOrEqual(
+ static inline  bool GreaterOrEqual(
 	const Color4& Col,		//カラー
 	const Color4& other		//比較するカラー
  );
  用途: カラーがもう一つのカラー以上かどうかを検証する
  戻り値: 以上であればtrue
 ***************************************************************************/
-	static bool GreaterOrEqual(const Color4& Col,const Color4& other){
+	static inline  bool GreaterOrEqual(const Color4& Col,const Color4& other){
 		return XMColorGreaterOrEqual(XMVECTOR(Col),XMVECTOR(other));
 	}
 /**************************************************************************
- static bool LessOrEqual(
+ static inline  bool LessOrEqual(
 	const Color4& Col,		//カラー
 	const Color4& other		//比較するカラー
  );
  用途: カラーがもう一つのカラー以下かどうかを検証する
  戻り値: 以下であればtrue
 ***************************************************************************/
-	static bool LessOrEqual(const Color4& Col,const Color4& other){
+	static inline  bool LessOrEqual(const Color4& Col,const Color4& other){
 		return XMColorLessOrEqual(XMVECTOR(Col),XMVECTOR(other));
 	}
 /**************************************************************************
- static bool Less(
+ static inline  bool Less(
 	const Color4& Col,		//カラー
 	const Color4& other		//比較するカラー
  );
  用途: カラーがもう一つのカラーより小さいかどうかを検証する
  戻り値: より小さければtrue
 ***************************************************************************/
-	static bool Less(const Color4& Col,const Color4& other){
+	static inline  bool Less(const Color4& Col,const Color4& other){
 		return XMColorLess(XMVECTOR(Col),XMVECTOR(other));
 	}
 	//状態
 /**************************************************************************
- static bool IsInfinite(
+ static inline  bool IsInfinite(
 	const Color4& Col		//カラー
  );
  用途: カラーのいずれかの成分が正または負の無限大かどうかをテストする
  戻り値: カラーのいずれかの成分が正または負の無限大ならtrue
 ***************************************************************************/
-	static bool IsInfinite(const Color4& Col){
+	static inline  bool IsInfinite(const Color4& Col){
 		return XMColorIsInfinite(XMVECTOR(Col));
 	}
 /**************************************************************************
- static bool IsNaN(
+ static inline  bool IsNaN(
 	const Color4& Col		//カラー
  );
  用途: カラーのいずれかの成分がNaNかどうかをテストする
  戻り値: カラーのいずれかの成分がNaNならtrue
 ***************************************************************************/
-	static bool IsNaN(const Color4& Col){
+	static inline  bool IsNaN(const Color4& Col){
 		return XMColorIsNaN(XMVECTOR(Col));
 	}
 	//操作
 /**************************************************************************
- static Color4 AdjustRange (
+ static inline  Color4 AdjustRange (
 		const Color4& Col	//カラー
  );
  用途: カラーを0.0から1.0の範囲に調整する
  戻り値: 調整したカラー
  ＊範囲外の要素は0.0か1.0に設定される
 ***************************************************************************/
-	static Color4 AdjustRange(const Color4& Col){
+	static inline  Color4 AdjustRange(const Color4& Col){
 		Color4 temp = Col;
 		if(temp.x <= 0){
 			temp.x = 0;
@@ -331,7 +327,7 @@ struct Color4EX{
 		return temp;
 	}
 /**************************************************************************
- static Color4 AdjustContrast(
+ static inline  Color4 AdjustContrast(
 		const Color4& Col,	//カラー
 		float Contrast		//コントラスト範囲
  );
@@ -339,13 +335,13 @@ struct Color4EX{
  戻り値: 調整したカラー
  ＊カラーは0.0から1.0の範囲に調整され、計算される
 ***************************************************************************/
-	static Color4 AdjustContrast(const Color4& Col,float Contrast){
+	static inline  Color4 AdjustContrast(const Color4& Col,float Contrast){
 		Color4 temp = Col;
 		temp.AdjustRange();
 		return (Color4)XMColorAdjustContrast(XMVECTOR(temp),Contrast);
 	}
 /**************************************************************************
- static Color4 AdjustSaturation(
+ static inline  Color4 AdjustSaturation(
 		const Color4& Col,	//カラー
 		float Saturation		//彩度値
  );
@@ -354,132 +350,130 @@ struct Color4EX{
  ＊カラーは0.0から1.0の範囲に調整され、計算される
  ＊彩度値が0の場合はグレースケール、1.0の場合はもとの色になる
 ***************************************************************************/
-	static Color4 AdjustSaturation(const Color4& Col,float Saturation){
+	static inline  Color4 AdjustSaturation(const Color4& Col,float Saturation){
 		Color4 temp = Col;
 		temp.AdjustRange();
 		return (Color4)XMColorAdjustSaturation(XMVECTOR(temp),Saturation);
 	}
 /**************************************************************************
- static Color4 Modulate(
+ static inline  Color4 Modulate(
 		const Color4& Col1,	//カラー1
 		const Color4& Col2	//カラー2
  );
  用途: 対応する成分を乗算して2つのカラーをブレンドする
  戻り値: ブレンドしたカラー
 ***************************************************************************/
-	static Color4 Modulate(const Color4& Col1,const Color4& Col2){
+	static inline  Color4 Modulate(const Color4& Col1,const Color4& Col2){
 		return (Color4)XMColorModulate(XMVECTOR(Col1),XMVECTOR(Col2));
 	}
 /**************************************************************************
- static Color4 Negative(
+ static inline  Color4 Negative(
 		const Color4& Col	//カラー
  );
  用途: カラーの負の RGB カラー値を求める
  戻り値: 負の RGB カラー値
  ＊カラーは0.0から1.0の範囲に調整され、計算される
 ***************************************************************************/
-	static Color4 Negative(const Color4& Col){
+	static inline  Color4 Negative(const Color4& Col){
 		Color4 temp = Col;
 		temp.AdjustRange();
 		return (Color4)XMColorNegative(XMVECTOR(temp));
 	}
 /**************************************************************************
- static Color4 GrayColor();
+ static inline  Color4 GrayColor();
  用途: グレーのカラーを得る
  戻り値: グレーのカラー値（0.5,0.5,0.5,1.0）
 ***************************************************************************/
-	static Color4 GrayColor(){
+	static inline  Color4 GrayColor(){
 		return Color4(0.5f,0.5f,0.5f,1.0f);
 	}
 /**************************************************************************
- static Color4 WhiteColor();
+ static inline  Color4 WhiteColor();
  用途: 白のカラーを得る
  戻り値: 白のカラー値（1.0,1.0,1.0,1.0）
 ***************************************************************************/
-	static Color4 WhiteColor(){
+	static inline  Color4 WhiteColor(){
 		return Color4(1.0f,1.0f,1.0f,1.0f);
 	}
 };
 //end Color4EX
 
-struct QuaternionEX{
-	QuaternionEX(){}
-	~QuaternionEX(){}
+namespace QuaternionEX{
 	//比較
 /**************************************************************************
- static bool Equal(
+ static inline  bool Equal(
 	const Quaternion& Qt1,	//クオータニオン1
 	const Quaternion& Qt2	//クオータニオン2
  );
  用途: 2つのクオータニオンが等しいかどうかを検証する
  戻り値: 等しければtrue
 ***************************************************************************/
-	static bool Equal(const Quaternion& Qt1,const Quaternion& Qt2){
+	static inline  bool Equal(const Quaternion& Qt1,const Quaternion& Qt2){
 		return XMQuaternionEqual(XMVECTOR(Qt1),XMVECTOR(Qt2));
 	}
 /**************************************************************************
- static bool NotEqual(
+ static inline  bool NotEqual(
 	const Quaternion& Qt1,	//クオータニオン1
 	const Quaternion& Qt2	//クオータニオン2
  );
  用途: 2つのクオータニオンが等しくないかどうかを検証する
  戻り値: 等しくなければtrue
 ***************************************************************************/
-	static bool NotEqual(const Quaternion& Qt1,const Quaternion& Qt2){
+	static inline  bool NotEqual(const Quaternion& Qt1,const Quaternion& Qt2){
 		return XMQuaternionNotEqual(XMVECTOR(Qt1),XMVECTOR(Qt2));
 	}
 	//検証
 /**************************************************************************
- static bool IsIdentity(
+ static inline  bool IsIdentity(
 	const Quaternion& Qt	//クオータニオン
  );
  用途: クオータニオンが 単位クオータニオン(0, 0, 0, 1)かどうかを検証する。
  戻り値:  単位クオータニオンならばtrue
 ***************************************************************************/
-	static bool IsIdentity(const Quaternion& Qt){
+	static inline  bool IsIdentity(const Quaternion& Qt){
 		return XMQuaternionIsIdentity(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static bool IsInfinite(
+ static inline  bool IsInfinite(
 	const Quaternion& Qt	//クオータニオン
  );
  用途: クオータニオンの値のいずれかが正か負の無限大かどうかを検証する。
  戻り値: 値のいずれかが正か負の無限大ならばtrue
 ***************************************************************************/
-	static bool IsInfinite(const Quaternion& Qt){
+	static inline  bool IsInfinite(const Quaternion& Qt){
 		return XMQuaternionIsInfinite(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static bool IsNaN(
+ static inline  bool IsNaN(
 	const Quaternion& Qt	//クオータニオン
  );
  用途: クオータニオンの値のいずれかがNaNかどうかを検証する。
  戻り値: 値のいずれかがNaNならばtrue
 ***************************************************************************/
-	static bool IsNaN(const Quaternion& Qt){
+	static inline  bool IsNaN(const Quaternion& Qt){
 		return XMQuaternionIsNaN(XMVECTOR(Qt));
 	}
 	//操作
 /**************************************************************************
- static Quaternion AddRotation(
+ static inline  Quaternion AddRotation(
 	const Quaternion& Qt,	//もとになるクオータニオン
 	const Vector3& other	//追加回転する回転行列
  );
  用途: 回転行列を追加回転する
  戻り値: なし
 ***************************************************************************/
-	static Quaternion AddRotation(const Quaternion& Qt,const Vector3& other){
+	static inline  Quaternion AddRotation(const Quaternion& Qt,const Vector3& other){
 		Quaternion Span;
 		Span.RotationRollPitchYawFromVector(other);
 		return (Quaternion)XMQuaternionMultiply(XMVECTOR(Qt),XMVECTOR(Span));
 	}
 
 /**************************************************************************
- static Vector3 GetRotation();
+ static inline  Vector3 GetRotation();
  用途: クオータニオンから回転行列に変換して返す
  戻り値: 回転行列
 ***************************************************************************/
-	static Vector3 GetRotation(const Quaternion& Qt){
+	static inline  Vector3 GetRotation(const Quaternion& Qt){
 		Quaternion Temp = Qt;
 		Temp.Normalize();
 		Matrix4X4 mt;
@@ -503,7 +497,7 @@ struct QuaternionEX{
 		return Rot;
 	}
 /**************************************************************************
- static Quaternion BaryCentric(
+ static inline  Quaternion BaryCentric(
 	const Quaternion& Q0,	//三角形の 1 つ目のクオータニオン
 	const Quaternion& Q1,	//三角形の 2 つ目のクオータニオン
 	const Quaternion& Q2,	//三角形の 3 つ目のクオータニオン
@@ -513,11 +507,11 @@ struct QuaternionEX{
  用途: 指定されたクオータニオンを使用して、重心座標のポイントを返す
  戻り値: 重心座標のクオータニオン
 ***************************************************************************/
-	static Quaternion BaryCentric(const Quaternion& Q0,const Quaternion& Q1,const Quaternion& Q2,float f,float g){
+	static inline  Quaternion BaryCentric(const Quaternion& Q0,const Quaternion& Q1,const Quaternion& Q2,float f,float g){
 		return (Quaternion)XMQuaternionBaryCentric(XMVECTOR(Q0),XMVECTOR(Q1),XMVECTOR(Q2),f,g);
 	}
 /**************************************************************************
- static Quaternion BaryCentric(
+ static inline  Quaternion BaryCentric(
 	const Quaternion& Q0,	//三角形の 1 つ目のクオータニオン
 	const Quaternion& Q1,	//三角形の 2 つ目のクオータニオン
 	const Quaternion& Q2,	//三角形の 3 つ目のクオータニオン
@@ -528,166 +522,166 @@ struct QuaternionEX{
  戻り値: 重心座標のクオータニオン
  ＊ベクトルfとgはそれぞれ要素が同じ値にする
 ***************************************************************************/
-	static Quaternion BaryCentricV(const Quaternion& Q0,const Quaternion& Q1,const Quaternion& Q2,
+	static inline  Quaternion BaryCentricV(const Quaternion& Q0,const Quaternion& Q1,const Quaternion& Q2,
 		const Vector4& f,const Vector4& g){
 		return (Quaternion)XMQuaternionBaryCentricV(XMVECTOR(Q0),XMVECTOR(Q1),XMVECTOR(Q2),XMVECTOR(f),XMVECTOR(g));
 	}
 /**************************************************************************
- static Quaternion Conjugate(
+ static inline  Quaternion Conjugate(
 	const Quaternion& Qt	//クオータニオン
  );
  用途: クオータニオンの共役を返す
  戻り値: クオータニオンの共役
 ***************************************************************************/
-	static Quaternion Conjugate(const Quaternion& Qt){
+	static inline  Quaternion Conjugate(const Quaternion& Qt){
 		return (Quaternion)XMQuaternionConjugate(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static float Dot(
+ static inline  float Dot(
 	const Quaternion& Qt1,	//クオータニオン1
 	const Quaternion& Qt2		//クオータニオン2
  );
  用途: 2つのクオータニオンの内積を返す
  戻り値: クオータニオンの内積
 ***************************************************************************/
-	static float Dot(const Quaternion& Qt1,const Quaternion& Qt2){
+	static inline  float Dot(const Quaternion& Qt1,const Quaternion& Qt2){
 		return ((Vector4)XMQuaternionDot(XMVECTOR(Qt1),XMVECTOR(Qt2))).x;
 	}
 /**************************************************************************
- static Quaternion Exp(
+ static inline  Quaternion Exp(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンの指数を返す
  戻り値: クオータニオンの指数
  ＊入力のw要素は無視される
 ***************************************************************************/
-	static Quaternion Exp(const Quaternion& Qt){
+	static inline  Quaternion Exp(const Quaternion& Qt){
 		return (Quaternion)XMQuaternionExp(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static Quaternion Identity();
+ static inline  Quaternion Identity();
  用途: 単位クオータニオンを返す
  戻り値: 単位クオータニオン
 ***************************************************************************/
-	static Quaternion Identity(){
+	static inline  Quaternion Identity(){
 		return (Quaternion)XMQuaternionIdentity();
 	}
 /**************************************************************************
- static Quaternion Inverse(
+ static inline  Quaternion Inverse(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンの反転を返す
  戻り値: クオータニオンの反転
 ***************************************************************************/
-	static Quaternion Inverse(const Quaternion& Qt){
+	static inline  Quaternion Inverse(const Quaternion& Qt){
 		return (Quaternion)XMQuaternionInverse(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static float Length(
+ static inline  float Length(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンの長さを返す
  戻り値: クオータニオンの長さ
 ***************************************************************************/
-	static float Length(const Quaternion& Qt){
+	static inline  float Length(const Quaternion& Qt){
 		return ((Vector4)XMQuaternionLength(XMVECTOR(Qt))).x;
 	}
 /**************************************************************************
- static float LengthSq(
+ static inline  float LengthSq(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンの長さの2乗を返す
  戻り値: クオータニオンの長さの2乗
 ***************************************************************************/
-	static float LengthSq(const Quaternion& Qt){
+	static inline  float LengthSq(const Quaternion& Qt){
 		return ((Vector4)XMQuaternionLengthSq(XMVECTOR(Qt))).x;
 	}
 /**************************************************************************
- static Quaternion Ln(
+ static inline  Quaternion Ln(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンの自然対数を返す
  戻り値: クオータニオンの自然対数
  ＊入力は正規化しておく
 ***************************************************************************/
-	static Quaternion Ln(const Quaternion& Qt){
+	static inline  Quaternion Ln(const Quaternion& Qt){
 		return (Quaternion)XMQuaternionLn(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static Quaternion Multiply(
+ static inline  Quaternion Multiply(
 	const Quaternion& Qt1,		//クオータニオン1
 	const Quaternion& Qt2			//クオータニオン2
  );
  用途: 2つのクオータニオンを乗算して返す
  戻り値: クオータニオンの乗算
 ***************************************************************************/
-	static Quaternion Multiply(const Quaternion& Qt1,const Quaternion& Qt2){
+	static inline  Quaternion Multiply(const Quaternion& Qt1,const Quaternion& Qt2){
 		return (Quaternion)XMQuaternionMultiply(XMVECTOR(Qt1),XMVECTOR(Qt2));
 	}
 /**************************************************************************
- static Quaternion Normalize(
+ static inline  Quaternion Normalize(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンを正規化して返す
  戻り値: 正規化したクオータニオン
 ***************************************************************************/
-	static Quaternion Normalize(const Quaternion& Qt){
+	static inline  Quaternion Normalize(const Quaternion& Qt){
 		return (Quaternion)XMQuaternionNormalize(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static Quaternion NormalizeEst(
+ static inline  Quaternion NormalizeEst(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンを正規化バージョンの予測値を返す
  戻り値: 正規化バージョンの予測値
 ***************************************************************************/
-	static Quaternion NormalizeEst(const Quaternion& Qt){
+	static inline  Quaternion NormalizeEst(const Quaternion& Qt){
 		return (Quaternion)XMQuaternionNormalizeEst(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static float ReciprocalLength(
+ static inline  float ReciprocalLength(
 	const Quaternion& Qt		//クオータニオン
  );
  用途: クオータニオンの長さの逆数を返す
  戻り値: クオータニオンの長さの逆数
 ***************************************************************************/
-	 static float ReciprocalLength(const Quaternion& Qt){
+	 static inline  float ReciprocalLength(const Quaternion& Qt){
 		return ((Vector4)XMQuaternionReciprocalLength(XMVECTOR(Qt))).x;
 	}
 /**************************************************************************
- static Quaternion RotationAxis(
+ static inline  Quaternion RotationAxis(
 	const Vector3& Vec,		//回転軸を表す３Ｄベクトル
 	float Angle				//回転角度（時計回りラジアン）
  );
  用途: 回転軸と角度からクオータニオンを作成する
  戻り値: 作成したクオータニオン
 ***************************************************************************/
-	static Quaternion RotationAxis(const Vector3& Vec,float Angle){
+	static inline  Quaternion RotationAxis(const Vector3& Vec,float Angle){
 		return (Quaternion)XMQuaternionRotationAxis(XMVECTOR(Vec),Angle);
 	}
 /**************************************************************************
- static Quaternion RotationMatrix(
+ static inline  Quaternion RotationMatrix(
 	const XMMATRIX& m				//回転行列
  );
  用途: 回転行列からクオータニオンを作成する
  戻り値: 作成したクオータニオン
 ***************************************************************************/
-	static Quaternion RotationMatrix(const XMMATRIX& m){
+	static inline  Quaternion RotationMatrix(const XMMATRIX& m){
 		return (Quaternion)XMQuaternionRotationMatrix(m);
 	}
 /**************************************************************************
- static Quaternion RotationNormal(
+ static inline  Quaternion RotationNormal(
 	const Vector3& Vec,		//回転軸を表す正規化された３Ｄベクトル
 	float Angle				//回転角度（時計回りラジアン）
  );
  用途: 正規化された回転軸と角度からクオータニオンを作成する
  戻り値: 作成したクオータニオン
 ***************************************************************************/
-	static Quaternion RotationNormal(const Vector3& Vec,float Angle){
+	static inline  Quaternion RotationNormal(const Vector3& Vec,float Angle){
 		return (Quaternion)XMQuaternionRotationNormal(XMVECTOR(Vec),Angle);
 	}
 /**************************************************************************
- static Quaternion RotationRollPitchYaw(
+ static inline  Quaternion RotationRollPitchYaw(
 	float Pitch,		//X軸回転（ラジアン）
 	float Yaw,			//Y軸回転（ラジアン）
 	float Roll			//Z軸回転（ラジアン）
@@ -696,22 +690,22 @@ struct QuaternionEX{
  戻り値: 作成したクオータニオン
  ＊回転はRollPitchYaw（Z、Y、X）の順で行われる
 ***************************************************************************/
-	static Quaternion RotationRollPitchYaw(float Pitch,float Yaw,float Roll){
+	static inline  Quaternion RotationRollPitchYaw(float Pitch,float Yaw,float Roll){
 		return (Quaternion)XMQuaternionRotationRollPitchYaw(Pitch,Yaw,Roll);
 	}
 /**************************************************************************
- static Quaternion RotationRollPitchYawFromVector(
+ static inline  Quaternion RotationRollPitchYawFromVector(
 	const Vector3& Vec		//回転軸を表す３Ｄベクトル
  );
  用途: 3D回転ベクトルからクオータニオンを作成する
  戻り値: 作成したクオータニオン
  ＊回転はRollPitchYaw（Z、Y、X）の順で行われる
 ***************************************************************************/
-	static Quaternion RotationRollPitchYawFromVector(const Vector3& Vec){
+	static inline  Quaternion RotationRollPitchYawFromVector(const Vector3& Vec){
 		return (Quaternion)XMQuaternionRotationRollPitchYawFromVector(Vec);
 	}
 /**************************************************************************
- static Quaternion Slerp(
+ static inline  Quaternion Slerp(
 	const Quaternion& Qt0,		//補間元（正規化されたクオータニオン）
 	const Quaternion& Qt1,		//補間先（正規化されたクオータニオン）
 	float t						//補間係数（0.0fから1.0fの間を指定）
@@ -720,11 +714,11 @@ struct QuaternionEX{
  戻り値: 作成したクオータニオン
  ＊係数が0の場合はQ0、1.0ならQ1と同じものを返す
 ***************************************************************************/
-	static Quaternion Slerp(const Quaternion& Qt0,const Quaternion& Qt1,float t){
+	static inline  Quaternion Slerp(const Quaternion& Qt0,const Quaternion& Qt1,float t){
 		return (Quaternion)XMQuaternionSlerp(XMVECTOR(Qt0),XMVECTOR(Qt1),t);
 	}
 /**************************************************************************
- static Quaternion SlerpV(
+ static inline  Quaternion SlerpV(
 	const Quaternion& Qt0,		//補間元（正規化されたクオータニオン）
 	const Quaternion& Qt1,		//補間先（正規化されたクオータニオン）
 	const Vector4& Vec			//補間係数（すべての要素を0.0fから1.0fの間の同じ値を指定）
@@ -733,11 +727,11 @@ struct QuaternionEX{
  戻り値: 作成したクオータニオン
  ＊係数が0の場合はQ0、1.0ならQ1と同じものを返す
 ***************************************************************************/
-	static Quaternion SlerpV(const Quaternion& Qt0,const Quaternion& Qt1,const Vector4& Vec){
+	static inline  Quaternion SlerpV(const Quaternion& Qt0,const Quaternion& Qt1,const Vector4& Vec){
 		return (Quaternion)XMQuaternionSlerpV(XMVECTOR(Qt0),XMVECTOR(Qt1),XMVECTOR(Vec));
 	}
 /**************************************************************************
- static Quaternion Squad(
+ static inline  Quaternion Squad(
 	const Quaternion& Qt0,		//正規化されたクオータニオン１
 	const Quaternion& Qt1,		//正規化されたクオータニオン２
 	const Quaternion& Qt2,		//正規化されたクオータニオン３
@@ -748,11 +742,11 @@ struct QuaternionEX{
  戻り値: 作成したクオータニオン
  ＊Q1、Q2、Q3はQuaternionEX::SquadSetup関数で作成する
 ***************************************************************************/
-	static Quaternion Squad(const Quaternion& Qt0,const Quaternion& Qt1,const Quaternion& Qt2,const Quaternion& Qt3,float t){
+	static inline  Quaternion Squad(const Quaternion& Qt0,const Quaternion& Qt1,const Quaternion& Qt2,const Quaternion& Qt3,float t){
 		return (Quaternion)XMQuaternionSquad(XMVECTOR(Qt0),XMVECTOR(Qt1),XMVECTOR(Qt2),XMVECTOR(Qt3),t);
 	}
 /**************************************************************************
- static void SquadSetup(
+ static inline  void SquadSetup(
 	Quaternion* pA,				//結果を受けるクオータニオンA
 	Quaternion* pB,				//結果を受けるクオータニオンB
 	Quaternion* pC,				//結果を受けるクオータニオンC
@@ -765,7 +759,7 @@ struct QuaternionEX{
  戻り値: なし
  ＊pA、pB、pCはそれぞれSquad()、SquadV()関数のQt1、Qt2、Qt3に入力する
 ***************************************************************************/
-	static void SquadSetup(Quaternion* pA,Quaternion* pB,Quaternion* pC,
+	static inline  void SquadSetup(Quaternion* pA,Quaternion* pB,Quaternion* pC,
 		const Quaternion& Qt0,const Quaternion& Qt1,const Quaternion& Qt2,const Quaternion& Qt3){
 		XMVECTOR A(*pA);
 		XMVECTOR B(*pB);
@@ -777,7 +771,7 @@ struct QuaternionEX{
 		*pC = C;
 	}
 /**************************************************************************
- static Quaternion SquadV(
+ static inline  Quaternion SquadV(
 	const Quaternion& Qt0,		//正規化されたクオータニオン１
 	const Quaternion& Qt1,		//正規化されたクオータニオン２
 	const Quaternion& Qt2,		//正規化されたクオータニオン３
@@ -788,11 +782,11 @@ struct QuaternionEX{
  戻り値: 作成したクオータニオン
  ＊Q1、Q2、Q3はQuaternionEX::SquadSetup関数で作成する
 ***************************************************************************/
-	static Quaternion SquadV(const Quaternion& Qt0,const Quaternion& Qt1,const Quaternion& Qt2,const Quaternion& Qt3,const Vector4& Vec){
+	static inline  Quaternion SquadV(const Quaternion& Qt0,const Quaternion& Qt1,const Quaternion& Qt2,const Quaternion& Qt3,const Vector4& Vec){
 		return (Quaternion)XMQuaternionSquadV(XMVECTOR(Qt0),XMVECTOR(Qt1),XMVECTOR(Qt2),XMVECTOR(Qt3),XMVECTOR(Vec));
 	}
 /**************************************************************************
- static void ToAxisAngle(
+ static inline  void ToAxisAngle(
 	Vector3* pVec,			//回転軸を得る３Ｄベクトル
 	float* pAngle,			//回転角度を得る変数
 	const Quaternion& Qt	//計算もととなるクオータニオン
@@ -801,7 +795,7 @@ struct QuaternionEX{
  戻り値: なし
  ＊pVecには回転軸ベクトル、pAngleには角度が設定される
 ***************************************************************************/
-	static void ToAxisAngle(Vector3* pVec,float* pAngle,const Quaternion& Qt){
+	static inline  void ToAxisAngle(Vector3* pVec,float* pAngle,const Quaternion& Qt){
 		XMVECTOR Vec(*pVec);
 		XMQuaternionToAxisAngle(&Vec,pAngle,XMVECTOR(Qt));
 		*pVec = Vec;
@@ -809,13 +803,13 @@ struct QuaternionEX{
 
 
 /**************************************************************************
-	static Quaternion Billboard(
+	static inline  Quaternion Billboard(
 	const Vector3& Line			//計算元となる線
 	)t;
 	用途: Lineに対してビルボード角度を設定したクオータニオンを得る
 	戻り値: クオータニオン
 ***************************************************************************/
-	static Quaternion Billboard(const Vector3& Line){
+	static inline  Quaternion Billboard(const Vector3& Line){
 		Vector3 Temp = Line;
 		Matrix4X4 RotMatrix;
 		Vector4 dammi(0, 0, 0, 0);
@@ -839,7 +833,7 @@ struct QuaternionEX{
 	用途: Lineに対してフェイシング角度を設定したクオータニオンを得る
 	戻り値: クオータニオン
 ***************************************************************************/
-	static Quaternion Faceing(const Vector3& Line){
+	static inline  Quaternion Faceing(const Vector3& Line){
 		Vector3 Temp = Line;
 		Matrix4X4 RotMatrix;
 		Vector4 dammi(0, 0, 0, 0);
@@ -863,7 +857,7 @@ struct QuaternionEX{
 	用途: Lineに対してY軸フェイシング角度を設定したクオータニオンを得る
 	戻り値: クオータニオン
 ***************************************************************************/
-	static Quaternion FaceingY(const Vector3& Line){
+	static inline  Quaternion FaceingY(const Vector3& Line){
 		Vector3 Temp = Line;
 		Temp.Normalize();
 		Quaternion Qt;
@@ -879,17 +873,15 @@ struct QuaternionEX{
 //end QuaternionEX
 
 
-struct Matrix4X4EX{
-	Matrix4X4EX(){}
-	~Matrix4X4EX(){}
+namespace Matrix4X4EX{
 /**************************************************************************
- static Vector3 PosInMatrixSt(
+ static inline  Vector3 PosInMatrixSt(
 		const Matrix4X4& m						//元になる行列
  );
  用途: 行列内の位置情報を取得する(直接行列から取り出す)
  戻り値: 位置ベクトル
 ***************************************************************************/
-	static Vector3 PosInMatrixSt(const Matrix4X4& m){
+	static inline  Vector3 PosInMatrixSt(const Matrix4X4& m){
 		Vector3 Vec;
 		Vec.x = m._41;
 		Vec.y = m._42;
@@ -897,13 +889,13 @@ struct Matrix4X4EX{
 		return Vec;
 	}
 /**************************************************************************
- static Vector3 PosInMatrix(
+ static inline  Vector3 PosInMatrix(
 		const Matrix4X4& m						//元になる行列
  );
  用途: 行列内の位置情報を取得する
  戻り値: 位置ベクトル
 ***************************************************************************/
-	static Vector3 PosInMatrix(const Matrix4X4& m){
+	static inline  Vector3 PosInMatrix(const Matrix4X4& m){
 		Vector3 Vec(0,0,0);
 		XMVECTOR Scale;
 		XMVECTOR Qt;
@@ -914,13 +906,13 @@ struct Matrix4X4EX{
 		return Vec;
 	}
 /**************************************************************************
- static Vector3 ScaleInMatrix(
+ static inline  Vector3 ScaleInMatrix(
 		const Matrix4X4& m						//元になる行列
  );
  用途: 行列内のスケーリングを取得する
  戻り値: スケーリングベクトル
 ***************************************************************************/
-	static Vector3 ScaleInMatrix(const Matrix4X4& m){
+	static inline  Vector3 ScaleInMatrix(const Matrix4X4& m){
 		Vector3 Vec(1.0f,1.0f,1.0f);
 		XMVECTOR Scale;
 		XMVECTOR Qt;
@@ -931,13 +923,13 @@ struct Matrix4X4EX{
 		return Vec;
 	}
 /**************************************************************************
- static Quaternion QtInMatrix(
+ static inline  Quaternion QtInMatrix(
 		const Matrix4X4& m						//元になる行列
  );
  用途: 行列内の回転を取得する
  戻り値: 回転クオータニオン
 ***************************************************************************/
-	static Quaternion QtInMatrix(const Matrix4X4& m){
+	static inline  Quaternion QtInMatrix(const Matrix4X4& m){
 		Quaternion RetQt;
 		XMVECTOR Scale;
 		XMVECTOR Qt;
@@ -948,11 +940,11 @@ struct Matrix4X4EX{
 		return RetQt;
 	}
 /**************************************************************************
- static Vector3 RotXInMatrix();
+ static inline  Vector3 RotXInMatrix();
  用途: 行列内のX軸回転を取得する
  戻り値: X軸の回転ベクトル
 ***************************************************************************/
-	static Vector3 RotXInMatrix(const Matrix4X4& m){
+	static inline  Vector3 RotXInMatrix(const Matrix4X4& m){
 		Vector3 ret(m._11,m._12,m._13);
 		Vector3 Scale = ScaleInMatrix(m);
 		Matrix4X4::GetSafeScale(Scale);
@@ -962,11 +954,11 @@ struct Matrix4X4EX{
 		return ret;
 	}
 /**************************************************************************
- static Vector3 RotYInMatrix();
+ static inline  Vector3 RotYInMatrix();
  用途: 行列内のY軸回転を取得する
  戻り値: Y軸の回転ベクトル
 ***************************************************************************/
-	static Vector3 RotYInMatrix(const Matrix4X4& m){
+	static inline  Vector3 RotYInMatrix(const Matrix4X4& m){
 		Vector3 ret(m._21,m._22,m._23);
 		Vector3 Scale = ScaleInMatrix(m);
 		Matrix4X4::GetSafeScale(Scale);
@@ -976,11 +968,11 @@ struct Matrix4X4EX{
 		return ret;
 	}
 /**************************************************************************
- static Vector3 RotZInMatrix();
+ static inline  Vector3 RotZInMatrix();
  用途: 行列内のZ軸回転を取得する
  戻り値: Z軸の回転ベクトル
 ***************************************************************************/
-	static Vector3 RotZInMatrix(const Matrix4X4& m){
+	static inline  Vector3 RotZInMatrix(const Matrix4X4& m){
 		Vector3 ret(m._31,m._32,m._33);
 		Vector3 Scale = ScaleInMatrix(m);
 		Matrix4X4::GetSafeScale(Scale);
@@ -990,7 +982,7 @@ struct Matrix4X4EX{
 		return ret;
 	}
 /**************************************************************************
- static Matrix4X4 AffineTransformation(
+ static inline  Matrix4X4 AffineTransformation(
 		const Vector3& Scaling,					//スケーリング
 		const Vector3& RotOrigin,				//回転の中心
 		const Quaternion& RotationQuaternion,	//クオータニオン
@@ -999,13 +991,13 @@ struct Matrix4X4EX{
  用途: スケーリング、回転の中心座標、クオータニオン、平行移動から行列を作成する
  戻り値: 作成した行列
 ***************************************************************************/
-	static Matrix4X4 AffineTransformation(const Vector3& Scaling,const Vector3& RotOrigin,
+	static inline  Matrix4X4 AffineTransformation(const Vector3& Scaling,const Vector3& RotOrigin,
 			const Quaternion& RotationQuaternion,const Vector3& Translation){
 		return (Matrix4X4)XMMatrixAffineTransformation(XMVECTOR(Scaling),XMVECTOR(RotOrigin),
 			XMVECTOR(RotationQuaternion),XMVECTOR(Translation));
 	}
 /**************************************************************************
- static Matrix4X4 AffineTransformation2D(
+ static inline  Matrix4X4 AffineTransformation2D(
 		const Vector2& Scaling,					//スケーリング
 		const Vector2& RotOrigin,				//回転の中心
 		float Rotation,							//回転
@@ -1014,13 +1006,13 @@ struct Matrix4X4EX{
  用途: スケーリング、回転の中心座標、回転値（ラジアン）、平行移動から2D行列を作成する
  戻り値: 作成した行列
 ***************************************************************************/
-	static Matrix4X4 AffineTransformation2D(const Vector2& Scaling,
+	static inline  Matrix4X4 AffineTransformation2D(const Vector2& Scaling,
 		const Vector2& RotOrigin,float Rotation,const Vector2& Translation){
 		return (Matrix4X4)XMMatrixAffineTransformation2D(XMVECTOR(Scaling),XMVECTOR(RotOrigin),
 			Rotation,XMVECTOR(Translation));
 	}
 /**************************************************************************
- static bool Decompose(
+ static inline  bool Decompose(
 		Vector3* pScaling,					//スケーリング
 		Quaternion* pQt,					//クオータニオン
 		Vector3* pTranslation,				//平行移動
@@ -1029,7 +1021,7 @@ struct Matrix4X4EX{
  用途: 行列からスケーリング、回転、平行移動を取り出す
  戻り値: 成功すればtrue
 ***************************************************************************/
-	static bool Decompose(Vector3* pScaling,Quaternion* pQt,
+	static inline  bool Decompose(Vector3* pScaling,Quaternion* pQt,
 		Vector3* pTranslation,const Matrix4X4& m){
 		XMVECTOR Scale;
 		XMVECTOR Qt;
@@ -1045,25 +1037,25 @@ struct Matrix4X4EX{
 		}
 	}
 /**************************************************************************
- static Vector4 Determinant(
+ static inline  Vector4 Determinant(
 	const Matrix4X4& m						//元になる行列
  );
  用途: 行列式を返す
  戻り値: 作成した行列式（Vector4の各要素に入る）
 ***************************************************************************/
-	static Vector4 Determinant(const Matrix4X4& m){
+	static inline  Vector4 Determinant(const Matrix4X4& m){
 		return (Vector4)XMMatrixDeterminant(XMMATRIX(m));
 	}
 /**************************************************************************
- static Matrix4X4 Identity();
+ static inline  Matrix4X4 Identity();
  用途: 単位行列を返す
  戻り値: 単位行列
 ***************************************************************************/
-	static Matrix4X4 Identity(){
+	static inline  Matrix4X4 Identity(){
 		return (Matrix4X4)XMMatrixIdentity();
 	}
 /**************************************************************************
- static Matrix4X4 Inverse(
+ static inline  Matrix4X4 Inverse(
 	Vector4* pVec,					//行列式を受け取るベクトル
 	const Matrix4X4& m					//元になる行列
  );
@@ -1071,44 +1063,44 @@ struct Matrix4X4EX{
  戻り値: 単位行列
  ＊pVecには行列式が入る
 ***************************************************************************/
-	static Matrix4X4 Inverse(Vector4* pVec,const Matrix4X4& m){
+	static inline  Matrix4X4 Inverse(Vector4* pVec,const Matrix4X4& m){
 		XMVECTOR Vec(*pVec);
 		Matrix4X4 ret = (Matrix4X4)XMMatrixInverse(&Vec,XMMATRIX(m));
 		*pVec = Vec;
 		return ret;
 	}
 /**************************************************************************
- static bool IsIdentity(
+ static inline  bool IsIdentity(
 	const Matrix4X4& m					//元になる行列
  );
  用途: 単位行列かどうかを検証する
  戻り値: 単位行列ならtrue
 ***************************************************************************/
-	static bool IsIdentity(const Matrix4X4& m){
+	static inline  bool IsIdentity(const Matrix4X4& m){
 		return XMMatrixIsIdentity(XMMATRIX(m));
 	}
 /**************************************************************************
- static bool IsInfinite(
+ static inline  bool IsInfinite(
 	const Matrix4X4& m					//元になる行列
  );
  用途: 行列のいずれかの要素が正または負の無限大かどうかを検証する
  戻り値: 正または負の無限大ならtrue
 ***************************************************************************/
-	static bool IsInfinite(const Matrix4X4& m){
+	static inline  bool IsInfinite(const Matrix4X4& m){
 		return XMMatrixIsInfinite(XMMATRIX(m));
 	}
 /**************************************************************************
- static bool IsNaN(
+ static inline  bool IsNaN(
 	const Matrix4X4& m					//元になる行列
  );
  用途: 行列のいずれかの要素がNaNかどうかを検証する
  戻り値: NaNならtrue
 ***************************************************************************/
-	static bool IsNaN(const Matrix4X4& m){
+	static inline  bool IsNaN(const Matrix4X4& m){
 		return XMMatrixIsNaN(XMMATRIX(m));
 	}
 /**************************************************************************
- static Matrix4X4 LookAtLH(
+ static inline  Matrix4X4 LookAtLH(
 	const Vector3& Eye,					//カメラ位置
 	const Vector3& At,					//カメラ視点
 	const Vector3& Up					//カメラ傾き（通常<0,1,0>）
@@ -1116,14 +1108,14 @@ struct Matrix4X4EX{
  用途:左手座標ビュー行列を作成する
  戻り値: 左手座標ビュー行列
 ***************************************************************************/
-	static Matrix4X4 LookAtLH(const Vector3& Eye,const Vector3& At,const Vector3& Up){
+	static inline  Matrix4X4 LookAtLH(const Vector3& Eye,const Vector3& At,const Vector3& Up){
 		return (Matrix4X4)XMMatrixLookAtLH(
 								XMVECTOR(Eye),
 								XMVECTOR(At),
 								XMVECTOR(Up));
 	}
 /**************************************************************************
- static Matrix4X4 LookAtRH(
+ static inline  Matrix4X4 LookAtRH(
 	const Vector3& Eye,					//カメラ位置
 	const Vector3& At,					//カメラ視点
 	const Vector3& Up					//カメラ傾き（通常<0,1,0>）
@@ -1131,14 +1123,14 @@ struct Matrix4X4EX{
  用途:右手座標ビュー行列を作成する
  戻り値: 右手座標ビュー行列
 ***************************************************************************/
-	static Matrix4X4 LookAtRH(const Vector3& Eye,const Vector3& At,const Vector3& Up){
+	static inline  Matrix4X4 LookAtRH(const Vector3& Eye,const Vector3& At,const Vector3& Up){
 		return (Matrix4X4)XMMatrixLookAtRH(
 								XMVECTOR(Eye),
 								XMVECTOR(At),
 								XMVECTOR(Up));
 	}
 /**************************************************************************
- static Matrix4X4 LookToLH(
+ static inline  Matrix4X4 LookToLH(
 	const Vector3& Eye,					//カメラ位置
 	const Vector3& EyeDirection,		//カメラ向き
 	const Vector3& Up					//カメラ傾き（通常<0,1,0>）
@@ -1146,14 +1138,14 @@ struct Matrix4X4EX{
  用途:カメラ位置、向き、傾きから左手座標ビュー行列を作成する
  戻り値: 左手座標ビュー行列
 ***************************************************************************/
-	static Matrix4X4 LookToLH(const Vector3& Eye,const Vector3& EyeDirection,const Vector3& Up){
+	static inline  Matrix4X4 LookToLH(const Vector3& Eye,const Vector3& EyeDirection,const Vector3& Up){
 		return (Matrix4X4)XMMatrixLookToLH(
 								XMVECTOR(Eye),
 								XMVECTOR(EyeDirection),
 								XMVECTOR(Up));
 	}
 /**************************************************************************
- static Matrix4X4 LookToRH(
+ static inline  Matrix4X4 LookToRH(
 	const Vector3& Eye,					//カメラ位置
 	const Vector3& EyeDirection,		//カメラ向き
 	const Vector3& Up					//カメラ傾き（通常<0,1,0>）
@@ -1161,36 +1153,36 @@ struct Matrix4X4EX{
  用途:カメラ位置、向き、傾きから右手座標ビュー行列を作成する
  戻り値: 右手座標ビュー行列
 ***************************************************************************/
-	static Matrix4X4 LookToRH(const Vector3& Eye,const Vector3& EyeDirection,const Vector3& Up){
+	static inline  Matrix4X4 LookToRH(const Vector3& Eye,const Vector3& EyeDirection,const Vector3& Up){
 		return (Matrix4X4)XMMatrixLookToRH(
 								XMVECTOR(Eye),
 								XMVECTOR(EyeDirection),
 								XMVECTOR(Up));
 	}
 /**************************************************************************
- static Matrix4X4 Multiply(
+ static inline  Matrix4X4 Multiply(
 	const Matrix4X4& m1,					//演算元になる行列
 	const Matrix4X4& m2						//演算先になる行列
  );
  用途:行列の積を返す
  戻り値: 行列の積
 ***************************************************************************/
-	static Matrix4X4 Multiply(const Matrix4X4& m1,const Matrix4X4& m2){
+	static inline  Matrix4X4 Multiply(const Matrix4X4& m1,const Matrix4X4& m2){
 		return  (Matrix4X4)XMMatrixMultiply(XMMATRIX(m1),XMMATRIX(m2));
 	}
 /**************************************************************************
- static Matrix4X4 MultiplyTranspose(
+ static inline  Matrix4X4 MultiplyTranspose(
 	const Matrix4X4& m1,					//演算元になる行列
 	const Matrix4X4& m2						//演算先になる行列
  );
  用途:積の転置行列を返す
  戻り値: 積の転置行列
 ***************************************************************************/
-	static Matrix4X4 MultiplyTranspose(const Matrix4X4& m1,const Matrix4X4& m2){
+	static inline  Matrix4X4 MultiplyTranspose(const Matrix4X4& m1,const Matrix4X4& m2){
 		return  (Matrix4X4)XMMatrixMultiplyTranspose(XMMATRIX(m1),XMMATRIX(m2));
 	}
 /**************************************************************************
- static Matrix4X4 OrthographicLH(
+ static inline  Matrix4X4 OrthographicLH(
 	float ViewWidth,		//幅
 	float ViewHeight,		//高さ
 	float NearZ,			//奥行手前
@@ -1199,11 +1191,11 @@ struct Matrix4X4EX{
  用途:左手座標系の正射影行列を返す
  戻り値: 左手座標系の正射影行列
 ***************************************************************************/
-	static Matrix4X4 OrthographicLH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
+	static inline  Matrix4X4 OrthographicLH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixOrthographicLH(ViewWidth,ViewHeight,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 OrthographicRH(
+ static inline  Matrix4X4 OrthographicRH(
 	float ViewWidth,		//幅
 	float ViewHeight,		//高さ
 	float NearZ,			//奥行手前
@@ -1212,11 +1204,11 @@ struct Matrix4X4EX{
  用途:右手座標系の正射影行列を返す
  戻り値: 右手座標系の正射影行列
 ***************************************************************************/
-	static Matrix4X4 OrthographicRH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
+	static inline  Matrix4X4 OrthographicRH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixOrthographicRH(ViewWidth,ViewHeight,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 OrthographicOffCenterLH(
+ static inline  Matrix4X4 OrthographicOffCenterLH(
 	float ViewLeft,			//左
 	float ViewRight,		//右
 	float ViewBottom,		//下
@@ -1227,12 +1219,12 @@ struct Matrix4X4EX{
  用途:左手座標系のカスタム正射影行列を返す
  戻り値: 左手座標系のカスタム正射影行列
 ***************************************************************************/
-	static Matrix4X4 OrthographicOffCenterLH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,float NearZ,float FarZ){
+	static inline  Matrix4X4 OrthographicOffCenterLH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixOrthographicOffCenterLH(
 						ViewLeft,ViewRight,ViewBottom,ViewTop,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 OrthographicOffCenterRH(
+ static inline  Matrix4X4 OrthographicOffCenterRH(
 	float ViewLeft,			//左
 	float ViewRight,		//右
 	float ViewBottom,		//下
@@ -1243,12 +1235,12 @@ struct Matrix4X4EX{
  用途:右手座標系のカスタム正射影行列を返す
  戻り値: 右手座標系のカスタム正射影行列
 ***************************************************************************/
-	static Matrix4X4 OrthographicOffCenterRH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,float NearZ,float FarZ){
+	static inline  Matrix4X4 OrthographicOffCenterRH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixOrthographicOffCenterRH(
 						ViewLeft,ViewRight,ViewBottom,ViewTop,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 PerspectiveFovLH(
+ static inline  Matrix4X4 PerspectiveFovLH(
 	float FovAngleY,		//トップダウン視野角度
 	float AspectHByW,		//ビュー空間の高さと幅のアスペクト比
 	float NearZ,			//奥行手前
@@ -1257,11 +1249,11 @@ struct Matrix4X4EX{
  用途: 視野に基づいて、左手座標系のパースペクティブ射影行列を返す
  戻り値: 左手座標系のパースペクティブ射影行列
 ***************************************************************************/
-	static Matrix4X4 PerspectiveFovLH(float FovAngleY,float AspectHByW,float NearZ,float FarZ){
+	static inline  Matrix4X4 PerspectiveFovLH(float FovAngleY,float AspectHByW,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixPerspectiveFovLH(FovAngleY,AspectHByW,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 PerspectiveFovRH(
+ static inline  Matrix4X4 PerspectiveFovRH(
 	float FovAngleY,		//トップダウン視野角度
 	float AspectHByW,		//ビュー空間の高さと幅のアスペクト比
 	float NearZ,			//奥行手前
@@ -1270,11 +1262,11 @@ struct Matrix4X4EX{
  用途: 視野に基づいて、右手座標系のパースペクティブ射影行列を返す
  戻り値: 右手座標系のパースペクティブ射影行列
 ***************************************************************************/
-	static Matrix4X4 PerspectiveFovRH(float FovAngleY,float AspectHByW,float NearZ,float FarZ){
+	static inline  Matrix4X4 PerspectiveFovRH(float FovAngleY,float AspectHByW,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixPerspectiveFovRH(FovAngleY,AspectHByW,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 PerspectiveLH(
+ static inline  Matrix4X4 PerspectiveLH(
 	float ViewWidth,		//近くのクリップ面の視錐台の幅
 	float ViewHeight,		//近くのクリップ面の視錐台の高さ
 	float NearZ,			//奥行手前
@@ -1283,11 +1275,11 @@ struct Matrix4X4EX{
  用途: 左手座標系のパースペクティブ射影行列を返す
  戻り値: 左手座標系のパースペクティブ射影行列
 ***************************************************************************/
-	static Matrix4X4 PerspectiveLH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
+	static inline  Matrix4X4 PerspectiveLH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixPerspectiveLH(ViewWidth,ViewHeight,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 PerspectiveRH(
+ static inline  Matrix4X4 PerspectiveRH(
 	float ViewWidth,		//近くのクリップ面の視錐台の幅
 	float ViewHeight,		//近くのクリップ面の視錐台の高さ
 	float NearZ,			//奥行手前
@@ -1296,11 +1288,11 @@ struct Matrix4X4EX{
  用途: 右手座標系のパースペクティブ射影行列を返す
  戻り値: 右手座標系のパースペクティブ射影行列
 ***************************************************************************/
-	static Matrix4X4 PerspectiveRH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
+	static inline  Matrix4X4 PerspectiveRH(float ViewWidth,float ViewHeight,float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixPerspectiveRH(ViewWidth,ViewHeight,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 PerspectiveOffCenterLH(
+ static inline  Matrix4X4 PerspectiveOffCenterLH(
 	float ViewLeft,			//クリップ視錐台の左側の x 座標
 	float ViewRight,		//クリップ視錐台の右側の x 座標
 	float ViewBottom,		//クリップ視錐台の下側の y 座標
@@ -1311,12 +1303,12 @@ struct Matrix4X4EX{
  用途: カスタム バージョンの左手座標系パースペクティブ射影行列を返す
  戻り値: カスタム バージョンの左手座標系パースペクティブ射影行列
 ***************************************************************************/
-	static Matrix4X4 PerspectiveOffCenterLH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,
+	static inline  Matrix4X4 PerspectiveOffCenterLH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,
 			float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixPerspectiveOffCenterLH(ViewLeft,ViewRight,ViewBottom,ViewTop,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 PerspectiveOffCenterRH(
+ static inline  Matrix4X4 PerspectiveOffCenterRH(
 	float ViewLeft,			//クリップ視錐台の左側の x 座標
 	float ViewRight,		//クリップ視錐台の右側の x 座標
 	float ViewBottom,		//クリップ視錐台の下側の y 座標
@@ -1327,54 +1319,54 @@ struct Matrix4X4EX{
  用途: カスタム バージョンの右手座標系パースペクティブ射影行列を返す
  戻り値: カスタム バージョンの右手座標系パースペクティブ射影行列
 ***************************************************************************/
-	static Matrix4X4 PerspectiveOffCenterRH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,
+	static inline  Matrix4X4 PerspectiveOffCenterRH(float ViewLeft,float ViewRight,float ViewBottom,float ViewTop,
 			float NearZ,float FarZ){
 		return  (Matrix4X4)XMMatrixPerspectiveOffCenterRH(ViewLeft,ViewRight,ViewBottom,ViewTop,NearZ,FarZ);
 	}
 /**************************************************************************
- static Matrix4X4 Reflect(
+ static inline  Matrix4X4 Reflect(
 	const Plane& Pln		//平面
  );
  用途: 指定された平面を介してベクトルを反映するトランスフォーム行列を作成し返す
  戻り値: ベクトルを反映するトランスフォーム行列
 ***************************************************************************/
-	static Matrix4X4 Reflect(const Plane& Pln){
+	static inline  Matrix4X4 Reflect(const Plane& Pln){
 		return  (Matrix4X4)XMMatrixReflect(XMVECTOR(Pln));
 	}
 /**************************************************************************
- static Matrix4X4 RotationAxis(
+ static inline  Matrix4X4 RotationAxis(
 	const Vector3& Axis,		//回転軸を表すベクトル
 	float Angle				//回転角度（ラジアン）
  );
  用途: 任意の軸を回転軸にして、回転した行列を作成し返す
  戻り値: 任意の軸を回転軸にして、回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationAxis(const Vector3& Axis,float Angle){
+	static inline  Matrix4X4 RotationAxis(const Vector3& Axis,float Angle){
 		return  (Matrix4X4)XMMatrixRotationAxis(XMVECTOR(Axis),Angle);
 	}
 /**************************************************************************
- static Matrix4X4 RotationNormal(
+ static inline  Matrix4X4 RotationNormal(
 	const Vector3& NormalAxis,		//回転軸を記述する法線ベクトル
 	float Angle						//回転角度（ラジアン）
  );
  用途: 任意の法線ベクトルを回転軸にして、回転した行列を作成し返す
  戻り値: 任意の法線ベクトルを回転軸にして、回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationNormal(const Vector3& NormalAxis,float Angle){
+	static inline  Matrix4X4 RotationNormal(const Vector3& NormalAxis,float Angle){
 		return  (Matrix4X4)XMMatrixRotationNormal(XMVECTOR(NormalAxis),Angle);
 	}
 /**************************************************************************
- static Matrix4X4 RotationQuaternion(
+ static inline  Matrix4X4 RotationQuaternion(
 	const Quaternion& Qt		//回転を記述するクオータニオン
  );
  用途: クオータニオンから回転行列を作成し返す
  戻り値: クオータニオンから回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationQuaternion(const Quaternion& Qt){
+	static inline  Matrix4X4 RotationQuaternion(const Quaternion& Qt){
 		return  (Matrix4X4)XMMatrixRotationQuaternion(XMVECTOR(Qt));
 	}
 /**************************************************************************
- static Matrix4X4 RotationRollPitchYaw(
+ static inline  Matrix4X4 RotationRollPitchYaw(
 	float Pitch,		//X軸回転
 	float Yaw,			//Y軸回転
 	float Roll			//Z軸回転
@@ -1382,51 +1374,51 @@ struct Matrix4X4EX{
  用途: オイラー角に基づいて回転行列を作成する
  戻り値: オイラー角に基づいて回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationRollPitchYaw(float Pitch,float Yaw,float Roll){
+	static inline  Matrix4X4 RotationRollPitchYaw(float Pitch,float Yaw,float Roll){
 		return  (Matrix4X4)XMMatrixRotationRollPitchYaw(Pitch,Yaw,Roll);
 	}
 /**************************************************************************
- static Matrix4X4 RotationRollPitchYawFromVector(
+ static inline  Matrix4X4 RotationRollPitchYawFromVector(
 	const Vector3& Angles		//回転を記述するベクトル
  );
  用途: オイラー角(ベクトル)に基づいて回転行列を作成する
  戻り値: オイラー角(ベクトル)に基づいて回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationRollPitchYawFromVector(const Vector3& Angles){
+	static inline  Matrix4X4 RotationRollPitchYawFromVector(const Vector3& Angles){
 		return  (Matrix4X4)XMMatrixRotationRollPitchYawFromVector(XMVECTOR(Angles));
 	}
 /**************************************************************************
- static Matrix4X4 RotationX(
+ static inline  Matrix4X4 RotationX(
 	float Angle		//X軸回転
  );
  用途: X軸回転に基づいて回転行列を作成する
  戻り値: X軸回転に基づいて回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationX(float Angle){
+	static inline  Matrix4X4 RotationX(float Angle){
 		return  (Matrix4X4)XMMatrixRotationX(Angle);
 	}
 /**************************************************************************
- static Matrix4X4 RotationY(
+ static inline  Matrix4X4 RotationY(
 	float Angle		//Y軸回転
  );
  用途: Y軸回転に基づいて回転行列を作成する
  戻り値: Y軸回転に基づいて回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationY(float Angle){
+	static inline  Matrix4X4 RotationY(float Angle){
 		return  (Matrix4X4)XMMatrixRotationY(Angle);
 	}
 /**************************************************************************
- static Matrix4X4 RotationZ(
+ static inline  Matrix4X4 RotationZ(
 	float Angle		//Z軸回転
  );
  用途: Z軸回転に基づいて回転行列を作成する
  戻り値: Z軸回転に基づいて回転した行列
 ***************************************************************************/
-	static Matrix4X4 RotationZ(float Angle){
+	static inline  Matrix4X4 RotationZ(float Angle){
 		return  (Matrix4X4)XMMatrixRotationZ(Angle);
 	}
 /**************************************************************************
- static Matrix4X4 Scaling(
+ static inline  Matrix4X4 Scaling(
 	float ScaleX,	//Xに沿ったスケーリング
 	float ScaleY,	//Yに沿ったスケーリング
 	float ScaleZ	//Zに沿ったスケーリング
@@ -1434,21 +1426,21 @@ struct Matrix4X4EX{
  用途: x 軸、y 軸、および z 軸に沿ってスケーリングした行列を作成する
  戻り値: x 軸、y 軸、および z 軸に沿ってスケーリングした行列
 ***************************************************************************/
-	static Matrix4X4 Scaling(float ScaleX,float ScaleY,float ScaleZ){
+	static inline  Matrix4X4 Scaling(float ScaleX,float ScaleY,float ScaleZ){
 		return  (Matrix4X4)XMMatrixScaling(ScaleX,ScaleY,ScaleZ);
 	}
 /**************************************************************************
- static Matrix4X4 ScalingFromVector(
+ static inline  Matrix4X4 ScalingFromVector(
 	const Vector3& Scale		//スケーリングを記述するベクトル
  );
  用途: ベクトルに沿ってスケーリングした行列を作成する
  戻り値: ベクトルに沿ってスケーリングした行列
 ***************************************************************************/
-	static Matrix4X4 ScalingFromVector(const Vector3& Scale){
+	static inline  Matrix4X4 ScalingFromVector(const Vector3& Scale){
 		return  (Matrix4X4)XMMatrixScalingFromVector(XMVECTOR(Scale));
 	}
 /**************************************************************************
- static Matrix4X4 Set(
+ static inline  Matrix4X4 Set(
 	float m00,	//(0,0)の値
 	float m01,	//(0,1)の値
 	float m02,	//(0,2)の値
@@ -1469,7 +1461,7 @@ struct Matrix4X4EX{
  用途: 各値を設定した行列を作成する
  戻り値: 各値を設定した行列
 ***************************************************************************/
-	static Matrix4X4 Set(
+	static inline  Matrix4X4 Set(
 		float m00,float m01,float m02,float m03,
 		float m10,float m11,float m12,float m13,
 		float m20,float m21,float m22,float m23,
@@ -1483,7 +1475,7 @@ struct Matrix4X4EX{
 							);
 	}
 /**************************************************************************
- static Matrix4X4 Shadow(
+ static inline  Matrix4X4 Shadow(
 	const Plane& ShadowPlane,			//基準面
 	const Vector4& LightPosition		//ライトの位置
  );
@@ -1491,11 +1483,11 @@ struct Matrix4X4EX{
  戻り値: ジオメトリを平面に射影するトランスフォーム行列
  ＊ライトのw要素は、0.0でディレクショナルライト、1.0でポイントライトとなる
 ***************************************************************************/
-	static Matrix4X4 Shadow(const Plane& ShadowPlane,const Vector4& LightPosition){
+	static inline  Matrix4X4 Shadow(const Plane& ShadowPlane,const Vector4& LightPosition){
 		return  (Matrix4X4)XMMatrixShadow(XMVECTOR(ShadowPlane),XMVECTOR(LightPosition));
 	}
 /**************************************************************************
- static Matrix4X4 Transformation(
+ static inline  Matrix4X4 Transformation(
  	const Vector3& ScalingOrigin,		//スケーリングの中心を記述する 3D ベクトル
  	const Quaternion& ScalingOrientationQuaternion,		//スケーリングの向きを記述するクオータニオン
 	const Vector3& Scaling,				//x 軸、y 軸、z 軸のスケーリング係数を含む 3D ベクトル
@@ -1506,7 +1498,7 @@ struct Matrix4X4EX{
  用途: トランスフォーム行列を作成する
  戻り値: トランスフォーム行列
 ***************************************************************************/
-	static Matrix4X4 Transformation(const Vector3& ScalingOrigin,const Quaternion& ScalingOrientationQuaternion,const Vector3& Scaling,
+	static inline  Matrix4X4 Transformation(const Vector3& ScalingOrigin,const Quaternion& ScalingOrientationQuaternion,const Vector3& Scaling,
  		const Vector3& RotationOrigin,const Quaternion& RotationQuaternion,
 		const Vector3& Translation){
 		return  (Matrix4X4)XMMatrixTransformation(
@@ -1516,7 +1508,7 @@ struct Matrix4X4EX{
 			);
 	}
 /**************************************************************************
- static Matrix4X4 Transformation2D(
+ static inline  Matrix4X4 Transformation2D(
  	const Vector2& ScalingOrigin,		//スケーリングの中心を記述する 2D ベクトル
  	float ScalingOrientation,			//スケーリング回転係数
 	const Vector2& Scaling,				//x 軸および y 軸のスケーリング係数を含む 2D ベクトル
@@ -1527,14 +1519,14 @@ struct Matrix4X4EX{
  用途: 2Dトランスフォーム行列をxy平面に作成する
  戻り値: 2Dトランスフォーム行列
 ***************************************************************************/
-	static Matrix4X4 Transformation2D(const Vector2& ScalingOrigin,float ScalingOrientation,const Vector2& Scaling,
+	static inline  Matrix4X4 Transformation2D(const Vector2& ScalingOrigin,float ScalingOrientation,const Vector2& Scaling,
  	const Vector2& RotationOrigin,float Rotation,
 	const Vector2& Translation){
 		return  (Matrix4X4)XMMatrixTransformation2D(XMVECTOR(ScalingOrigin),ScalingOrientation,XMVECTOR(Scaling),
 			XMVECTOR(RotationOrigin),Rotation,XMVECTOR(Translation));
 	}
 /**************************************************************************
- static Matrix4X4 Translation(
+ static inline  Matrix4X4 Translation(
 	float OffsetX,	//X軸に沿った平行移動
 	float OffsetY,	//Y軸に沿った平行移動
 	float OffsetZ	//Z軸に沿った平行移動
@@ -1542,31 +1534,31 @@ struct Matrix4X4EX{
  用途: 指定されたオフセットから平行移動行列を作成する
  戻り値: 指定されたオフセットで平行移動した行列
 ***************************************************************************/
-	static Matrix4X4 Translation(float OffsetX,float OffsetY,float OffsetZ){
+	static inline  Matrix4X4 Translation(float OffsetX,float OffsetY,float OffsetZ){
 		return  (Matrix4X4)XMMatrixTranslation(OffsetX,OffsetY,OffsetZ);
 	}
 /**************************************************************************
- static Matrix4X4 TranslationFromVector(
+ static inline  Matrix4X4 TranslationFromVector(
 	const Vector3& Offset				//x 軸、y 軸、z 軸に沿った平行移動を記述する 3D ベクトル
  );
  用途: ベクトルから平行移動行列を作成する
  戻り値: ベクトルから平行移動した行列
 ***************************************************************************/
-	static Matrix4X4 TranslationFromVector(const Vector3& Offset){
+	static inline  Matrix4X4 TranslationFromVector(const Vector3& Offset){
 		return  (Matrix4X4)XMMatrixTranslationFromVector(XMVECTOR(Offset));
 	}
 /**************************************************************************
- static Matrix4X4 Transpose(
+ static inline  Matrix4X4 Transpose(
 	const Matrix4X4& m				//転置する行列
  );
  用途: 行列を転置する
  戻り値: 転置した行列
 ***************************************************************************/
-	static Matrix4X4 Transpose(const Matrix4X4& m){
+	static inline  Matrix4X4 Transpose(const Matrix4X4& m){
 		return  (Matrix4X4)XMMatrixTranspose(XMMATRIX(m));
 	}
 /**************************************************************************
- static Matrix4X4 DefTransformation(
+ static inline  Matrix4X4 DefTransformation(
 	const Vector3& Scaling,				//x 軸、y 軸、z 軸のスケーリング係数を含む 3D ベクトル
  	const Quaternion& RotationQt,		//回転を記述するクオータニオン
 	const Vector3& Translation				//x 軸、y 軸、z 軸に沿った平行移動を記述する 3D ベクトル
@@ -1574,7 +1566,7 @@ struct Matrix4X4EX{
  用途: スケーリング、回転、移動から行列を作成する
  戻り値: 作成した行列
 ***************************************************************************/
-	static Matrix4X4 DefTransformation(const Vector3& Scaling,const Quaternion& RotationQt,const Vector3& Translation){
+	static inline  Matrix4X4 DefTransformation(const Vector3& Scaling,const Quaternion& RotationQt,const Vector3& Translation){
 		Matrix4X4 Scale = ScalingFromVector(Scaling);
 		Matrix4X4 Qt = RotationQuaternion(RotationQt);
 		Matrix4X4 Trans = TranslationFromVector(Translation);
@@ -1582,7 +1574,7 @@ struct Matrix4X4EX{
 		return  ret;
 	}
 /**************************************************************************
- static Matrix4X4 DefTransformation(
+ static inline  Matrix4X4 DefTransformation(
 	const Vector3& Scaling,				//x 軸、y 軸、z 軸のスケーリング係数を含む 3D ベクトル
  	const Vector3& Rotation,			//回転を記述するベクトル
 	const Vector3& Translation				//x 軸、y 軸、z 軸に沿った平行移動を記述する 3D ベクトル
@@ -1590,7 +1582,7 @@ struct Matrix4X4EX{
  用途: スケーリング、回転、移動から行列を作成する
  戻り値: 作成した行列
 ***************************************************************************/
-	static Matrix4X4 DefTransformation(const Vector3& Scaling,const Vector3& Rotation,const Vector3& Translation){
+	static inline  Matrix4X4 DefTransformation(const Vector3& Scaling,const Vector3& Rotation,const Vector3& Translation){
 		Matrix4X4 Scale = ScalingFromVector(Scaling);
 		Matrix4X4 Rot = RotationRollPitchYawFromVector(Rotation);
 		Matrix4X4 Trans = TranslationFromVector(Translation);
@@ -1598,7 +1590,7 @@ struct Matrix4X4EX{
 		return  ret;
 	}
 /**************************************************************************
- static Matrix4X4 STRTransformation(
+ static inline  Matrix4X4 STRTransformation(
 	const Vector3& Scaling,				//x 軸、y 軸、z 軸のスケーリング係数を含む 3D ベクトル
 	const Vector3& Translation,				//x 軸、y 軸、z 軸に沿った平行移動を記述する 3D ベクトル
  	const Quaternion& RotationQuaternion		//回転を記述するクオータニオン
@@ -1607,7 +1599,7 @@ struct Matrix4X4EX{
  戻り値: 作成した行列
  ＊回転より移動を先に行う
 ***************************************************************************/
-	static Matrix4X4 STRTransformation(const Vector3& Scaling,const Vector3& Translation,const Quaternion& RotationQt){
+	static inline  Matrix4X4 STRTransformation(const Vector3& Scaling,const Vector3& Translation,const Quaternion& RotationQt){
 		Matrix4X4 Scale = ScalingFromVector(Scaling);
 		Matrix4X4 Trans = TranslationFromVector(Translation);
 		Matrix4X4 Qt = RotationQuaternion(RotationQt);
@@ -1615,7 +1607,7 @@ struct Matrix4X4EX{
 		return  ret;
 	}
 /**************************************************************************
- static Matrix4X4 STRTransformation(
+ static inline  Matrix4X4 STRTransformation(
 	const Vector3& Scaling,				//x 軸、y 軸、z 軸のスケーリング係数を含む 3D ベクトル
 	const Vector3& Translation,				//x 軸、y 軸、z 軸に沿った平行移動を記述する 3D ベクトル
  	const Vector3& Rotation			//回転を記述するベクトル
@@ -1624,7 +1616,7 @@ struct Matrix4X4EX{
  戻り値: 作成した行列
  ＊回転より移動を先に行う
 ***************************************************************************/
-	static Matrix4X4 STRTransformation(const Vector3& Scaling,const Vector3& Translation,const Vector3& Rotation){
+	static inline  Matrix4X4 STRTransformation(const Vector3& Scaling,const Vector3& Translation,const Vector3& Rotation){
 		Matrix4X4 Scale = ScalingFromVector(Scaling);
 		Matrix4X4 Trans = TranslationFromVector(Translation);
 		Matrix4X4 Rot = RotationRollPitchYawFromVector(Rotation);

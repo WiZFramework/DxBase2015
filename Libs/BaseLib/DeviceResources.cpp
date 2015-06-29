@@ -246,6 +246,7 @@ namespace basedx11{
 				L"m_D3D11SwapChain->SetFullscreenState(true, NULL)",
 				L"DeviceResources::Impl::CreateDeviceResources()"
 				);
+
 		}
 
 	}

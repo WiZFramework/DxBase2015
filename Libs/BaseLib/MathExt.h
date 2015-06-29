@@ -1,4 +1,12 @@
 
+/*!
+@file MathExt.h
+@brief 行列、クオータニオン、カラーなどの計算クラス<br />
+XNAMATH のラッピングクラス群
+
+@copyright Copyright (c) 2015 WiZ Tamura Hiroki,Yamanoi Yasushi.
+*/
+
 //--------------------------------------------------------------------------------------
 // MathExt.h
 //

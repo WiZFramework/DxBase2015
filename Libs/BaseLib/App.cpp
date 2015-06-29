@@ -406,12 +406,9 @@ namespace basedx11{
 			throw;
 		}
 	}
-
-
-
-
-
-
+	void App::OnMessage(UINT message, WPARAM wParam, LPARAM lParam){
+		m_SceneBase->OnMessage(message,wParam, lParam);
+	}
 	//操作
 	void App::Update(){
 		//入力機器状態をリセット

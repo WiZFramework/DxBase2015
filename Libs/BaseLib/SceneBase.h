@@ -1044,6 +1044,32 @@ namespace basedx11{
 		unique_ptr<Impl> pImpl;
 	};
 
+	//--------------------------------------------------------------------------------------
+	//	class InputTextManager : public GameObject;
+	//	用途: 入力テキストマネージャ
+	//--------------------------------------------------------------------------------------
+	class InputTextManager : public GameObject{
+	public:
+		//構築と消滅
+		explicit InputTextManager(const shared_ptr<Stage>& StagePtr);
+		virtual ~InputTextManager();
+		//初期化
+		virtual void Create() override;
+		//アクセサ
+		shared_ptr<InputStringSprite> GetFocusInputString() const;
+		void SetFocusInputString(const shared_ptr<InputStringSprite>& Ptr);
+
+		//操作
+		virtual void OnKeyDown(WPARAM wParam, LPARAM lParam);
+		virtual void OnChar(WPARAM wParam, LPARAM lParam);
+		virtual void Update() override{}
+		virtual void Draw()override{}
+	private:
+		//Implイディオム
+		struct Impl;
+		unique_ptr<Impl> pImpl;
+	};
+
 
 	//--------------------------------------------------------------------------------------
 	//	class Stage: public GameObject;
@@ -1066,6 +1092,7 @@ namespace basedx11{
 		shared_ptr<DefaultRenderTarget> GetDefaultRenderTarget() const;
 		shared_ptr<RenderState> GetRenderState() const;
 		shared_ptr<ParticleManager> GetParticleManager() const;
+		shared_ptr<InputTextManager> GetInputTextManager() const;
 
 		vector< shared_ptr<GameObject> >& GetGameObjectVec();
 		void SetGameObjectVec(vector< shared_ptr<GameObject> >& vec);
@@ -1151,6 +1178,7 @@ namespace basedx11{
 		void CreateDefaultRenderTargets();
 
 		//仮想関数
+		virtual void OnMessage(UINT message, WPARAM wParam, LPARAM lParam);
 		virtual void PreCreate()override;
 
 		//ステージ内の更新（シーンからよばれる）
@@ -1209,6 +1237,7 @@ namespace basedx11{
 		void SetActiveStage(const shared_ptr<Stage>& stage);
 		shared_ptr<EventDispatcher> GetEventDispatcher() const;
 
+
 		//操作
 		//アクティブなステージを設定して初期化する
 		template<typename T, typename... Ts>
@@ -1225,6 +1254,7 @@ namespace basedx11{
 			SetActiveStage(StagePtr);
 			return Ptr;
 		}
+		virtual void OnMessage(UINT message, WPARAM wParam, LPARAM lParam);
 		virtual void PreCreate()override;
 		//シーンを変化させる
 		virtual void Update();

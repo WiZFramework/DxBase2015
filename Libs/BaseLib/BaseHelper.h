@@ -1,4 +1,3 @@
-
 /*!
 @file BaseHelper.h
 @brief 例外処理、ヘルパー関数等

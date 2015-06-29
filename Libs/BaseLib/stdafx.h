@@ -1,3 +1,16 @@
+
+/*!
+@file stdafx.h
+@brief プリコンパイル済みヘッダ作成用
+
+@copyright Copyright (c) 2015 WiZ Tamura Hiroki,Yamanoi Yasushi.<br />
+
+DxBase2015は、以下のツール、サンプル、ライブラリ等の一部を使用または、再利用しています。<br />
+DirectXTK、DirectXTX、DirectXサンプル: マイクロソフト社様・Microsoft Public License(MS-PL)<br />
+SpriteStudio5-SDK: 株式会社ウェブテクノロジ様(Web Technology Corp.)<br />
+FBXSDK: オートデスク株式会社様(Autodesk, Inc.)
+*/
+
 #pragma once
 
 #include "targetver.h"

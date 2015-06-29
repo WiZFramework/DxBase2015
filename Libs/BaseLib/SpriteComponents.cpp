@@ -657,6 +657,135 @@ namespace basedx11{
 	}
 
 
+	//--------------------------------------------------------------------------------------
+	//	struct InputStringSprite::Impl;
+	//	用途: Implイディオム
+	//--------------------------------------------------------------------------------------
+	struct InputStringSprite::Impl{
+		bool m_KeyInput;	//キー入力するかどうか
+		size_t m_Caret;	//キャレット
+		Impl() :
+			m_KeyInput(true),
+			m_Caret(0)
+		{}
+		~Impl(){}
+	};
+
+
+
+	//--------------------------------------------------------------------------------------
+	//	class InputStringSprite : publicStringSprite;
+	//	用途: InputStringSpriteコンポーネント
+	//	入力付文字列表示コンポーネント
+	//--------------------------------------------------------------------------------------
+	InputStringSprite::InputStringSprite(const shared_ptr<GameObject>& GameObjectPtr):
+		StringSprite(GameObjectPtr),
+		pImpl(new Impl())
+	{}
+	InputStringSprite::~InputStringSprite(){}
+
+	bool InputStringSprite::GetKeyInput() const{
+		return pImpl->m_KeyInput;
+	}
+	bool InputStringSprite::IsKeyInput() const{
+		return pImpl->m_KeyInput;
+
+	}
+	void InputStringSprite::SetKeyInput(bool b){
+		pImpl->m_KeyInput = b;
+	}
+
+	bool InputStringSprite::IsFocus(){
+		auto Manager = GetGameObject()->GetStage()->GetInputTextManager();
+		if (Manager){
+			auto Ptr = GetThis<InputStringSprite>();
+			if (Manager->GetFocusInputString() == Ptr){
+				return true;
+			}
+		}
+		return false;
+	}
+	void InputStringSprite::SetFocus(bool b){
+		shared_ptr<InputTextManager> Manager;// = GetGameObject()->GetStage()->GetInputTextManager();
+		auto ParStage = dynamic_pointer_cast<Stage>(GetGameObject());
+		if (ParStage){
+			Manager = ParStage->GetInputTextManager();
+		}
+		else{
+			Manager = GetGameObject()->GetStage()->GetInputTextManager();
+		}
+		if (Manager){
+			if (b){
+				Manager->SetFocusInputString(GetThis<InputStringSprite>());
+			}
+			else{
+				Manager->SetFocusInputString(nullptr);
+			}
+		}
+	}
+
+	size_t InputStringSprite::GetCaret() const{
+		if (pImpl->m_Caret >= GetText().size()){
+			pImpl->m_Caret = GetText().size();
+		}
+		return pImpl->m_Caret;
+	}
+	void InputStringSprite::SetCaret(size_t CaretIndex){
+		if (CaretIndex >= GetText().size()){
+			CaretIndex = GetText().size();
+		}
+		pImpl->m_Caret = CaretIndex;
+	}
+
+	//最後尾に追加
+	void InputStringSprite::AddText(const wstring& str){
+		wstring TempText = GetText();
+		TempText += str;
+		pImpl->m_Caret = TempText.size();
+		SetText(TempText);
+	}
+	void InputStringSprite::InsertText(const wstring& str){
+		wstring TempText = GetText();
+		if (pImpl->m_Caret >= TempText.size()){
+			pImpl->m_Caret = TempText.size();
+			AddText(str);
+		}
+		else{
+			TempText.insert(pImpl->m_Caret, str);
+			pImpl->m_Caret += str.size();
+			SetText(TempText);
+		}
+	}
+	void InputStringSprite::InsertText(const wstring& str, size_t CaretIndex){
+		pImpl->m_Caret = CaretIndex;
+		InsertText(str);
+	}
+
+	void InputStringSprite::OnKeyDown(WPARAM wParam, LPARAM lParam){
+		wstring TempText = GetText();
+		switch (wParam){
+			case VK_RIGHT:
+				if (pImpl->m_Caret < TempText.size()){
+					pImpl->m_Caret++;
+				}
+			break;
+			case VK_LEFT:
+				if (pImpl->m_Caret > 0){
+					pImpl->m_Caret--;
+				}
+			break;
+			default:
+			break;
+		}
+	}
+
+	void InputStringSprite::OnChar(WPARAM wParam, LPARAM lParam){
+		wstring str(L"");
+		str += (wchar_t)wParam;
+		InsertText(str);
+	}
+
+
 }
 
 //end basedx11

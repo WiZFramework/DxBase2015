@@ -12,11 +12,13 @@ namespace basedx11{
 	class DeviceResources;
 	class RenderTarget;
 	class SceneBase;
+	class ChildWindow;
 	class BaseResource;
 	class TextureResource;
 	class AudioResource;
 	class FbxSceneResource;
 	class FbxMeshResource;
+
 
 	//--------------------------------------------------------------------------------------
 	//	struct CONTROLER_STATE : public XINPUT_STATE;
@@ -361,7 +363,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		//	virtual ~AudioManager();
 		/*!
-		@breaf デストクタ
+		@breaf デストラクタ
 		@param なし
 		@return	なし
 		*/
@@ -792,6 +794,22 @@ namespace basedx11{
 				throw;
 			}
 		}
+		//--------------------------------------------------------------------------------------
+		//	void OnMessage(
+		//		UINT message,	//メッセージ
+		//		WPARAM wParam,	//第1パラメータ
+		//		LPARAM lParam	//第2パラメータ
+		//	);
+		//	
+		/*!
+		@breaf ウインドウメッセージ
+		@param UINT message,	メッセージ
+		@param WPARAM wParam,	第1パラメータ
+		@param LPARAM lParam	第2パラメータ
+		@return	なし
+		*/
+		//--------------------------------------------------------------------------------------
+		void OnMessage(UINT message, WPARAM wParam, LPARAM lParam);
 		//--------------------------------------------------------------------------------------
 		//	公開変数
 		//--------------------------------------------------------------------------------------
