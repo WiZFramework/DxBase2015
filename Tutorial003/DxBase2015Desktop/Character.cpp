@@ -8,7 +8,7 @@ namespace basedx11{
 	//	用途: ボックス
 	//--------------------------------------------------------------------------------------
 	//構築と破棄
-	Box::Box(shared_ptr<Stage>& StagePtr, const Vector3& StartPos) :
+	Box::Box(const shared_ptr<Stage>& StagePtr, const Vector3& StartPos) :
 		GameObject(StagePtr),
 		m_Span(1.0f),
 		m_StartPos(StartPos)

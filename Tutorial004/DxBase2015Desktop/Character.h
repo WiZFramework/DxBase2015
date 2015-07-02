@@ -13,7 +13,7 @@ namespace basedx11{
 		float m_Span;
 	public:
 		//\’z‚Æ”jŠü
-		Box(shared_ptr<Stage>& StagePtr, const Vector3& StartPos);
+		Box(const shared_ptr<Stage>& StagePtr, const Vector3& StartPos);
 		virtual ~Box();
 		//‰Šú‰»
 		virtual void Create() override;

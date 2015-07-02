@@ -41,7 +41,7 @@ class Box : public GameObject{
     float m_Span;
 public:
     //構築と破棄
-    Box(shared_ptr&lt;Stage>& StagePtr, const Vector3& StartPos);
+    Box(const shared_ptr&lt;Stage>& StagePtr, const Vector3& StartPos);
     virtual ~Box();
     //初期化
     virtual void Create() override;

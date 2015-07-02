@@ -13,7 +13,7 @@ namespace basedx11{
 		float m_Span;	//移動方向のパラメータ
 	public:
 		//構築と破棄
-		Box(shared_ptr<Stage>& StagePtr, const Vector3& StartPos);
+		Box(const shared_ptr<Stage>& StagePtr, const Vector3& StartPos);
 		virtual ~Box();
 		//初期化
 		virtual void Create() override;
