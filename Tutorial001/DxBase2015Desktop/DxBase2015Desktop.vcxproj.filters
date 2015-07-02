@@ -126,6 +126,9 @@
     <ClInclude Include="..\..\Libs\BaseLib\App.h">
       <Filter>BaseLib\Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Libs\BaseLib\HttpForm.h">
+      <Filter>BaseLib\Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DxBase2015Desktop.rc">
@@ -208,6 +211,9 @@
       <Filter>BaseLib\Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Libs\BaseLib\XmlDoc.cpp">
+      <Filter>BaseLib\Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Libs\BaseLib\HttpForm.cpp">
       <Filter>BaseLib\Sources</Filter>
     </ClCompile>
   </ItemGroup>

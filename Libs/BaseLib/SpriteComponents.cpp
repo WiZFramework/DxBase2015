@@ -420,7 +420,7 @@ namespace basedx11{
 
 
 		DWRITE_TEXT_METRICS m_textMetrics;
-		ComPtr<ID2D1SolidColorBrush>    m_whiteBrush;
+		ComPtr<ID2D1SolidColorBrush>    m_Brush;
 		ComPtr<ID2D1DrawingStateBlock>  m_stateBlock;
 		ComPtr<IDWriteTextLayout>       m_textLayout;
 		ComPtr<IDWriteTextFormat>		m_textFormat;
@@ -490,7 +490,7 @@ namespace basedx11{
 			ThrowIfFailed(
 				D2DDeviceContext->CreateSolidColorBrush(
 				Col,
-				&pImpl->m_whiteBrush
+				&pImpl->m_Brush
 				),
 				L"フォントブラシ設定に失敗しました。",
 				L"D2DDeviceContext->CreateSolidColorBrush()",
@@ -546,6 +546,11 @@ namespace basedx11{
 	void StringSprite::SetTextBlockHeight(float f){
 		pImpl->m_TextBlockHeight = f;
 	}
+
+	ComPtr<IDWriteTextLayout>& StringSprite::GetTextLayout()const{
+		return pImpl->m_textLayout;
+	}
+
 
 
 	const Point2D<float>& StringSprite::GetStartPosition() const{
@@ -612,6 +617,7 @@ namespace basedx11{
 			);
 
 
+
 		D2DDeviceContext->SetTransform(screenTranslation);
 
 		DWRITE_TEXT_ALIGNMENT Alignment = DWRITE_TEXT_ALIGNMENT_LEADING;
@@ -641,7 +647,7 @@ namespace basedx11{
 		D2DDeviceContext->DrawTextLayout(
 			D2D1::Point2F(0.f, 0.f),
 			pImpl->m_textLayout.Get(),
-			pImpl->m_whiteBrush.Get()
+			pImpl->m_Brush.Get()
 			);
 
 		// D2DERR_RECREATE_TARGET をここで無視します。このエラーは、デバイスが失われたことを示します。
@@ -784,6 +790,16 @@ namespace basedx11{
 		str += (wchar_t)wParam;
 		InsertText(str);
 	}
+
+	void InputStringSprite::Draw(){
+		StringSprite::Draw();
+		auto TextLayout = this->GetTextLayout();
+		float x, y;
+		DWRITE_HIT_TEST_METRICS m;
+		TextLayout->HitTestTextPosition(0, true, &x, &y, &m);
+
+	}
+
 
 
 }

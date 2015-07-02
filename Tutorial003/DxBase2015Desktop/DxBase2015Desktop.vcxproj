@@ -104,6 +104,7 @@
     <ClInclude Include="..\..\Libs\BaseLib\Components.h" />
     <ClInclude Include="..\..\Libs\BaseLib\DeviceResources.h" />
     <ClInclude Include="..\..\Libs\BaseLib\DrawComponents.h" />
+    <ClInclude Include="..\..\Libs\BaseLib\HttpForm.h" />
     <ClInclude Include="..\..\Libs\BaseLib\MathExt.h" />
     <ClInclude Include="..\..\Libs\BaseLib\MathExtEX.h" />
     <ClInclude Include="..\..\Libs\BaseLib\MathVector.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="..\..\Libs\BaseLib\Components.cpp" />
     <ClCompile Include="..\..\Libs\BaseLib\DeviceResources.cpp" />
     <ClCompile Include="..\..\Libs\BaseLib\DrawComponents.cpp" />
+    <ClCompile Include="..\..\Libs\BaseLib\HttpForm.cpp" />
     <ClCompile Include="..\..\Libs\BaseLib\Object.cpp" />
     <ClCompile Include="..\..\Libs\BaseLib\Renderer.cpp" />
     <ClCompile Include="..\..\Libs\BaseLib\Rigidbody.cpp" />

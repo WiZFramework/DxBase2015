@@ -161,6 +161,7 @@ using namespace Microsoft::WRL;
 #include "Rigidbody.h"
 #include "DrawComponents.h"
 #include "BaseResource.h"
+#include "HttpForm.h"
 #include "SceneBase.h"
 #include "SpriteStudio5.h"
 

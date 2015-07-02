@@ -93,6 +93,8 @@ namespace basedx11{
 		float GetTextBlockHeight() const;
 		void SetTextBlockHeight(float f);
 
+		ComPtr<IDWriteTextLayout>& GetTextLayout()const;
+
 		const Point2D<float>& GetStartPosition() const;
 		void SetStartPosition(const Point2D<float>& pos);
 		//操作
@@ -135,7 +137,7 @@ namespace basedx11{
 		virtual void OnChar(WPARAM wParam, LPARAM lParam);
 
 		//virtual void Update()override;
-		//virtual void Draw()override;
+		virtual void Draw()override;
 
 	private:
 		// pImplイディオム
