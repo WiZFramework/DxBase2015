@@ -1056,8 +1056,8 @@ namespace basedx11{
 		//初期化
 		virtual void Create() override;
 		//アクセサ
-		shared_ptr<InputStringSprite> GetFocusInputString() const;
-		void SetFocusInputString(const shared_ptr<InputStringSprite>& Ptr);
+		shared_ptr<StringSprite> GetFocusInputString() const;
+		void SetFocusInputString(const shared_ptr<StringSprite>& Ptr);
 
 		//操作
 		virtual void OnKeyDown(WPARAM wParam, LPARAM lParam);

@@ -47,6 +47,17 @@ namespace basedx11{
 	void Component::AttachGameObject(const shared_ptr<GameObject>& GameObjectPtr){
 		pImpl->m_GameObject = GameObjectPtr;
 	}
+	shared_ptr<Stage> Component::GetStage() const{
+		auto GamePtr = GetGameObject();
+		auto StagePtr = dynamic_pointer_cast<Stage>(GamePtr);
+		if (StagePtr){
+			return StagePtr;
+		}
+		else{
+			return GamePtr->GetStage();
+		}
+	}
+
 
 	bool Component::IsUpdateActive() const{
 		return pImpl->m_UpdateActive;

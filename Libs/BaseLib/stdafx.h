@@ -39,6 +39,8 @@ FBXSDK: オートデスク株式会社様(Autodesk, Inc.)
 #include <math.h>
 #include <limits.h>
 #include <time.h>
+#include <Winhttp.h>
+
 
 #include <xaudio2.h>	//サウンド
 #include <xaudio2fx.h>
@@ -46,6 +48,7 @@ FBXSDK: オートデスク株式会社様(Autodesk, Inc.)
 #include <mfidl.h>
 #include <mfapi.h>
 #include <mfreadwrite.h>
+#include <msxml6.h>
 
 
 // STL
@@ -106,7 +109,8 @@ using namespace std;
 #pragma comment( lib, "xaudio2.lib" )
 #pragma comment(lib, "Mfplat.lib")
 #pragma comment(lib, "Mfreadwrite.lib")
-
+//WinHTTP
+#pragma comment( lib, "Winhttp.lib" )
 
 
 #pragma warning(disable:4192)
@@ -126,6 +130,7 @@ namespace DirectX
 
 using namespace DirectX;
 using namespace Microsoft::WRL;
+using namespace Microsoft::WRL::Details;
 
 
 //ユーティリティ基本クラス（削除テンプレート、例外処理など）
@@ -161,7 +166,7 @@ using namespace Microsoft::WRL;
 #include "Rigidbody.h"
 #include "DrawComponents.h"
 #include "BaseResource.h"
-#include "HttpForm.h"
 #include "SceneBase.h"
+#include "HttpForm.h"
 #include "SpriteStudio5.h"
 

@@ -7,7 +7,7 @@ namespace basedx11{
 	//	用途: XMLクラス
 	//--------------------------------------------------------------------------------------
 	//構築と消滅
-	XmlDocReader::XmlDocReader(const wstring& Filename){
+	XmlDocReader::XmlDocReader(const wstring& StrReadContext, bool IsMemory){
 		try{
 			HRESULT hr = m_pXMLDOMDocument.CreateInstance(CLSID_DOMDocument);
 			if (FAILED(hr))
@@ -21,15 +21,31 @@ namespace basedx11{
 			}
 			m_pXMLDOMDocument->put_async(VARIANT_FALSE);
 			VARIANT_BOOL varbResult;
-			hr = m_pXMLDOMDocument->load(CComVariant(Filename.c_str()), &varbResult);
-			if (FAILED(hr) || !varbResult)
-			{
-				// 初期化失敗
-				throw BaseException(
-					L"XML読み込みに失敗しました。",
-					L"if (FAILED(hr) || !varbResult)",
-					L"XmlDocReader::XmlDoc()"
-					);
+			if (!IsMemory){
+				//ファイルとして読み込み
+				hr = m_pXMLDOMDocument->load(CComVariant(StrReadContext.c_str()), &varbResult);
+				if (FAILED(hr) || !varbResult)
+				{
+					// 初期化失敗
+					throw BaseException(
+						L"XMLファイル読み込みに失敗しました。",
+						L"if (FAILED(hr) || !varbResult)",
+						L"XmlDocReader::XmlDoc()"
+						);
+				}
+			}
+			else{
+				//文字列として読み込み
+				hr = m_pXMLDOMDocument->loadXML(BSTR(StrReadContext.c_str()), &varbResult);
+				if (FAILED(hr) || !varbResult)
+				{
+					// 初期化失敗
+					throw BaseException(
+						L"XMLデータ読み込みに失敗しました。",
+						L"if (FAILED(hr) || !varbResult)",
+						L"XmlDocReader::XmlDoc()"
+						);
+				}
 			}
 		}
 		catch (...){

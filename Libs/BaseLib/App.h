@@ -819,6 +819,7 @@ namespace basedx11{
 		wstring		m_wstrShadersPath;		//!< 絶対パスのシェーダディレクトリ
 		wstring		m_wstrRelativeDataPath;	//!< 相対パスのメディアディレクトリ
 		wstring		m_wstrRelativeShadersPath;	//!< 相対パスのシェーダディレクトリ
+		map<wstring, wstring> m_ConfigMap;		//!< 汎用マップ（各アプリケションで使用できる）
 	private:
 		//コピー禁止
 		App(const App&) = delete;

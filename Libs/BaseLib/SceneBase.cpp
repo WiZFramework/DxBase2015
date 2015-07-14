@@ -1065,7 +1065,7 @@ namespace basedx11{
 	//--------------------------------------------------------------------------------------
 	struct InputTextManager::Impl{
 		//フォーカスを持ってる入力ストリング
-		weak_ptr<InputStringSprite> m_FocusInputString;
+		weak_ptr<StringSprite> m_FocusInputString;
 		Impl()
 		{}
 		~Impl(){}
@@ -1093,7 +1093,7 @@ namespace basedx11{
 	}
 
 	//アクセサ
-	shared_ptr<InputStringSprite> InputTextManager::GetFocusInputString() const{
+	shared_ptr<StringSprite> InputTextManager::GetFocusInputString() const{
 		if (!pImpl->m_FocusInputString.expired()){
 			auto ShPtr = pImpl->m_FocusInputString.lock();
 			return ShPtr;
@@ -1102,7 +1102,7 @@ namespace basedx11{
 			return nullptr;
 		}
 	}
-	void InputTextManager::SetFocusInputString(const shared_ptr<InputStringSprite>& Ptr){
+	void InputTextManager::SetFocusInputString(const shared_ptr<StringSprite>& Ptr){
 		pImpl->m_FocusInputString = Ptr;
 	}
 
@@ -1452,15 +1452,27 @@ namespace basedx11{
 
 	//仮想関数
 	void Stage::OnMessage(UINT message, WPARAM wParam, LPARAM lParam){
-		switch (message){
-		case WM_KEYDOWN:
-			GetInputTextManager()->OnKeyDown(wParam, lParam);
-			break;
-		case WM_CHAR:
-			GetInputTextManager()->OnChar(wParam, lParam);
-			break;
-		default:
-			break;
+		bool IsFormMessage = false;
+		//配置オブジェクトの検証
+		for (auto ptr : pImpl->m_GameObjectVec){
+			auto FormPtr = dynamic_pointer_cast<HttpForm>(ptr);
+			//フォームを探す
+			if (FormPtr){
+				FormPtr->OnMessage(message,wParam,lParam);
+				IsFormMessage = true;
+			}
+		}
+		if (!IsFormMessage){
+			switch (message){
+			case WM_KEYDOWN:
+				GetInputTextManager()->OnKeyDown(wParam, lParam);
+				break;
+			case WM_CHAR:
+				GetInputTextManager()->OnChar(wParam, lParam);
+				break;
+			default:
+				break;
+			}
 		}
 	}
 

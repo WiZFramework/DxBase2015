@@ -56,6 +56,7 @@ namespace basedx11{
 		//文字列をつける
 		auto PtrString = AddComponent<StringSprite>();
 		PtrString->SetText(L"");
+		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
 
 
 		//ステートマシンの構築

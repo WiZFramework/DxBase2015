@@ -13,7 +13,7 @@ namespace basedx11{
 		IXMLDOMDocumentPtr m_pXMLDOMDocument;
 	public:
 		//\’z‚ÆÁ–Å
-		XmlDocReader(const wstring& Filename);
+		XmlDocReader(const wstring& StrReadContext, bool IsMemory = false);
 		virtual ~XmlDocReader();
 		//‘€ì
 		//XPath‚É‚æ‚éæ“¾

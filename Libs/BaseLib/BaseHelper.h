@@ -855,6 +855,50 @@ namespace basedx11{
 			dest = pMBstr;
 			delete[] pMBstr;
 		}
+
+		//--------------------------------------------------------------------------------------
+		//	static void ConvertWstringtoUtf8(
+		//	const wstring& src,	//変換する文字列（ワイドキャラ）
+		//	string& dest			//変換後の文字列（マルチバイトUTF8）
+		//	);
+		/*!
+		@breaf
+		ワイド文字列からマルチバイトUTF8文字列変換<br />
+		ロケール依存のため、WinMain()等で、setlocale( LC_ALL, "JPN" );が必要
+		@param const wstring& src,	変換する文字列（ワイドキャラ）
+		@param string& dest			変換後の文字列（マルチバイト）
+		@return　なし
+		*/
+		//--------------------------------------------------------------------------------------
+		static void ConvertWstringtoUtf8(const wstring& src, string& dest){
+			INT bufsize = ::WideCharToMultiByte(CP_UTF8, 0, src.c_str(), -1, NULL, 0, NULL, NULL);
+			char* Temp = new char[bufsize + 1];
+			::WideCharToMultiByte(CP_UTF8, 0, src.c_str(), -1, Temp, bufsize, NULL, NULL);
+			dest = Temp;
+			delete[] Temp;
+		}
+
+		//--------------------------------------------------------------------------------------
+		//	static void ConvertUtf8toWstring(
+		//	const string& src				//変換する文字列（マルチバイトUTF8）
+		//	wstring& dest,	//変換後文字列（ワイドキャラ）
+		//	);
+		/*!
+		@breaf
+		マルチバイトUTF8文字からワイド文字列変換<br />
+		ロケール依存のため、WinMain()等で、setlocale( LC_ALL, "JPN" );が必要
+		@param const string& src　変換する文字列（マルチバイトUTF8）
+		@param wstring& dest,	//変換後文字列（ワイドキャラ）
+		@return　なし
+		*/
+		//--------------------------------------------------------------------------------------
+		static void ConvertUtf8toWstring(const string& src, wstring& dest){
+			INT bufsize = ::MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, (wchar_t *)NULL, 0);
+			wchar_t* Temp = (wchar_t*)new wchar_t[bufsize];
+			::MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, Temp, bufsize);
+			dest = Temp;
+			delete[] Temp;
+		}
 		//--------------------------------------------------------------------------------------
 		//	static  void MBtoWS(
 		//	const string& src,	//変換する文字列（マルチバイト）
