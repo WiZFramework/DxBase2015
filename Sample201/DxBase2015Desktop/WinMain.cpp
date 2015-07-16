@@ -146,7 +146,9 @@ int MainLoop(HINSTANCE hInstance, HWND hWnd, bool isFullScreen, int iClientWidth
 		MSG msg = { 0 };
 		//キーボード入力用
 		//ここに設定したキーボード入力を得る
-		vector<DWORD> UseKeyVec = {};
+		vector<DWORD> UseKeyVec = {
+			'F', 'G', VK_LBUTTON, VK_RBUTTON
+		};
 		bool WinMess;
 		while (WM_QUIT != msg.message){
 			WinMess = false;

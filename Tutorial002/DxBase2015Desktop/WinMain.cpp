@@ -144,14 +144,23 @@ int MainLoop(HINSTANCE hInstance, HWND hWnd, bool isFullScreen, int iClientWidth
 		App::GetApp()->AddScene<Scene>();
 		//メッセージループ
 		MSG msg = { 0 };
+		//キーボード入力用
+		//ここに設定したキーボード入力を得る
+		vector<DWORD> UseKeyVec = {};
+		bool WinMess;
 		while (WM_QUIT != msg.message){
-			//キーボードとマウス状態をリセット
-			//App::GetApp()->ResetInputState(パラメータ);
-			if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)){
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+			WinMess = false;
+			if (!App::GetApp()->ResetInputState(hWnd, UseKeyVec)){
+				//キー状態が何もなければウインドウメッセージを得る
+				if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)){
+					WinMess = true;
+					//キーボードとマウス状態をリセット
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
 			}
-			else{
+			if (!WinMess){
+				//ウインドウメッセージがなければ更新描画処理
 				App::GetApp()->Update();
 				if (App::GetApp()->Draw()){
 					//フロイントバッファに転送
