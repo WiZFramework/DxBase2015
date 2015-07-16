@@ -48,6 +48,7 @@ namespace basedx11{
 	//	struct KEYBOARD_STATE;
 	/*!
 		キーボードのステータス.
+		マウスのステータスも取得する
 	*/
 	//--------------------------------------------------------------------------------------
 	struct KEYBOARD_STATE{
@@ -55,7 +56,9 @@ namespace basedx11{
 		bool m_bPushKeyTbl[MAX_KEYVCODE];	//!< 現在のキーボードの状態
 		bool m_bLastKeyTbl[MAX_KEYVCODE];	//!< 一つ前のキーボードの状態
 		bool m_bPressedKeyTbl[MAX_KEYVCODE];	//!< 押された瞬間のキーボード
+		bool m_bUpKeyTbl[MAX_KEYVCODE];		//!< 離された瞬間のキーボード
 		bool m_KeyMessageActive;	//!<何かのキーイベントが発生
+		Point2D<int> m_MouseClientPoint;
 		//--------------------------------------------------------------------------------------
 		//	KEYBOARD_STATE();
 		/*!
@@ -63,138 +66,122 @@ namespace basedx11{
 		*/
 		//--------------------------------------------------------------------------------------
 		KEYBOARD_STATE() :
-			m_KeyMessageActive{ false }
+			m_KeyMessageActive{ false },
+			m_MouseClientPoint{ 0, 0 }
 		{
 			//キーボードテーブルの初期化
 			::ZeroMemory(&m_bLastKeyTbl, sizeof(m_bLastKeyTbl));
 			::ZeroMemory(&m_bPressedKeyTbl, sizeof(m_bPressedKeyTbl));
 			::ZeroMemory(&m_bPushKeyTbl, sizeof(m_bPushKeyTbl));
+			::ZeroMemory(&m_bUpKeyTbl, sizeof(m_bUpKeyTbl));
+		}
+		//--------------------------------------------------------------------------------------
+		//	bool IsMouseEnabled(
+		//			HWND hWnd,	//ウインドウのハンドル。
+		//			vector<DWORD>& UseKeyVec	//使用するキーコード配列
+		//	);
+		/*!
+		@breaf	マウス使用でマウスがクライアント領域にあるかどうかのチェック
+		@param	HWND hWnd,	ウインドウのハンドル。
+		@param	vector<DWORD>& UseKeyVec: 使用するキーコード配列
+		@return マウス使用でマウスがクライアント領域にあればtrue
+		*/
+		//--------------------------------------------------------------------------------------
+		bool IsMouseEnabled(HWND hWnd, vector<DWORD>& UseKeyVec){
+			//マウスポイントは0,0に初期化
+			m_MouseClientPoint = {0,0};
+			//マウス利用にかかわらず、マウスポインタ座標は設定
+			POINT p;
+			::GetCursorPos(&p);
+			if (::ScreenToClient(hWnd, &p)){
+				//クライアント座標に変換できたときのみ、マウス座標を設定
+				m_MouseClientPoint = { p.x, p.y };
+			}
+			else{
+				return false;
+			}
+
+			//UseKeyVecにマウスがあった場合
+			vector<DWORD> MouseTemp = { VK_LBUTTON, VK_RBUTTON, VK_MBUTTON };
+			bool MouseChk = false;
+			for (auto chk : MouseTemp){
+				auto it = find(UseKeyVec.begin(), UseKeyVec.end(), chk);
+				if (it != UseKeyVec.end()){
+					MouseChk = true;
+					break;
+				}
+			}
+			//マウス使用で座標がクライアント領域内ならtrue
+			if (MouseChk){
+				RECT rc;
+				::GetClientRect(hWnd, &rc);
+				if (::PtInRect(&rc, p)){
+					return true;
+				}
+			}
+			return false;
 		}
 		//--------------------------------------------------------------------------------------
 		//	bool GetKeyState(
-		//			MSG& msg,	//メッセージ。Escキー入力時にメッセージを送るため
+		//			HWND hWnd,	//ウインドウのハンドル。Escキー入力時にメッセージを送るため
 		//			vector<DWORD>& UseKeyVec	//使用するキーコード配列
 		//	);
 		/*!
 			@breaf	キーステートを得る
-			@param	MSG& msg: メッセージ。Escキー入力時にメッセージを送るため
+			@param	HWND hWnd,	ウインドウのハンドル。Escキー入力時にメッセージを送るため
 			@param	vector<DWORD>& UseKeyVec: 使用するキーコード配列
 			@return キー入力があればtrue
 		*/
 		//--------------------------------------------------------------------------------------
-		bool GetKeyState(MSG& msg, vector<DWORD>& UseKeyVec){
-			//msgは使用しないで、直接キーの状態を取得
+		bool GetKeyState(HWND hWnd, vector<DWORD>& UseKeyVec){
+			m_KeyMessageActive = false;
 			//一つ前にコピー
 			CopyMemory(m_bLastKeyTbl, m_bPushKeyTbl, sizeof(m_bLastKeyTbl));
-			m_KeyMessageActive = false;
-			SHORT ret = GetAsyncKeyState((int)VK_ESCAPE);
-			if (ret & 0x8000){
-				::DestroyWindow(msg.hwnd);	//ウインドウを破棄する
+			//キーボードの状態を初期化
+			::ZeroMemory(&m_bPushKeyTbl, sizeof(m_bPushKeyTbl));
+			::ZeroMemory(&m_bPressedKeyTbl, sizeof(m_bPressedKeyTbl));
+			::ZeroMemory(&m_bUpKeyTbl, sizeof(m_bUpKeyTbl));
+			//マウスのチェック
+			bool MouseEnabled = IsMouseEnabled(hWnd, UseKeyVec);
+			//自分自身にフォーカスがない場合はfalse
+			if (::GetFocus() != hWnd){
 				return false;
 			}
-			//キーボードの状態を取得
-			::ZeroMemory(&m_bPushKeyTbl, sizeof(m_bPushKeyTbl));
+			SHORT ret = GetAsyncKeyState((int)VK_ESCAPE);
+			if (ret & 0x8000){
+				//Escキーは無条件にfalse
+				return false;
+			}
 			size_t sz = UseKeyVec.size();
 			for (size_t i = 0; i < sz; i++){
 				ret = GetAsyncKeyState((int)UseKeyVec[i]);
+				if (UseKeyVec[i] == VK_LBUTTON || UseKeyVec[i] == VK_RBUTTON || UseKeyVec[i] == VK_MBUTTON){
+					if (!MouseEnabled){
+						//マウスが無効ならUsedに入っていても無視
+						continue;
+					}
+				}
 				if (ret & 0x8000){
 					m_bPushKeyTbl[UseKeyVec[i]] = true;
-				}
-			}
-			//プレステーブルにコピー
-			CopyMemory(m_bPressedKeyTbl, m_bPushKeyTbl, sizeof(m_bPressedKeyTbl));
-			//状態の変化を代入
-			for (DWORD i = 0; i < MAX_KEYVCODE; i++){
-				m_bPressedKeyTbl[i] ^= m_bLastKeyTbl[i];	//前回のキーとXOR式で代入
-			}
-			for (size_t i = 0; i < sz; i++){
-				if (m_bPressedKeyTbl[UseKeyVec[i]]){
 					m_KeyMessageActive = true;	//メッセージをゲームが受け取る
+					if (!m_bLastKeyTbl[UseKeyVec[i]]){
+						//前回押されてなくて今回押された
+						m_bPressedKeyTbl[UseKeyVec[i]] = true;
+					}
 				}
-				if (m_bPushKeyTbl[UseKeyVec[i]]){
-					m_KeyMessageActive = true;	//メッセージをゲームが受け取る
+				else{
+					//キーは押されてない
+					if (m_bLastKeyTbl[UseKeyVec[i]]){
+						//前回押されていて今回押されてない
+						m_bUpKeyTbl[UseKeyVec[i]] = true;
+						m_KeyMessageActive = true;	//メッセージをゲームが受け取る
+					}
 				}
 			}
 			return m_KeyMessageActive;
 		}
 	};
 
-
-	//--------------------------------------------------------------------------------------
-	//	struct MOUSE_STATE;
-	/*!
-		マウスのステータス
-	*/
-	//--------------------------------------------------------------------------------------
-	struct MOUSE_STATE{
-		UINT m_MouseMessage;	//!< メッセージ
-		LPARAM m_lParam;		//!< 第1パラメータ
-		WPARAM m_wParam;		//!< 第2パラメータ
-		POINT m_MousePoint;	//!< ポイント位置
-		bool m_MouseMsgActive;	//!< マウスメッセージが発生
-		//--------------------------------------------------------------------------------------
-		//	MOUSE_STATE();
-		/*!
-			@breaf コンストラクタ
-			@param なし
-			@return	なし
-		*/
-		//--------------------------------------------------------------------------------------
-		MOUSE_STATE() :
-			m_MouseMessage(0),
-			m_lParam(0),
-			m_wParam(0),
-			m_MouseMsgActive(false)
-		{
-			m_MousePoint.x = 0;
-			m_MousePoint.y = 0;
-		}
-		//--------------------------------------------------------------------------------------
-		//	bool GetMouseState(
-		//				MSG& msg	//メッセージ
-		//	);
-		/*!
-			@breaf	マウスステートを得る
-			@param	MSG& msg	メッセージ
-			@return	マウスメッセージがあればtrue
-		*/
-		//--------------------------------------------------------------------------------------
-		bool GetMouseState(MSG& msg){
-			m_MouseMsgActive = false;
-			m_MouseMessage = 0;
-			m_lParam = 0;
-			m_wParam = 0;
-			//マウスメッセージの取得
-			switch (msg.message) {
-			case WM_MOUSEMOVE:
-			case WM_LBUTTONDOWN:
-			case WM_LBUTTONUP:
-			case WM_MBUTTONDOWN:
-			case WM_MBUTTONUP:
-			case WM_RBUTTONDOWN:
-			case WM_RBUTTONUP:
-			case WM_XBUTTONDOWN:
-			case WM_XBUTTONUP:
-			case WM_LBUTTONDBLCLK:
-			case WM_MBUTTONDBLCLK:
-			case WM_RBUTTONDBLCLK:
-			case WM_XBUTTONDBLCLK:
-			case WM_MOUSEWHEEL:
-				m_MouseMessage = msg.message;
-				m_lParam = msg.lParam;
-				m_wParam = msg.wParam;
-				m_MousePoint = {
-					short(LOWORD(m_lParam)),
-					short(HIWORD(m_lParam))
-				};
-				m_MouseMsgActive = true;	//メッセージをゲームが受け取る
-				break;
-			default:
-				break;
-			}
-			return m_MouseMsgActive;
-		}
-	};
 	//--------------------------------------------------------------------------------------
 	//	class InputDevice;
 	/*!
@@ -205,7 +192,6 @@ namespace basedx11{
 		static const DWORD MAX_CONTROLLERS = 4;
 		vector<CONTROLER_STATE> m_State;
 		KEYBOARD_STATE m_KeyState;
-		MOUSE_STATE m_MouseState;
 	public:
 		//--------------------------------------------------------------------------------------
 		//	InputDevice();
@@ -217,8 +203,7 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		InputDevice() :
 			m_State(MAX_CONTROLLERS),
-			m_KeyState(),
-			m_MouseState()
+			m_KeyState()
 		{
 			for (DWORD i = 0; i < MAX_CONTROLLERS; i++){
 				::ZeroMemory(&m_State[i], sizeof(CONTROLER_STATE));
@@ -235,20 +220,19 @@ namespace basedx11{
 		~InputDevice(){}
 		//--------------------------------------------------------------------------------------
 		//	bool ResetInputState(
-		//		MSG& msg,	//メッセージ
+		//		HWND hWnd,	//ウインドウのハンドル。Escキー入力時にメッセージを送るため
 		//		vector<DWORD>& UseKeyVec	//使用するキーの配列
 		//	);
 		/*!
 			@breaf マウスとキーボードの状態を得る
-			@param MSG& msg	メッセージ
+			@param HWND hWnd,	ウインドウのハンドル。Escキー入力時にメッセージを送るため
 			@param vector<DWORD>& UseKeyVec	使用するキー
 			@return	マウスかキーボードメッセージがあればtrue
 		*/
 		//--------------------------------------------------------------------------------------
-		bool ResetInputState(MSG& msg, vector<DWORD>& UseKeyVec){
-			bool Ret1 = m_KeyState.GetKeyState(msg, UseKeyVec);
-			bool Ret2 = m_MouseState.GetMouseState(msg);
-			return (Ret1 || Ret2);
+		bool ResetInputState(HWND hWnd, vector<DWORD>& UseKeyVec){
+			bool Ret1 = m_KeyState.GetKeyState(hWnd, UseKeyVec);
+			return Ret1;
 		}
 		//--------------------------------------------------------------------------------------
 		//	void ResetControlerState();
@@ -336,8 +320,6 @@ namespace basedx11{
 		//	アクセサ
 		//!	キーステートの取得
 		const KEYBOARD_STATE& GetKeyState() const{ return m_KeyState; }
-		//!	マウスステートの取得
-		const MOUSE_STATE& GetMouseState() const{ return m_MouseState; }
 		//!	コントローラステートの取得
 		const vector<CONTROLER_STATE>& GetControlerVec()const { return m_State; }
 	};
@@ -548,6 +530,24 @@ namespace basedx11{
 		}
 		//! 入力機器の取得
 		const InputDevice& GetInputDevice() const { return m_InputDevice; }
+		//--------------------------------------------------------------------------------------
+		//	bool ResetInputState(
+		//		HWND hWnd,	//ウインドウのハンドル。Escキー入力時にメッセージを送るため
+		//		vector<DWORD>& UseKeyVec	//使用するキーの配列
+		//	);
+		/*!
+		@breaf マウスとキーボードの状態を得る
+		@param HWND hWnd,	ウインドウのハンドル。Escキー入力時にメッセージを送るため
+		@param vector<DWORD>& UseKeyVec	使用するキー
+		@return	マウスかキーボードメッセージがあればtrue
+		*/
+		//--------------------------------------------------------------------------------------
+		bool ResetInputState(HWND hWnd, vector<DWORD>& UseKeyVec){
+			if (UseKeyVec.size() == 0){
+				return false;
+			}
+			return m_InputDevice.ResetInputState(hWnd, UseKeyVec);
+		}
 		//操作
 		//! 更新
 		void Update();
