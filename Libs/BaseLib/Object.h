@@ -78,9 +78,15 @@ namespace basedx11{
 	//	用途: すべてのオブジェクトの基底クラス（抽象クラス）
 	//--------------------------------------------------------------------------------------
 	class Object : public std::enable_shared_from_this<Object>{
+		//クリエイト済みかどうか
+		//Create関数が呼び出し後にtrueになる
+		bool m_Created;
+		void SetCreated(bool b){
+			m_Created = b;
+		}
 	protected:
 		//構築と破棄
-		Object(){}
+		Object():m_Created(false){}
 		virtual ~Object(){}
 	public:
 		//thisポインタ取得
@@ -105,6 +111,7 @@ namespace basedx11{
 			//仮想関数呼び出し
 			Ptr->PreCreate();
 			Ptr->Create();
+			Ptr->SetCreated(true);
 			return Ptr;
 		}
 
@@ -112,8 +119,10 @@ namespace basedx11{
 		//＊thisポインタが必要なオブジェクトはこの関数を多重定義して、構築する
 		virtual void PreCreate(){}
 		virtual void Create(){}
-
-
+		//クリエイト済みかどうか
+		bool IsCreated(){
+			return m_Created;
+		}
 		// イベントのPOST（キューに入れる）
 		void PostEvent(float DispatchTime, const shared_ptr<Object>& Sender, const shared_ptr<Object>& Receiver,
 			const wstring& MsgStr, shared_ptr<void>& Info = shared_ptr<void>());

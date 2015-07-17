@@ -1151,6 +1151,9 @@ namespace basedx11{
 		vector< shared_ptr<GameObject> > m_Object3DNormalVec;
 		vector< shared_ptr<GameObject> > m_Object3DAlphaVec;
 
+		//途中にオブジェクトが追加された場合、ターンの開始まで待つ配列
+		vector< shared_ptr<GameObject> > m_WaitAddObjectVec;
+
 		Impl() :m_DrawViewIndex(0){}
 		~Impl(){}
 	};
@@ -1167,7 +1170,14 @@ namespace basedx11{
 	//--------------------------------------------------------------------------------------
 	//プライベートサブ関数
 	void Stage::PushBackGameObject(const shared_ptr<GameObject>& Ptr){
-		pImpl->m_GameObjectVec.push_back(Ptr);
+		//このステージはクリエイト後である
+		if (IsCreated()){
+			pImpl->m_WaitAddObjectVec.push_back(Ptr);
+		}
+		else{
+		//クリエイト前
+			pImpl->m_GameObjectVec.push_back(Ptr);
+		}
 	}
 
 	shared_ptr<GameObject> Stage::GetSharedGameObjectEx(const wstring& Key, bool ExceptionActive)const{
@@ -1310,13 +1320,25 @@ namespace basedx11{
 			//Tranceform必須
 			//なかったときの場合に対応
 			Obj->AddComponent<Transform>();
-			pImpl->m_GameObjectVec.push_back(Obj);
+			//オブジェクトの追加
+			PushBackGameObject(Obj);
 			return Obj;
 		}
 		catch (...){
 			throw;
 		}
 	}
+
+	//追加待ちになってるオブジェクトを追加する
+	void Stage::SetWaitToObjectVec(){
+		if (pImpl->m_WaitAddObjectVec.size() > 0){
+			for (auto Ptr : pImpl->m_WaitAddObjectVec){
+				pImpl->m_GameObjectVec.push_back(Ptr);
+			}
+		}
+		pImpl->m_WaitAddObjectVec.clear();
+	}
+
 
 	shared_ptr<Object> Stage::GetSharedObject(const wstring& Key, bool ExceptionActive)const{
 		shared_ptr<Object> Ptr = GetSharedGameObjectEx(Key, ExceptionActive);
@@ -2057,8 +2079,11 @@ namespace basedx11{
 	}
 	void SceneBase::Update(){
 		if (pImpl->m_ActiveStage){
+			//追加待ちになっているオブジェクトの追加
+			pImpl->m_ActiveStage->SetWaitToObjectVec();
 			//イベントキューの送出
 			pImpl->m_EventDispatcher->DispatchDelayedEvwnt();
+			//ステージのアップデート
 			pImpl->m_ActiveStage->UpdateStage();
 		}
 	}
