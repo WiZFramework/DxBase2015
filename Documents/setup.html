@@ -39,9 +39,11 @@
 　GitHubからのダウンロードには、<b>FBXモデル</b>の読み込みのためのライブラリが含まれてません。以下の手順でセットアップしたのち、必要なファイルを、<b>DxBase2015内</b>に配置して利用します。
 <ul class="mokuji">
 <li>Autodesk社の<b>FBX SDK（FBX Software Development Kit）</b>をセットアップします。</li>
-<li><b>FBX SDK</b>は検索エンジンなどで　<b>FBX SDK</b>　などで検索するとたどり着けます。そこからダウンロードのページに移り、アーカイブの中の<b>Windows</b>という項目の<b>FBX SDK 2015.1 VS2013 </b>をダウンロードしてください。最新版、<b>FBX SDK 2016 VS2013</b>については動作確認中です。</li>
+<li><b>FBX SDK</b>は検索エンジンなどで　<b>FBX SDK</b>　などで検索するとたどり着けます。そこからダウンロードのページに移り、アーカイブの中の<b>Windows</b>という項目の<b>FBX SDK 2015.1 VS2013 </b>をダウンロードしてセットアップしてください。<br />
+　なお、最新版、<b>FBX SDK 2016 VS2013</b>については動作確認中です。</li>
 <li><b>FBX SDK</b>は実行ファイルになっていますので、そのままセットアップ可能です。</li>
-<li><b>FBX SDKのセットアップ</b>が済んだら、セットアップされたディレクトリ（デフォルトで「C:\Program Files\Autodesk\FBX\FBX SDK\2016.0」にエクスプローラで移動してください。</li>
+<li><b>FBX SDKのセットアップ</b>が済んだら、セットアップされたディレクトリ<br />
+（デフォルトで<b>「C:\Program Files\Autodesk\FBX\FBX SDK\2015.1」</b>にエクスプローラで移動してください。</li>
 <li><b>FBX SDK</b>がセットアップされたディレクトリの<b>「include」</b>ディレクトリ内の、<b>fbxsdk.hというファイルと、fbxsdkディレクトリ</b>を、そのまま、<b>DxBase2015を解答したディレクトリ</b>の<b>「Libs\include」内</b>にコピーしてください。</li>
 <li><b>FBX SDK</b>がセットアップされたディレクトリの<b>「lib\vs2013\x86\debug」</b>ディレクトリ内の、<b>libfbxsdk-mt.libというファイルと、libfbxsdk.pdb</b>を、<b>DxBase2015</b>を解答したディレクトリの<b>「Libs\lib\Debug」内</b>にコピーしてください。</li>
 <li><b>FBX SDK</b>がセットアップされたディレクトリの<b>「lib\vs2013\x86\release」</b>ディレクトリ内の、<b>libfbxsdk-mt.lib</b>というファイルを、<b>DxBase2015</b>を解答したディレクトリの<b>「Libs\lib\Release」内</b>にコピーしてください。</li>
