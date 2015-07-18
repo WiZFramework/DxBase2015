@@ -77,8 +77,8 @@ namespace basedx11{
 			CreatePlate();
 			//プレーヤーの作成
 			CreatePlayer();
-			//トーラス用のシェアオブジェクトグループの作成
-			CreateSharedObjectGroup(L"RollingTorusGroup");
+			//砲弾用のシェアオブジェクトグループの作成
+			CreateSharedObjectGroup(L"ShellBallGroup");
 		}
 		catch (...){
 			throw;

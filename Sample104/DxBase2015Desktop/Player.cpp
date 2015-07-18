@@ -42,6 +42,12 @@ namespace basedx11{
 		//描画するテクスチャを設定
 		PtrDraw->SetTextureResource(L"TRACE_TX");
 
+		//文字列をつける
+		auto PtrString = AddComponent<StringSprite>();
+		PtrString->SetText(L"");
+		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
+
+
 		//透明処理
 		SetAlphaActive(true);
 		//0番目のビューのカメラを得る
@@ -149,6 +155,13 @@ namespace basedx11{
 		//Transform
 		PtrTransform->SetQuaternion(Qt);
 
+		//文字列をとりだす
+		auto PtrString = GetComponent<StringSprite>();
+		auto Group = GetStage()->GetSharedObjectGroup(L"RollingTorusGroup");
+		auto TorusVec = Group->GetGroupVector();
+		wstring str(L"トーラスグループの登録数: ");
+		str += Util::UintToWStr(TorusVec.size());
+		PtrString->SetText(str);
 
 
 	}
@@ -198,8 +211,13 @@ namespace basedx11{
 			//Aボタンが押された瞬間ならステート変更
 			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
 				//トーラスの追加
-				auto PtrTrans = Obj->GetComponent<Transform>();
-				Obj->GetStage()->AddGameObject<RollingTorus>(PtrTrans->GetPosition());
+				//20個までトーラス追加できる
+				auto Group = Obj->GetStage()->GetSharedObjectGroup(L"RollingTorusGroup");
+				if (Group->size() < 20){
+					auto PtrTrans = Obj->GetComponent<Transform>();
+					auto TorusPtr = Obj->GetStage()->AddGameObject<RollingTorus>(PtrTrans->GetPosition());
+					Group->IntoGroup(TorusPtr);
+				}
 				Obj->GetStateMachine()->ChangeState(JumpState::Instance());
 			}
 		}
