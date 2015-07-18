@@ -63,6 +63,10 @@ namespace basedx11{
 	void Gravity::SetGravityVelocity(float x, float y, float z){
 		pImpl->m_GravityVelocity = Vector3(x, y, z);
 	}
+
+	bool Gravity::IsGravityVelocityZero(){
+		return (pImpl->m_GravityVelocity == Vector3(0, 0, 0));
+	}
 	void Gravity::SetGravityVelocityZero(){
 		pImpl->m_GravityVelocity.Zero();
 	}
