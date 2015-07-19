@@ -29,11 +29,12 @@ namespace basedx11{
 		void Refresh(const Vector3& StartPos, const Vector3& JumpVec);
 		//爆発を演出する関数
 		//地面についたかどうか
-		bool IsArrivedBase();
+		bool IsArrivedBaseMotion();
 		//爆発の開始
-		void ExplodeStart();
+		void ExplodeStartMotion();
 		//爆発の演出(演出終了で更新と描画を無効にする）
-		void ExplodeExcute();
+		void ExplodeExcuteMotion();
+
 	};
 
 	//--------------------------------------------------------------------------------------

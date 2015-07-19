@@ -81,14 +81,11 @@ namespace basedx11{
 		//この中でステートの切り替えが行われる
 		m_StateMachine->Update();
 		//ステートマシンを使うことでUpdate処理を分散できる
-		//ここでは、
-		//IsArrivedBase(),ExplodeStart(),ExplodeExcute()に
-		//分散している
 	}
 
 	//爆発を演出する関数
 	//地面についたかどうか
-	bool ShellBall::IsArrivedBase(){
+	bool ShellBall::IsArrivedBaseMotion(){
 		//重力を取り出す
 		auto PtrGravity = GetComponent<Gravity>();
 		if (PtrGravity->IsGravityVelocityZero()){
@@ -99,7 +96,7 @@ namespace basedx11{
 	}
 
 	//爆発の開始
-	void ShellBall::ExplodeStart(){
+	void ShellBall::ExplodeStartMotion(){
 		//Transform取得
 		auto Ptr = GetComponent<Transform>();
 		m_NowScale = Vector3(5.0f, 5.0f, 5.0f);
@@ -111,7 +108,7 @@ namespace basedx11{
 	}
 
 	//爆発の演出(演出終了で更新と描画を無効にする）
-	void ShellBall::ExplodeExcute(){
+	void ShellBall::ExplodeExcuteMotion(){
 		//Transform取得
 		auto Ptr = GetComponent<Transform>();
 		m_NowScale *= 0.9f;
@@ -146,7 +143,7 @@ namespace basedx11{
 	//ステート実行中に毎ターン呼ばれる関数
 	void FiringState::Execute(const shared_ptr<ShellBall>& Obj){
 		//落下終了かどうかチェック
-		if (Obj->IsArrivedBase()){
+		if (Obj->IsArrivedBaseMotion()){
 			//落下終了ならステート変更
 			Obj->GetStateMachine()->ChangeState(ExplodeState::Instance());
 		}
@@ -171,12 +168,12 @@ namespace basedx11{
 	//ステートに入ったときに呼ばれる関数
 	void ExplodeState::Enter(const shared_ptr<ShellBall>& Obj){
 		//爆発の開始
-		Obj->ExplodeStart();
+		Obj->ExplodeStartMotion();
 	}
 	//ステート実行中に毎ターン呼ばれる関数
 	void ExplodeState::Execute(const shared_ptr<ShellBall>& Obj){
 		//爆発演出の実行
-		Obj->ExplodeExcute();
+		Obj->ExplodeExcuteMotion();
 	}
 	//ステートにから抜けるときに呼ばれる関数
 	void ExplodeState::Exit(const shared_ptr<ShellBall>& Obj){
