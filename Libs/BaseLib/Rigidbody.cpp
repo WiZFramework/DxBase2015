@@ -1210,6 +1210,18 @@ namespace basedx11{
 		pImpl->m_HitObject = Ptr;
 	}
 
+	void Collision::ClearBothHitObject(){
+		auto Other = GetHitObject();
+		if (Other){
+			auto OtherColl = Other->GetComponent<Collision>(false);
+			if (OtherColl){
+				OtherColl->SetHitObject(nullptr);
+			}
+		}
+		SetHitObject(nullptr);
+	}
+
+
 	void Collision::ResetHitObject(){
 		pImpl->m_BeforeHitObject = pImpl->m_HitObject;
 		pImpl->m_HitObject.reset();

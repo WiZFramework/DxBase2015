@@ -485,6 +485,8 @@ namespace basedx11{
 		shared_ptr<GameObject> GetHitObject() const;
 		void SetHitObject(const shared_ptr<GameObject>& Ptr);
 
+		void ClearBothHitObject();
+
 		shared_ptr<GameObject> GetSubDispatchObject() const;
 		void SetSubDispatchObject(const shared_ptr<GameObject>& Ptr);
 

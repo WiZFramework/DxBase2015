@@ -396,8 +396,8 @@ namespace basedx11{
 
 			//‰ñ“]ŠJŽn
 			m_RotationSpeed = m_MaxRotationSpeed;
-			//Õ“Ë‚ð‚È‚µ‚É‚·‚é
-			PtrCollision->SetHitObject(nullptr);
+			//Õ“Ë‚ð‘ŠŽè‚àŠÜ‚ß‚È‚µ‚É‚·‚é
+			PtrCollision->ClearBothHitObject();
 			//Õ“Ë‚Í–³Œø‚É‚µ‚Ä‚¨‚­
 			PtrCollision->SetUpdateActive(false);
 

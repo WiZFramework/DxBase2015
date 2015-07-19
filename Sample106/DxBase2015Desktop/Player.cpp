@@ -167,7 +167,7 @@ namespace basedx11{
 			Pos += Vector3(0, 6.0f, 0);
 
 			//Õ“Ë‚ğ‚È‚µ‚É‚·‚éi‚Ì‚¿‚É•œŠˆj
-			PtrCollision->SetHitObject(nullptr);
+			PtrCollision->ClearBothHitObject();
 			PtrCollision->SetUpdateActive(false);
 
 			//d—Í‚ğ“¾‚é
