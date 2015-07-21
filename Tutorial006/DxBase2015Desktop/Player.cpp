@@ -20,16 +20,20 @@ namespace basedx11{
 		Ptr->SetRotation(0.0f, 0.0f, 0.0f);
 		Ptr->SetPosition(0, 0.125f, 0);
 
-		//操舵系のコンポーネントをつける場合はRigidbodyをつける
+		//Rigidbodyをつける
 		auto PtrRedit = AddComponent<Rigidbody>();
-		//Seek操舵
-		AddComponent<SeekSteering>();
 		//重力をつける
 		auto PtrGravity = AddComponent<Gravity>();
 		//最下地点
 		PtrGravity->SetBaseY(0.125f);
 		//衝突判定をつける
 		auto PtrCol = AddComponent<CollisionSphere>();
+
+		//文字列をつける
+		auto PtrString = AddComponent<StringSprite>();
+		PtrString->SetText(L"");
+		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
+
 
 		//影をつける（シャドウマップを描画する）
 		auto ShadowPtr = AddComponent<Shadowmap>();
@@ -41,7 +45,6 @@ namespace basedx11{
 		PtrDraw->SetMeshResource(L"DEFAULT_SPHERE");
 		//描画するテクスチャを設定
 		PtrDraw->SetTextureResource(L"TRACE_TX");
-		//	PtrDraw->SetOwnShadowActive(true);
 
 		//透明処理
 		SetAlphaActive(true);
@@ -52,12 +55,6 @@ namespace basedx11{
 			//LookAtCameraに注目するオブジェクト（プレイヤー）の設定
 			PtrCamera->SetTargetObject(GetThis<GameObject>());
 		}
-
-		//文字列をつける
-		auto PtrString = AddComponent<StringSprite>();
-		PtrString->SetText(L"");
-		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
-
 
 		//ステートマシンの構築
 		m_StateMachine = make_shared< StateMachine<Player> >(GetThis<Player>());
@@ -92,30 +89,13 @@ namespace basedx11{
 				float TotalAngle = FrontAngle + CntlAngle;
 				//角度からベクトルを作成
 				Angle = Vector3(cos(TotalAngle), 0, sin(TotalAngle));
-				//正規化
-				Angle.Normalize();
+				//正規化しない
+				//Angle.Normalize();
 				//Y軸は変化させない
 				Angle.y = 0;
 			}
 		}
 		return Angle;
-	}
-
-	void Player::StartJump(){
-		auto PtrTrans = GetComponent<Transform>();
-		//重力
-		auto PtrGravity = GetComponent<Gravity>();
-		//ジャンプスタート
-		Vector3 JumpVec(0.0f, 4.0f, 0);
-		if (PtrTrans->GetParent()){
-			//親がいたら、アクションコンポーネントの移動アクションを探す
-			//移動ボックスに乗っている場合、その慣性をジャンプに加算する
-			auto ActionPtr = PtrTrans->GetParent()->GetComponent<Action>(false);
-			if (ActionPtr){
-				JumpVec += ActionPtr->GetVelocity();
-			}
-		}
-		PtrGravity->StartJump(JumpVec);
 	}
 
 
@@ -124,21 +104,40 @@ namespace basedx11{
 		//ステートマシンのUpdateを行う
 		//この中でステートの切り替えが行われる
 		m_StateMachine->Update();
+	}
 
+	void Player::Update2(){
+		auto ColPtr = GetComponent<CollisionSphere>();
+		if (ColPtr->GetHitObject() && GetStateMachine()->GetCurrentState() == JumpState::Instance()){
+			GetStateMachine()->ChangeState(DefaultState::Instance());
+		}
+		//文字列をとりだす
+		auto PtrString = GetComponent<StringSprite>();
+		auto fps = App::GetApp()->GetStepTimer().GetFramesPerSecond();
+		wstring str(L"FPS: ");
+		str += Util::UintToWStr(fps);
+		PtrString->SetText(str);
+
+	}
+
+
+	//モーションを実装する関数群
+	//移動して向きを移動方向にする
+	void Player::MoveRotationMotion(){
+		float ElapsedTime = App::GetApp()->GetElapsedTime();
 		Vector3 Angle = GetAngle();
 		//Transform
 		auto PtrTransform = GetComponent<Transform>();
-
-		//現在位置を取り出す
-		auto Pos = PtrTransform->GetPosition();
-		//移動方向を加算。
-		//移動方向だけがわかればいいので、
-		//Angleは正規化されてて良い
-		Pos += Angle;
-		//Seek操舵
-		auto PtrSeek = GetComponent<SeekSteering>();
-		//加算された方向に追いかける
-		PtrSeek->SetTargetPosition(Pos);
+		//Rigidbodyを取り出す
+		auto PtrRedit = GetComponent<Rigidbody>();
+		//現在の速度を取り出す
+		auto Velo = PtrRedit->GetVelocity();
+		//コントローラの向きを加える
+		Velo += Angle;
+		//減速する
+		Velo *= (0.015f / ElapsedTime);
+		//減速0.015fを微調整すると、操作性が変わる
+		PtrRedit->SetVelocity(Velo);
 		//回転の計算
 		float YRot = PtrTransform->GetRotation().y;
 		Quaternion Qt;
@@ -155,112 +154,55 @@ namespace basedx11{
 		}
 		//Transform
 		PtrTransform->SetQuaternion(Qt);
-
-
-
 	}
 
-	void Player::Update2(){
-		auto ColPtr = GetComponent<CollisionSphere>();
-		if (ColPtr->GetHitObject() && GetStateMachine()->GetCurrentState() == JumpState::Instance()){
-			GetStateMachine()->ChangeState(DefaultState::Instance());
-
-		}
-	}
-
-
-	void Player::Update3(){
-
-		auto PtrTransform = GetComponent<Transform>();
-		auto Coll = GetComponent<CollisionSphere>();
-		auto Sp = Coll->GetSphere();
-		//平面との交差を判定
-		auto Group = GetStage()->GetSharedObjectGroup(L"SquareGroup");
-		for (auto Ptr : Group->GetGroupVector()){
-			if (!Ptr.expired()){
-				auto SquarePtr = dynamic_pointer_cast< HitTestSquare>(Ptr.lock());
-				if (SquarePtr){
-					Vector3 RetVec, Normal;
-					if (SquarePtr->HitTestSphere(Sp, RetVec, Normal)){
-						//ヒットしたので位置をヒット位置に修正する
-						Vector3 SetPos = RetVec + -Normal * Sp.m_Radius;
-						PtrTransform->SetPosition(SetPos);
-						auto PtrGrav = GetComponent<Gravity>();
-						//蓄積した落下の加速度を0にする
-						PtrGrav->SetGravityVelocityZero();
-						auto PtrRidit = GetComponent<Rigidbody>();
-						//反発
-						Vector3 Refalct = Vector3EX::Reflect(PtrRidit->GetVelocity(), Normal);
-						PtrRidit->SetVelocity(Refalct);
-
-					}
-				}
+	//Aボタンでジャンプするどうかを得る
+	bool Player::IsJumpMotion(){
+		//コントローラの取得
+		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
+		if (CntlVec[0].bConnected){
+			//Aボタンが押された瞬間ならジャンプ
+			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
+				return true;
 			}
 		}
-
-		auto Pos = GetComponent<Transform>()->GetWorldMatrix().PosInMatrix();
-		wstring PositionStr(L"Position:\t");
-		PositionStr += L"X=" + Util::FloatToWStr(Pos.x, 6, Util::FloatModify::Fixed) + L",\t";
-		PositionStr += L"Y=" + Util::FloatToWStr(Pos.y, 6, Util::FloatModify::Fixed) + L",\t";
-		PositionStr += L"Z=" + Util::FloatToWStr(Pos.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring RididStr(L"Velocity:\t");
-		auto Velocity = GetComponent<Rigidbody>()->GetVelocity();
-		RididStr += L"X=" + Util::FloatToWStr(Velocity.x, 6, Util::FloatModify::Fixed) + L",\t";
-		RididStr += L"Y=" + Util::FloatToWStr(Velocity.y, 6, Util::FloatModify::Fixed) + L",\t";
-		RididStr += L"Z=" + Util::FloatToWStr(Velocity.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring GravStr(L"Gravity:\t");
-		auto Grav = GetComponent<Gravity>()->GetGravity();
-		GravStr += L"X=" + Util::FloatToWStr(Grav.x, 6, Util::FloatModify::Fixed) + L",\t";
-		GravStr += L"Y=" + Util::FloatToWStr(Grav.y, 6, Util::FloatModify::Fixed) + L",\t";
-		GravStr += L"Z=" + Util::FloatToWStr(Grav.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-
-		wstring GravityStr(L"GravityVelocity:\t");
-		auto GravityVelocity = GetComponent<Gravity>()->GetGravityVelocity();
-		GravityStr += L"X=" + Util::FloatToWStr(GravityVelocity.x, 6, Util::FloatModify::Fixed) + L",\t";
-		GravityStr += L"Y=" + Util::FloatToWStr(GravityVelocity.y, 6, Util::FloatModify::Fixed) + L",\t";
-		GravityStr += L"Z=" + Util::FloatToWStr(GravityVelocity.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring InvGravityStr(L"InvGravity: ");
-		auto InvGravity = GetComponent<Gravity>()->GetInvGravity();
-		InvGravityStr += L"X=" + Util::FloatToWStr(InvGravity.x, 6, Util::FloatModify::Fixed) + L", ";
-		InvGravityStr += L"Y=" + Util::FloatToWStr(InvGravity.y, 6, Util::FloatModify::Fixed) + L", ";
-		InvGravityStr += L"Z=" + Util::FloatToWStr(InvGravity.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring OnObjectStr(L"OnObject: ");
-		auto OnObject = GetComponent<Gravity>()->GetOnObject();
-		if (OnObject){
-			OnObjectStr += Util::UintToWStr((UINT)OnObject.get()) + L"\n";
-		}
-		else{
-			OnObjectStr += L"NULL\n";
-		}
-		wstring statestr = L"JUMP: ";
-		if (m_StateMachine->GetCurrentState() == DefaultState::Instance()){
-			statestr = L"DEFAULT\n";
-		}
-
-		wstring str = PositionStr + RididStr + GravStr + GravityStr + InvGravityStr + OnObjectStr + statestr;
-		//文字列をつける
-		auto PtrString = GetComponent<StringSprite>();
-		PtrString->SetText(str);
-
-
+		return false;
 	}
-
+	//Aボタンでジャンプする瞬間の処理
+	void Player::JumpMotion(){
+		auto PtrTrans = GetComponent<Transform>();
+		//重力
+		auto PtrGravity = GetComponent<Gravity>();
+		//ジャンプスタート
+		Vector3 JumpVec(0.0f, 4.0f, 0);
+		if (PtrTrans->GetParent()){
+			//親がいたら、アクションコンポーネントの移動アクションを探す
+			//移動ボックスに乗っている場合、その慣性をジャンプに加算する
+			auto ActionPtr = PtrTrans->GetParent()->GetComponent<Action>(false);
+			if (ActionPtr){
+				JumpVec += ActionPtr->GetVelocity();
+			}
+		}
+		PtrGravity->StartJump(JumpVec);
+	}
+	//Aボタンでジャンプしている間の処理
+	//ジャンプ終了したらtrueを返す
+	bool Player::JumpMoveMotion(){
+		auto PtrTransform = GetComponent<Transform>();
+		//重力
+		auto PtrGravity = GetComponent<Gravity>();
+		if (PtrGravity->GetGravityVelocity().Length() <= 0 || PtrTransform->GetParent()){
+			return true;
+		}
+		return false;
+	}
 
 
 	//--------------------------------------------------------------------------------------
 	//	class DefaultState : public ObjState<Player>;
 	//	用途: 通常移動
 	//--------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------
-	//	static DefaultState* Instance();
-	//	用途: インスタンスの取得
-	//	戻り値: DefaultStateのインスタンス
-	//--------------------------------------------------------------------------------------
+	//ステートのインスタンス取得
 	shared_ptr<DefaultState> DefaultState::Instance(){
 		static shared_ptr<DefaultState> instance;
 		if (!instance){
@@ -268,36 +210,29 @@ namespace basedx11{
 		}
 		return instance;
 	}
-	//--------------------------------------------------------------------------------------
-	//	virtual void Execute(
-	//	const shared_ptr<Player>& Obj		//ステートを保持するオブジェクト
-	//	) = 0;
-	//	用途: Updateのときに実行される
-	//	戻り値: なし（純粋仮想関数）
-	//--------------------------------------------------------------------------------------
+	//ステートに入ったときに呼ばれる関数
+	void DefaultState::Enter(const shared_ptr<Player>& Obj){
+		//何もしない
+	}
+	//ステート実行中に毎ターン呼ばれる関数
 	void DefaultState::Execute(const shared_ptr<Player>& Obj){
-		//コントローラの取得
-		//コントローラはApp内なのでステートから呼んでも問題ない。
-		//
-		//ただし、ステートクラスにはメンバ変数は設けないこと！（シングルトンのため）
-		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
-		if (CntlVec[0].bConnected){
-			//Aボタンが押された瞬間ならステート変更
-			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
-				Obj->GetStateMachine()->ChangeState(JumpState::Instance());
-			}
+		Obj->MoveRotationMotion();
+		if (Obj->IsJumpMotion()){
+			//Jumpボタンでステート変更
+			Obj->GetStateMachine()->ChangeState(JumpState::Instance());
 		}
 	}
+	//ステートにから抜けるときに呼ばれる関数
+	void DefaultState::Exit(const shared_ptr<Player>& Obj){
+		//何もしない
+	}
+
 
 	//--------------------------------------------------------------------------------------
 	//	class JumpState : public ObjState<Player>;
 	//	用途: ジャンプ状態
 	//--------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------
-	//	static shared_ptr<JumpState> Instance();
-	//	用途: インスタンスの取得
-	//	戻り値: DefaultStateのインスタンス
-	//--------------------------------------------------------------------------------------
+	//ステートのインスタンス取得
 	shared_ptr<JumpState> JumpState::Instance(){
 		static shared_ptr<JumpState> instance;
 		if (!instance){
@@ -305,32 +240,27 @@ namespace basedx11{
 		}
 		return instance;
 	}
-	//--------------------------------------------------------------------------------------
-	//	virtual void JumpState::Enter(
-	//	const shared_ptr<Player>& Obj	//ステートを保持するオブジェクト
-	//	) = 0;
-	//	用途: ステートに入ったときに実行される
-	//	戻り値: なし（純粋仮想関数）
-	//--------------------------------------------------------------------------------------
+	//ステートに入ったときに呼ばれる関数
 	void JumpState::Enter(const shared_ptr<Player>& Obj){
-		Obj->StartJump();
+		//ジャンプ中も移動可能とする
+		Obj->MoveRotationMotion();
+		Obj->JumpMotion();
 	}
-	//--------------------------------------------------------------------------------------
-	//	virtual void JumpState::Execute(
-	//	const shared_ptr<Player>& Obj		//ステートを保持するオブジェクト
-	//	) = 0;
-	//	用途: Updateのときに実行される
-	//	戻り値: なし（純粋仮想関数）
-	//--------------------------------------------------------------------------------------
+	//ステート実行中に毎ターン呼ばれる関数
 	void JumpState::Execute(const shared_ptr<Player>& Obj){
-		auto PtrTransform = Obj->GetComponent<Transform>();
-		//重力
-		auto PtrGravity = Obj->GetComponent<Gravity>();
-		if (PtrGravity->GetGravityVelocity().Length() <= 0 || PtrTransform->GetParent()){
+		//ジャンプ中も移動可能とする
+		Obj->MoveRotationMotion();
+		if (Obj->JumpMoveMotion()){
 			//通常状態に戻る
 			Obj->GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
 	}
+	//ステートにから抜けるときに呼ばれる関数
+	void JumpState::Exit(const shared_ptr<Player>& Obj){
+		//何もしない
+	}
+
+
 
 
 }

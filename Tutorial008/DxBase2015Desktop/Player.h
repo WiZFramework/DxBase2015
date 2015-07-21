@@ -4,7 +4,6 @@
 
 namespace basedx11{
 
-
 	//--------------------------------------------------------------------------------------
 	//	class Player : public GameObject;
 	//	用途: プレイヤー
@@ -38,6 +37,7 @@ namespace basedx11{
 		//更新
 		virtual void Update() override;
 		virtual void Update2() override;
+		virtual void Update3() override;
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -75,6 +75,8 @@ namespace basedx11{
 		//ステートにから抜けるときに呼ばれる関数
 		virtual void Exit(const shared_ptr<Player>& Obj)override;
 	};
+
+
 
 }
 //endof  basedx11

@@ -14,6 +14,8 @@ namespace basedx11{
 		App::GetApp()->RegisterTexture(L"TRACE_TX", strTexture);
 		strTexture = App::GetApp()->m_wstrRelativeDataPath + L"sky.jpg";
 		App::GetApp()->RegisterTexture(L"SKY_TX", strTexture);
+		strTexture = App::GetApp()->m_wstrRelativeDataPath + L"wall.jpg";
+		App::GetApp()->RegisterTexture(L"WALL_TX", strTexture);
 	}
 
 	//ビュー類の作成
@@ -28,33 +30,46 @@ namespace basedx11{
 		Rect2D<float> rect(0, 0, (float)App::GetApp()->GetGameWidth(), (float)App::GetApp()->GetGameHeight());
 		//最初のビューにパラメータの設定
 		PtrView->ResetParamaters<LookAtCamera, MultiLight>(rect, Color4(0.0f, 0.125f, 0.3f, 1.0f), 1, 0.0f, 1.0f);
-		auto PtrCamera = PtrView->GetCamera();
+
+		//0番目のビューのカメラを得る
+		auto PtrCamera = GetCamera(0);
 		PtrCamera->SetEye(Vector3(0.0f, 2.0f, -5.0f));
 		PtrCamera->SetAt(Vector3(0.0f, 0.0f, 0.0f));
+
 	}
 
 	//プレートの作成
 	void GameStage::CreatePlate(){
-		//ステージへのゲームオブジェクトの追加
 		auto Ptr = AddGameObject<GameObject>();
-		//変化コンポーネント（Transform）の取得
 		auto TrancePtr = Ptr->GetComponent<Transform>();
-		//スケーリングの設定
 		TrancePtr->SetScale(200.0f, 200.0f, 1.0f);
-		//回転の設定
 		Quaternion Qt;
 		Qt.RotationRollPitchYawFromVector(Vector3(XM_PIDIV2, 0, 0));
 		TrancePtr->SetQuaternion(Qt);
-		//位置の設定
 		TrancePtr->SetPosition(0, 0, 0);
-		//描画コンポーネントの追加
 		auto DrawComp = Ptr->AddComponent<SimplePNTDraw>();
-		//描画コンポーネントに形状（メッシュ）を設定
 		DrawComp->SetMeshResource(L"DEFAULT_SQUARE");
-		//描画コンポーネントテクスチャの設定
 		DrawComp->SetTextureResource(L"SKY_TX");
-		//自分に影が映りこむようにする
 		DrawComp->SetOwnShadowActive(true);
+	}
+
+
+
+	//追いかけるオブジェクトの作成
+	void GameStage::CreateSeekObject(){
+		//オブジェクトのグループを作成する
+		auto Group = CreateSharedObjectGroup(L"ObjectGroup");
+		//配列の初期化
+		vector<Vector3> Vec = {
+			{ 0, 0.125f, 10.0f },
+			{ 10.0f, 0.125f, 0.0f },
+			{ -10.0f, 0.125f, 0.0f },
+			{ 0, 0.125f, -10.0f },
+		};
+		//配置オブジェクトの作成
+		for (auto v : Vec){
+			AddGameObject<SeekObject>(v);
+		}
 	}
 
 	//固定のボックスの作成
@@ -102,14 +117,70 @@ namespace basedx11{
 			Vector3(0.0f, -0.5f, 20.0f)
 			);
 	}
-
-
 	//プレイヤーの作成
 	void GameStage::CreatePlayer(){
 		//プレーヤーの作成
 		auto PlayerPtr = AddGameObject<Player>();
 		//シェア配列にプレイヤーを追加
 		SetSharedGameObject(L"Player", PlayerPtr);
+	}
+
+
+	//カプセルの作成
+	void GameStage::CreateCapsule(){
+		//配列の初期化
+		vector<Vector3> Vec = {
+			{ 20.0f, 0, 20.0f },
+			{ 20.0f, 0, -20.0f },
+		};
+		//配置オブジェクトの作成
+		for (auto v : Vec){
+			AddGameObject<CapsuleObject>(v);
+		}
+	}
+
+	//ヒットする球体の作成
+	void GameStage::CreateSphere(){
+		//配列の初期化
+		vector<Vector3> Vec = {
+			{ 20.0f, 0, 25.0f },
+			{ 20.0f, 0, -25.0f },
+		};
+		//配置オブジェクトの作成
+		for (auto v : Vec){
+			AddGameObject<SphereObject>(v);
+		}
+	}
+
+
+
+	//衝突するスクエアの作成
+	void GameStage::CreateHitTestSquare(){
+		//オブジェクトのグループを作成する
+		auto Group = CreateSharedObjectGroup(L"SquareGroup");
+		AddGameObject< HitTestSquare >(
+			Vector3(10.0f, 1.0f, 1.0f),
+			Vector3(0, 0.0f, 0.0f),
+			Vector3(0.0f, 0.5f, 10.0f)
+			);
+
+		AddGameObject< HitTestSquare >(
+			Vector3(10.0f, 5.0f, 1.0f),
+			Vector3(XM_PIDIV2, 0, 0.0f),
+			Vector3(10.0f, 0.4f, -15.0f)
+			);
+
+		AddGameObject< HitTestSquare >(
+			Vector3(10.0f, 5.0f, 1.0f),
+			Vector3(XM_PIDIV2, 0, 0.0f),
+			Vector3(10.0f, 0.4f, -10.0f)
+			);
+
+		AddGameObject< HitTestSquare >(
+			Vector3(10.0f, 5.0f, 1.0f),
+			Vector3(XM_PIDIV2, 0, 0.0f),
+			Vector3(20.0f, 0.4f, -15.0f)
+			);
 	}
 
 
@@ -120,16 +191,22 @@ namespace basedx11{
 			CreateResourses();
 			//ビュー類を作成する
 			CreateViews();
-			//プレートを作成する
+			//プレートの作成
 			CreatePlate();
+			//追いかけるオブジェクトの作成
+			CreateSeekObject();
 			//固定のボックスの作成
 			CreateFixedBox();
 			//上下移動しているボックスの作成
 			CreateMoveBox();
+			//カプセル作成
+			CreateCapsule();
+			//球体作成
+			CreateSphere();
+			//衝突するスクエアの作成
+			CreateHitTestSquare();
 			//プレーヤーの作成
 			CreatePlayer();
-
-
 		}
 		catch (...){
 			throw;

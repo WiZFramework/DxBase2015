@@ -12,12 +12,21 @@ namespace basedx11{
 		void CreateResourses();
 		//ビューの作成
 		void CreateViews();
+
 		//プレートの作成
 		void CreatePlate();
+		//追いかけるオブジェクトの作成
+		void CreateSeekObject();
 		//固定のボックスの作成
 		void CreateFixedBox();
 		//上下移動しているボックスの作成
 		void CreateMoveBox();
+		//カプセルの作成
+		void CreateCapsule();
+		//ヒットする球体の作成
+		void CreateSphere();
+		//衝突するスクエアの作成
+		void CreateHitTestSquare();
 		//プレイヤーの作成
 		void CreatePlayer();
 	public:

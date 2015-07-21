@@ -4,6 +4,7 @@
 
 namespace basedx11{
 
+
 	//--------------------------------------------------------------------------------------
 	//	class Player : public GameObject;
 	//	用途: プレイヤー
@@ -20,16 +21,20 @@ namespace basedx11{
 		Ptr->SetRotation(0.0f, 0.0f, 0.0f);
 		Ptr->SetPosition(0, 0.125f, 0);
 
-		//操舵系のコンポーネントをつける場合はRigidbodyをつける
+		//Rigidbodyをつける
 		auto PtrRedit = AddComponent<Rigidbody>();
-		//Seek操舵
-		AddComponent<SeekSteering>();
 		//重力をつける
 		auto PtrGravity = AddComponent<Gravity>();
 		//最下地点
 		PtrGravity->SetBaseY(0.125f);
 		//衝突判定をつける
 		auto PtrCol = AddComponent<CollisionSphere>();
+
+		//文字列をつける
+		auto PtrString = AddComponent<StringSprite>();
+		PtrString->SetText(L"");
+		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
+
 
 		//影をつける（シャドウマップを描画する）
 		auto ShadowPtr = AddComponent<Shadowmap>();
@@ -41,12 +46,6 @@ namespace basedx11{
 		PtrDraw->SetMeshResource(L"DEFAULT_SPHERE");
 		//描画するテクスチャを設定
 		PtrDraw->SetTextureResource(L"TRACE_TX");
-
-		//文字列をつける
-		auto PtrString = AddComponent<StringSprite>();
-		PtrString->SetText(L"");
-		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
-
 
 		//透明処理
 		SetAlphaActive(true);
@@ -91,8 +90,6 @@ namespace basedx11{
 				float TotalAngle = FrontAngle + CntlAngle;
 				//角度からベクトルを作成
 				Angle = Vector3(cos(TotalAngle), 0, sin(TotalAngle));
-				//正規化
-				Angle.Normalize();
 				//Y軸は変化させない
 				Angle.y = 0;
 			}
@@ -100,44 +97,39 @@ namespace basedx11{
 		return Angle;
 	}
 
-	void Player::StartJump(){
-		auto PtrTrans = GetComponent<Transform>();
-		//重力
-		auto PtrGravity = GetComponent<Gravity>();
-		//ジャンプスタート
-		Vector3 JumpVec(0.0f, 4.0f, 0);
-		if (PtrTrans->GetParent()){
-			//親がいたら、アクションコンポーネントの移動アクションを探す
-			//移動ボックスに乗っている場合、その慣性をジャンプに加算する
-			auto ActionPtr = PtrTrans->GetParent()->GetComponent<Action>(false);
-			if (ActionPtr){
-				JumpVec += ActionPtr->GetVelocity();
-			}
-		}
-		PtrGravity->StartJump(JumpVec);
-	}
-
-
 	//更新
 	void Player::Update(){
 		//ステートマシンのUpdateを行う
 		//この中でステートの切り替えが行われる
 		m_StateMachine->Update();
+	}
 
+	void Player::Update2(){
+		//文字列をとりだす
+		auto PtrString = GetComponent<StringSprite>();
+		auto Group = GetStage()->GetSharedObjectGroup(L"RollingTorusGroup");
+		auto TorusVec = Group->GetGroupVector();
+		wstring str(L"トーラスグループの登録数: ");
+		str += Util::UintToWStr(TorusVec.size());
+		PtrString->SetText(str);
+	}
+
+	//移動して向きを移動方向にする
+	void Player::MoveRotationMotion(){
+		float ElapsedTime = App::GetApp()->GetElapsedTime();
 		Vector3 Angle = GetAngle();
 		//Transform
 		auto PtrTransform = GetComponent<Transform>();
-
-		//現在位置を取り出す
-		auto Pos = PtrTransform->GetPosition();
-		//移動方向を加算。
-		//移動方向だけがわかればいいので、
-		//Angleは正規化されてて良い
-		Pos += Angle;
-		//Seek操舵
-		auto PtrSeek = GetComponent<SeekSteering>();
-		//加算された方向に追いかける
-		PtrSeek->SetTargetPosition(Pos);
+		//Rigidbodyを取り出す
+		auto PtrRedit = GetComponent<Rigidbody>();
+		//現在の速度を取り出す
+		auto Velo = PtrRedit->GetVelocity();
+		//コントローラの向きを加える
+		Velo += Angle;
+		//減速する
+		Velo *= (0.015f / ElapsedTime);
+		//減速0.015fを微調整すると、操作性が変わる
+		PtrRedit->SetVelocity(Velo);
 		//回転の計算
 		float YRot = PtrTransform->GetRotation().y;
 		Quaternion Qt;
@@ -154,39 +146,80 @@ namespace basedx11{
 		}
 		//Transform
 		PtrTransform->SetQuaternion(Qt);
-
-		//文字列をとりだす
-		auto PtrString = GetComponent<StringSprite>();
-		auto Group = GetStage()->GetSharedObjectGroup(L"RollingTorusGroup");
-		auto TorusVec = Group->GetGroupVector();
-		wstring str(L"トーラスグループの登録数: ");
-		str += Util::UintToWStr(TorusVec.size());
-		PtrString->SetText(str);
-
-
 	}
 
-	void Player::Update2(){
-		auto ColPtr = GetComponent<CollisionSphere>();
-		if (ColPtr->GetHitObject() && GetStateMachine()->GetCurrentState() == JumpState::Instance()){
-			GetStateMachine()->ChangeState(DefaultState::Instance());
+	//Aボタンでジャンプするどうかを得る
+	bool Player::IsJumpMotion(){
+		//コントローラの取得
+		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
+		if (CntlVec[0].bConnected){
+			//Aボタンが押された瞬間なら砲弾発射
+			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
+				return true;
+			}
+		}
+		return false;
+	}
 
+	//Aボタンでジャンプする瞬間の処理
+	void Player::JumpMotion(){
+		auto PtrTrans = GetComponent<Transform>();
+		//重力
+		auto PtrGravity = GetComponent<Gravity>();
+		//ジャンプスタート
+		Vector3 JumpVec(0.0f, 4.0f, 0);
+		if (PtrTrans->GetParent()){
+			//親がいたら、アクションコンポーネントの移動アクションを探す
+			//移動ボックスに乗っている場合、その慣性をジャンプに加算する
+			auto ActionPtr = PtrTrans->GetParent()->GetComponent<Action>(false);
+			if (ActionPtr){
+				JumpVec += ActionPtr->GetVelocity();
+			}
+		}
+		PtrGravity->StartJump(JumpVec);
+	}
+	//Aボタンでジャンプしている間の処理
+	//ジャンプ終了したらtrueを返す
+	bool Player::JumpMoveMotion(){
+		//重力を得る
+		auto PtrGravity = GetComponent<Gravity>();
+		if (PtrGravity->IsGravityVelocityZero()){
+			//落下終了
+			return true;
+		}
+		return false;
+	}
+
+	//Bボタンでトーラスを作成するどうかを得る
+	bool Player::IsTorusCreateMotion(){
+		//コントローラの取得
+		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
+		if (CntlVec[0].bConnected){
+			//Bボタンが押された瞬間なら砲弾発射
+			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_B){
+				return true;
+			}
+		}
+		return false;
+	}
+	//Bボタンでトーラスを作成する処理
+	void Player::TorusCreateMotion(){
+		//トーラスの追加
+		//20個までトーラス追加できる
+		auto Group = GetStage()->GetSharedObjectGroup(L"RollingTorusGroup");
+		if (Group->size() < 20){
+			auto PtrTrans = GetComponent<Transform>();
+			auto TorusPtr = GetStage()->AddGameObject<RollingTorus>(PtrTrans->GetPosition());
+			Group->IntoGroup(TorusPtr);
 		}
 	}
-
-
-
 
 
 	//--------------------------------------------------------------------------------------
 	//	class DefaultState : public ObjState<Player>;
 	//	用途: 通常移動
 	//--------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------
-	//	static DefaultState* Instance();
-	//	用途: インスタンスの取得
-	//	戻り値: DefaultStateのインスタンス
-	//--------------------------------------------------------------------------------------
+	//ステートのインスタンス取得
 	shared_ptr<DefaultState> DefaultState::Instance(){
 		static shared_ptr<DefaultState> instance;
 		if (!instance){
@@ -194,44 +227,33 @@ namespace basedx11{
 		}
 		return instance;
 	}
-	//--------------------------------------------------------------------------------------
-	//	virtual void Execute(
-	//	const shared_ptr<Player>& Obj		//ステートを保持するオブジェクト
-	//	) = 0;
-	//	用途: Updateのときに実行される
-	//	戻り値: なし（純粋仮想関数）
-	//--------------------------------------------------------------------------------------
+	//ステートに入ったときに呼ばれる関数
+	void DefaultState::Enter(const shared_ptr<Player>& Obj){
+		//何もしない
+	}
+	//ステート実行中に毎ターン呼ばれる関数
 	void DefaultState::Execute(const shared_ptr<Player>& Obj){
-		//コントローラの取得
-		//コントローラはApp内なのでステートから呼んでも問題ない。
-		//
-		//ただし、ステートクラスにはメンバ変数は設けないこと！（シングルトンのため）
-		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
-		if (CntlVec[0].bConnected){
-			//Aボタンが押された瞬間ならステート変更
-			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
-				//トーラスの追加
-				//20個までトーラス追加できる
-				auto Group = Obj->GetStage()->GetSharedObjectGroup(L"RollingTorusGroup");
-				if (Group->size() < 20){
-					auto PtrTrans = Obj->GetComponent<Transform>();
-					auto TorusPtr = Obj->GetStage()->AddGameObject<RollingTorus>(PtrTrans->GetPosition());
-					Group->IntoGroup(TorusPtr);
-				}
-				Obj->GetStateMachine()->ChangeState(JumpState::Instance());
-			}
+		Obj->MoveRotationMotion();
+		if (Obj->IsTorusCreateMotion()){
+			Obj->TorusCreateMotion();
+		}
+		if (Obj->IsJumpMotion()){
+			//Jumpボタンでステート変更
+			Obj->GetStateMachine()->ChangeState(JumpState::Instance());
 		}
 	}
+	//ステートにから抜けるときに呼ばれる関数
+	void DefaultState::Exit(const shared_ptr<Player>& Obj){
+		//何もしない
+	}
+
+
 
 	//--------------------------------------------------------------------------------------
 	//	class JumpState : public ObjState<Player>;
-	//	用途: ジャンプ状態
+	//	用途: Aボタンでジャンプしたときの処理
 	//--------------------------------------------------------------------------------------
-	//--------------------------------------------------------------------------------------
-	//	static shared_ptr<JumpState> Instance();
-	//	用途: インスタンスの取得
-	//	戻り値: DefaultStateのインスタンス
-	//--------------------------------------------------------------------------------------
+	//ステートのインスタンス取得
 	shared_ptr<JumpState> JumpState::Instance(){
 		static shared_ptr<JumpState> instance;
 		if (!instance){
@@ -239,32 +261,30 @@ namespace basedx11{
 		}
 		return instance;
 	}
-	//--------------------------------------------------------------------------------------
-	//	virtual void JumpState::Enter(
-	//	const shared_ptr<Player>& Obj	//ステートを保持するオブジェクト
-	//	) = 0;
-	//	用途: ステートに入ったときに実行される
-	//	戻り値: なし（純粋仮想関数）
-	//--------------------------------------------------------------------------------------
+	//ステートに入ったときに呼ばれる関数
 	void JumpState::Enter(const shared_ptr<Player>& Obj){
-		Obj->StartJump();
+		//ジャンプ中も移動可能とする
+		Obj->MoveRotationMotion();
+		Obj->JumpMotion();
 	}
-	//--------------------------------------------------------------------------------------
-	//	virtual void JumpState::Execute(
-	//	const shared_ptr<Player>& Obj		//ステートを保持するオブジェクト
-	//	) = 0;
-	//	用途: Updateのときに実行される
-	//	戻り値: なし（純粋仮想関数）
-	//--------------------------------------------------------------------------------------
+	//ステート実行中に毎ターン呼ばれる関数
 	void JumpState::Execute(const shared_ptr<Player>& Obj){
-		auto PtrTransform = Obj->GetComponent<Transform>();
-		//重力
-		auto PtrGravity = Obj->GetComponent<Gravity>();
-		if (PtrGravity->GetGravityVelocity().Length() <= 0 || PtrTransform->GetParent()){
-			//通常状態に戻る
+		//ジャンプ中も移動可能とする
+		Obj->MoveRotationMotion();
+		//ジャンプ中もトーラス作成可能
+		if (Obj->IsTorusCreateMotion()){
+			Obj->TorusCreateMotion();
+		}
+		if (Obj->JumpMoveMotion()){
+			//落下終了ならステート変更
 			Obj->GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
 	}
+	//ステートにから抜けるときに呼ばれる関数
+	void JumpState::Exit(const shared_ptr<Player>& Obj){
+		//何もしない
+	}
+
 
 
 }

@@ -20,14 +20,24 @@ namespace basedx11{
 		Ptr->SetRotation(0.0f, 0.0f, 0.0f);
 		Ptr->SetPosition(0, 0.125f, 0);
 
-		//Rigidbodyをつける
+		//操舵系のコンポーネントをつける場合はRigidbodyをつける
 		auto PtrRedit = AddComponent<Rigidbody>();
+		//きびきびした動きになるよう、質量を減らす。
+		PtrRedit->SetMass(0.5f);
+		//Seek操舵
+		AddComponent<SeekSteering>();
 		//重力をつける
 		auto PtrGravity = AddComponent<Gravity>();
 		//最下地点
 		PtrGravity->SetBaseY(0.125f);
 		//衝突判定をつける
 		auto PtrCol = AddComponent<CollisionSphere>();
+
+		//文字列をつける
+		auto PtrString = AddComponent<StringSprite>();
+		PtrString->SetText(L"");
+		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
+
 
 		//影をつける（シャドウマップを描画する）
 		auto ShadowPtr = AddComponent<Shadowmap>();
@@ -83,12 +93,15 @@ namespace basedx11{
 				float TotalAngle = FrontAngle + CntlAngle;
 				//角度からベクトルを作成
 				Angle = Vector3(cos(TotalAngle), 0, sin(TotalAngle));
+				//正規化
+				Angle.Normalize();
 				//Y軸は変化させない
 				Angle.y = 0;
 			}
 		}
 		return Angle;
 	}
+
 
 	//更新
 	void Player::Update(){
@@ -98,33 +111,36 @@ namespace basedx11{
 	}
 
 	void Player::Update2(){
-		//衝突判定を得る
-		auto PtrCollision = GetComponent<CollisionSphere>();
-		if (PtrCollision->GetHitObject()){
-			auto PtrShell = dynamic_pointer_cast<ShellBall>(PtrCollision->GetHitObject());
-			if (PtrShell){
-				//砲弾に当たったらステート変更
-				GetStateMachine()->ChangeState(ShellHitState::Instance());
-			}
+		auto ColPtr = GetComponent<CollisionSphere>();
+		if (ColPtr->GetHitObject() && GetStateMachine()->GetCurrentState() == JumpState::Instance()){
+			GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
+		//文字列をとりだす
+		auto PtrString = GetComponent<StringSprite>();
+		auto fps = App::GetApp()->GetStepTimer().GetFramesPerSecond();
+		wstring str(L"FPS: ");
+		str += Util::UintToWStr(fps);
+		PtrString->SetText(str);
 	}
 
+
+	//モーションを実装する関数群
 	//移動して向きを移動方向にする
 	void Player::MoveRotationMotion(){
-		float ElapsedTime = App::GetApp()->GetElapsedTime();
 		Vector3 Angle = GetAngle();
 		//Transform
 		auto PtrTransform = GetComponent<Transform>();
-		//Rigidbodyを取り出す
-		auto PtrRedit = GetComponent<Rigidbody>();
-		//現在の速度を取り出す
-		auto Velo = PtrRedit->GetVelocity();
-		//コントローラの向きを加える
-		Velo += Angle;
-		//減速する
-		Velo *= (0.015f / ElapsedTime);
-		//減速0.015fを微調整すると、操作性が変わる
-		PtrRedit->SetVelocity(Velo);
+
+		//現在位置を取り出す
+		auto Pos = PtrTransform->GetPosition();
+		//移動方向を加算。
+		//移動方向だけがわかればいいので、
+		//Angleは正規化されてて良い
+		Pos += Angle;
+		//Seek操舵
+		auto PtrSeek = GetComponent<SeekSteering>();
+		//加算された方向に追いかける
+		PtrSeek->SetTargetPosition(Pos);
 		//回転の計算
 		float YRot = PtrTransform->GetRotation().y;
 		Quaternion Qt;
@@ -143,88 +159,18 @@ namespace basedx11{
 		PtrTransform->SetQuaternion(Qt);
 	}
 
-	//砲弾と衝突した瞬間の処理
-	void Player::ShellHitMotion(){
-		//衝突判定を得る
-		auto PtrCollision = GetComponent<CollisionSphere>();
-		//衝突した
-		if (PtrCollision->GetHitObject()){
-			auto ShellPtr = dynamic_pointer_cast<ShellBall>(PtrCollision->GetHitObject());
-			if (ShellPtr){
-				//相手が砲弾だった
-				//スコアオブジェクトにイベント送出
-				auto PtrScoreObject = GetStage()->GetSharedGameObject<ScoreObject>(L"ScoreObject");
-				PostEvent(0, GetThis<Player>(), PtrScoreObject, L"PlayerHit");
-			}
-
-			//相手のTransformを得る。
-			auto PtrOtherTrans = PtrCollision->GetHitObject()->GetComponent<Transform>();
-			//相手の場所を得る
-			auto OtherPos = PtrOtherTrans->GetPosition();
-
-			//Transformを得る。
-			auto PtrTrans = GetComponent<Transform>();
-			//場所を得る
-			auto Pos = PtrTrans->GetPosition();
-
-			//飛ぶ方向を計算する
-			Pos -= OtherPos;
-			Pos.Normalize();
-			Pos.y = 0;
-			Pos *= 6.0f;
-			Pos += Vector3(0, 6.0f, 0);
-
-			//衝突をなしにする（のちに復活）
-			PtrCollision->ClearBothHitObject();
-			PtrCollision->SetUpdateActive(false);
-
-			//重力を得る
-			auto PtrGravity = GetComponent<Gravity>();
-			//ジャンプスタート
-			PtrGravity->StartJump(Pos);
-
-
-		}
-	}
-
-	//砲弾と衝突した後の処理
-	//落下終了したらtrueを返す
-	bool Player::ShellHitMoveMotion(){
-		//重力を得る
-		auto PtrGravity = GetComponent<Gravity>();
-		if (PtrGravity->IsGravityVelocityZero()){
-			//落下終了
-			//衝突判定を得る
-			auto PtrCollision = GetComponent<CollisionSphere>();
-			//衝突を有効にする
-			PtrCollision->SetUpdateActive(true);
-			Quaternion Qt;
-			Qt.Identity();
-			GetComponent<Transform>()->SetQuaternion(Qt);
-
-			return true;
-		}
-		auto Qt = GetComponent<Transform>()->GetQuaternion();
-		Quaternion Span;
-		Span.RotationRollPitchYawFromVector(Vector3(0.2f, 0.2f, 0.2f));
-		Qt *= Span;
-		GetComponent<Transform>()->SetQuaternion(Qt);
-		return false;
-	}
-
 	//Aボタンでジャンプするどうかを得る
 	bool Player::IsJumpMotion(){
 		//コントローラの取得
 		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
 		if (CntlVec[0].bConnected){
-			//Aボタンが押された瞬間なら砲弾発射
+			//Aボタンが押された瞬間ならジャンプ
 			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
 				return true;
 			}
 		}
 		return false;
 	}
-
 	//Aボタンでジャンプする瞬間の処理
 	void Player::JumpMotion(){
 		auto PtrTrans = GetComponent<Transform>();
@@ -245,66 +191,13 @@ namespace basedx11{
 	//Aボタンでジャンプしている間の処理
 	//ジャンプ終了したらtrueを返す
 	bool Player::JumpMoveMotion(){
-		//重力を得る
+		auto PtrTransform = GetComponent<Transform>();
+		//重力
 		auto PtrGravity = GetComponent<Gravity>();
-		if (PtrGravity->IsGravityVelocityZero()){
-			//落下終了
+		if (PtrGravity->GetGravityVelocity().Length() <= 0 || PtrTransform->GetParent()){
 			return true;
 		}
 		return false;
-	}
-
-
-	//Bボタンで砲弾を発射するどうかを得る
-	bool Player::IsShellThrowMotion(){
-		//コントローラの取得
-		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
-		if (CntlVec[0].bConnected){
-			//Bボタンが押された瞬間なら砲弾発射
-			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_B){
-				return true;
-			}
-		}
-		return false;
-	}
-	//Bボタンで砲弾を発射する処理
-	void Player::ShellThrowMotion(){
-		float ElapsedTime = App::GetApp()->GetElapsedTime();
-		Vector3 Angle = GetAngle();
-		//砲弾の追加
-		auto PtrTrans = GetComponent<Transform>();
-		//プレイヤーの向きを得る
-		auto PlayerAngle = PtrTrans->GetRotation();
-		Vector3 ShellSpeed(sin(PlayerAngle.y), 0, cos(PlayerAngle.y));
-		ShellSpeed *= 10.0f;
-		//プレイヤーの移動スピード
-		Vector3 Velo = GetComponent<Rigidbody>()->GetVelocity();
-		Velo.y = 0;
-		//移動スピードを加算
-		ShellSpeed += Velo;
-		//打ち上げの上向きの初速度を追加（値は固定）
-		ShellSpeed += Vector3(0.0f, 4.0f, 0);
-		//グループ内に空きがあればそのオブジェクトを再利用
-		//そうでなければ新規に作成
-		auto Group = GetStage()->GetSharedObjectGroup(L"ShellBallGroup");
-		auto ShellVec = Group->GetGroupVector();
-		for (auto Ptr : ShellVec){
-			//Ptrはweak_ptrなので有効性チェックが必要
-			if (!Ptr.expired()){
-				auto ShellPtr = dynamic_pointer_cast<ShellBall>(Ptr.lock());
-				if (ShellPtr){
-					if ((!ShellPtr->IsUpdateActive()) && (!ShellPtr->IsDrawActive())){
-						ShellPtr->Refresh(PtrTrans->GetPosition(), ShellSpeed,false);
-						return;
-					}
-				}
-			}
-		}
-		//ここまで来たら空きがなかったことになる
-		//砲弾の追加
-		auto Sh = GetStage()->AddGameObject<ShellBall>(PtrTrans->GetPosition(), ShellSpeed,false);
-		//グループに追加
-		Group->IntoGroup(Sh);
 	}
 
 
@@ -327,9 +220,6 @@ namespace basedx11{
 	//ステート実行中に毎ターン呼ばれる関数
 	void DefaultState::Execute(const shared_ptr<Player>& Obj){
 		Obj->MoveRotationMotion();
-		if (Obj->IsShellThrowMotion()){
-			Obj->ShellThrowMotion();
-		}
 		if (Obj->IsJumpMotion()){
 			//Jumpボタンでステート変更
 			Obj->GetStateMachine()->ChangeState(JumpState::Instance());
@@ -340,39 +230,10 @@ namespace basedx11{
 		//何もしない
 	}
 
-	//--------------------------------------------------------------------------------------
-	//	class ShellHitState : public ObjState<Player>;
-	//	用途: 砲弾が命中したときの処理
-	//--------------------------------------------------------------------------------------
-	//ステートのインスタンス取得
-	shared_ptr<ShellHitState> ShellHitState::Instance(){
-		static shared_ptr<ShellHitState> instance;
-		if (!instance){
-			instance = shared_ptr<ShellHitState>(new ShellHitState);
-		}
-		return instance;
-	}
-	//ステートに入ったときに呼ばれる関数
-	void ShellHitState::Enter(const shared_ptr<Player>& Obj){
-		//衝突した瞬間の処理
-		Obj->ShellHitMotion();
-	}
-	//ステート実行中に毎ターン呼ばれる関数
-	void ShellHitState::Execute(const shared_ptr<Player>& Obj){
-		if (Obj->ShellHitMoveMotion()){
-			//落下終了ならステート変更
-			Obj->GetStateMachine()->ChangeState(DefaultState::Instance());
-		}
-	}
-	//ステートにから抜けるときに呼ばれる関数
-	void ShellHitState::Exit(const shared_ptr<Player>& Obj){
-		//何もしない
-	}
-
 
 	//--------------------------------------------------------------------------------------
 	//	class JumpState : public ObjState<Player>;
-	//	用途: Aボタンでジャンプしたときの処理
+	//	用途: ジャンプ状態
 	//--------------------------------------------------------------------------------------
 	//ステートのインスタンス取得
 	shared_ptr<JumpState> JumpState::Instance(){
@@ -392,12 +253,8 @@ namespace basedx11{
 	void JumpState::Execute(const shared_ptr<Player>& Obj){
 		//ジャンプ中も移動可能とする
 		Obj->MoveRotationMotion();
-		//ジャンプ中も砲弾発射可能
-		if (Obj->IsShellThrowMotion()){
-			Obj->ShellThrowMotion();
-		}
 		if (Obj->JumpMoveMotion()){
-			//落下終了ならステート変更
+			//通常状態に戻る
 			Obj->GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
 	}
@@ -405,6 +262,7 @@ namespace basedx11{
 	void JumpState::Exit(const shared_ptr<Player>& Obj){
 		//何もしない
 	}
+
 
 
 

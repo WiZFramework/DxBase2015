@@ -81,6 +81,10 @@ namespace basedx11{
 			Span2 *= 3.0f;
 			Span2.y = 0.0f;
 
+			//お互いの衝突情報をクリアする
+			//こうしておくと比較的スムーズな反射が得られる
+			ColPtr->ClearBothHitObject();
+
 
 			//アクションの取得
 			auto PtrAction = GetComponent<Action>();

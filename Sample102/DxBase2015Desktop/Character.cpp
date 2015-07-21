@@ -31,6 +31,7 @@ namespace basedx11{
 		PtrAction->AddMoveBy(2.0f, Vector3(-4.0f, 0, 0));
 		PtrAction->AddMoveBy(1.0f, Vector3(0, 0, 2.0f));
 		PtrAction->AddMoveBy(1.0f, Vector3(2.0f, 0, 0));
+
 		//ループする
 		PtrAction->SetLooped(true);
 		//アクション開始
