@@ -54,9 +54,15 @@ namespace basedx11{
 	void Gravity::SetInvGravity(float x, float y, float z){
 		pImpl->m_InvGravity = Vector3(x, y, z);
 	}
+
+	void Gravity::SetInvGravityDefault(){
+		pImpl->m_InvGravity = pImpl->m_Gravity * -1.0f;
+	}
+
 	const Vector3& Gravity::GetGravityVelocity() const{
 		return pImpl->m_GravityVelocity;
 	}
+
 	void Gravity::SetGravityVelocity(const Vector3& GravityVelocity){
 		pImpl->m_GravityVelocity = GravityVelocity;
 	}
@@ -153,7 +159,7 @@ namespace basedx11{
 				if (Pos.y <= pImpl->m_BaseY){
 					Pos.y = pImpl->m_BaseY;
 					SetGravityVelocityZero();
-					pImpl->m_InvGravity = pImpl->m_Gravity * -1.0f;
+					SetInvGravityDefault();
 				}
 				//位置を設定
 				PtrT->SetPosition(Pos);
@@ -310,9 +316,11 @@ namespace basedx11{
 
 	//GravityのUpdate2はオブジェクトに乗る処理を行う
 	void Gravity::Update2(){
-		//ヒットしているオブジェクトがあれば
-		//それが下にあるOBBならonObjectに設定
-		HitObjectToOnObject();
+		if (IsGameObjectActive()){
+			//ヒットしているオブジェクトがあれば
+			//それが下にあるOBBならonObjectに設定
+			HitObjectToOnObject();
+		}
 	}
 
 	//--------------------------------------------------------------------------------------

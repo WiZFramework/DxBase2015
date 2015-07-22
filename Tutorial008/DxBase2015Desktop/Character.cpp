@@ -11,7 +11,8 @@ namespace basedx11{
 	SeekObject::SeekObject(const shared_ptr<Stage>& StagePtr, const Vector3& StartPos) :
 		GameObject(StagePtr),
 		m_StartPos(StartPos),
-		m_BaseY(m_StartPos.y)
+		m_BaseY(m_StartPos.y),
+		m_StateChangeSize(5.0f)
 	{
 	}
 	SeekObject::~SeekObject(){}
@@ -53,15 +54,12 @@ namespace basedx11{
 		//ステートマシンの構築
 		m_StateMachine = make_shared< StateMachine<SeekObject> >(GetThis<SeekObject>());
 		//最初のステートをSeekFarStateに設定
-		m_StateMachine->SetCurrentState(SeekFarState::Instance());
+		m_StateMachine->SetCurrentState(FarState::Instance());
 		//初期化実行を行う
 		m_StateMachine->GetCurrentState()->Enter(GetThis<SeekObject>());
 	}
-	//アクセサ
-	shared_ptr< StateMachine<SeekObject> > SeekObject::GetStateMachine()const {
-		return m_StateMachine;
-	}
-	//ステート関数群
+
+	//ユーティリティ関数群
 	Vector3 SeekObject::GetPlayerPosition() const{
 		//もしプレイヤーが初期化化されてない場合には、Vector3(0,m_BaseY,0)を返す
 		Vector3 PlayerPos(0, m_BaseY, 0);
@@ -77,18 +75,46 @@ namespace basedx11{
 		auto LenVec = GetPlayerPosition() - MyPos;
 		return LenVec.Length();
 	}
-	bool SeekObject::SetIfNearVelocity(){
-		auto PtrRighd = GetComponent<Rigidbody>();
-		if (PtrRighd->GetVelocity().Length() < 0.2f){
-			//速度が0.2f未満なら、速度を0にする
-			PtrRighd->SetVelocity(Vector3(0, 0, 0));
+
+	//モーションを実装する関数群
+	void  SeekObject::SeekStartMoton(){
+		auto PtrSeek = GetComponent<SeekSteering>();
+		PtrSeek->SetUpdateActive(true);
+		PtrSeek->SetTargetPosition(GetPlayerPosition());
+
+	}
+	bool  SeekObject::SeekUpdateMoton(){
+		auto PtrSeek = GetComponent<SeekSteering>();
+		PtrSeek->SetTargetPosition(GetPlayerPosition());
+		if (GetPlayerLength() <= m_StateChangeSize){
 			return true;
 		}
-		else{
-			return false;
-		}
+		return false;
+	}
+	void  SeekObject::SeekEndMoton(){
+		auto PtrSeek = GetComponent<SeekSteering>();
+		PtrSeek->SetUpdateActive(false);
 	}
 
+	void  SeekObject::ArriveStartMoton(){
+		auto PtrArrive = GetComponent<ArriveSteering>();
+		PtrArrive->SetUpdateActive(true);
+		PtrArrive->SetTargetPosition(GetPlayerPosition());
+	}
+	bool  SeekObject::ArriveUpdateMoton(){
+		auto PtrArrive = GetComponent<ArriveSteering>();
+		PtrArrive->SetTargetPosition(GetPlayerPosition());
+		if (GetPlayerLength() > m_StateChangeSize){
+			//プレイヤーとの距離が一定以上ならtrue
+			return true;
+		}
+		return false;
+	}
+	void  SeekObject::ArriveEndMoton(){
+		auto PtrArrive = GetComponent<ArriveSteering>();
+		//Arriveコンポーネントを無効にする
+		PtrArrive->SetUpdateActive(false);
+	}
 
 	//操作
 	void SeekObject::Update(){
@@ -122,69 +148,45 @@ namespace basedx11{
 		PtrTransform->SetPosition(Pos);
 	}
 	//--------------------------------------------------------------------------------------
-	//	class SeekFarState : public ObjState<SeekObject>;
+	//	class FarState : public ObjState<SeekObject>;
 	//	用途: プレイヤーから遠いときの移動
 	//--------------------------------------------------------------------------------------
-	shared_ptr<SeekFarState> test;
-
-	shared_ptr<SeekFarState> SeekFarState::Instance(){
-		static shared_ptr<SeekFarState> instance(new SeekFarState);
+	shared_ptr<FarState> FarState::Instance(){
+		static shared_ptr<FarState> instance(new FarState);
 		return instance;
 	}
-	void SeekFarState::Enter(const shared_ptr<SeekObject>& Obj){
-		//5メートルより離れている
-		auto PtrSeek = Obj->GetComponent<SeekSteering>();
-		PtrSeek->SetUpdateActive(true);
-		PtrSeek->SetTargetPosition(Obj->GetPlayerPosition());
+	void FarState::Enter(const shared_ptr<SeekObject>& Obj){
+		Obj->SeekStartMoton();
 	}
-	void SeekFarState::Execute(const shared_ptr<SeekObject>& Obj){
-		auto PtrSeek = Obj->GetComponent<SeekSteering>();
-		PtrSeek->SetTargetPosition(Obj->GetPlayerPosition());
-		if (Obj->GetPlayerLength() <= 5.0f){
-			Obj->GetStateMachine()->ChangeState(ArriveNearState::Instance());
-			return;
-			//本来ここでreturnはいらないが、
-			//ChangeState()呼び出し後はすぐにステートを出ることを強調した
+	void FarState::Execute(const shared_ptr<SeekObject>& Obj){
+		if (Obj->SeekUpdateMoton()){
+			Obj->GetStateMachine()->ChangeState(NearState::Instance());
 		}
 	}
-	void SeekFarState::Exit(const shared_ptr<SeekObject>& Obj){
-		auto PtrSeek = Obj->GetComponent<SeekSteering>();
-		PtrSeek->SetUpdateActive(false);
+	void FarState::Exit(const shared_ptr<SeekObject>& Obj){
+		Obj->SeekEndMoton();
 	}
 
 	//--------------------------------------------------------------------------------------
-	//	class ArriveNearState : public ObjState<SeekObject>;
+	//	class NearState : public ObjState<SeekObject>;
 	//	用途: プレイヤーから近いときの移動
 	//--------------------------------------------------------------------------------------
-	shared_ptr<ArriveNearState> ArriveNearState::Instance(){
-		static shared_ptr<ArriveNearState> instance(new ArriveNearState);
+	shared_ptr<NearState> NearState::Instance(){
+		static shared_ptr<NearState> instance(new NearState);
 		return instance;
 	}
-	void ArriveNearState::Enter(const shared_ptr<SeekObject>& Obj){
-		//5メートル以下に近づいている
-		auto PtrArrive = Obj->GetComponent<ArriveSteering>();
-		PtrArrive->SetUpdateActive(true);
-		PtrArrive->SetTargetPosition(Obj->GetPlayerPosition());
+	void NearState::Enter(const shared_ptr<SeekObject>& Obj){
+		Obj->ArriveStartMoton();
 	}
-	void ArriveNearState::Execute(const shared_ptr<SeekObject>& Obj){
-		auto PtrArrive = Obj->GetComponent<ArriveSteering>();
-		PtrArrive->SetTargetPosition(Obj->GetPlayerPosition());
-		if (Obj->SetIfNearVelocity()){
-			//速度を止めたらArriveも無効にする
-			//そのためSeekFarStateに移らないと動き出さない
-			PtrArrive->SetUpdateActive(false);
-		}
-		if (Obj->GetPlayerLength() > 5.0f){
-			Obj->GetStateMachine()->ChangeState(SeekFarState::Instance());
-			return;
-			//本来ここでreturnはいらないが、
-			//ChangeState()呼び出し後はすぐにステートを出ることを強調した
+	void NearState::Execute(const shared_ptr<SeekObject>& Obj){
+		if (Obj->ArriveUpdateMoton()){
+			Obj->GetStateMachine()->ChangeState(FarState::Instance());
 		}
 	}
-	void ArriveNearState::Exit(const shared_ptr<SeekObject>& Obj){
-		auto PtrArrive = Obj->GetComponent<ArriveSteering>();
-		PtrArrive->SetUpdateActive(false);
+	void NearState::Exit(const shared_ptr<SeekObject>& Obj){
+		Obj->ArriveEndMoton();
 	}
+
 
 
 

@@ -24,6 +24,8 @@ namespace basedx11{
 		const Vector3& GetInvGravity() const;
 		void SetInvGravity(const Vector3& InvGravity);
 		void SetInvGravity(float x, float y, float z);
+		void SetInvGravityDefault();
+
 
 		const Vector3& GetGravityVelocity() const;
 		void SetGravityVelocity(const Vector3& GravityVelocity);
@@ -31,6 +33,7 @@ namespace basedx11{
 
 		bool IsGravityVelocityZero();
 		void SetGravityVelocityZero();
+
 
 		float GetBaseY() const;
 		void SetBaseY(float y);

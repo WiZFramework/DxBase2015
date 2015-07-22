@@ -10,7 +10,11 @@ namespace basedx11{
 	//--------------------------------------------------------------------------------------
 	//構築と破棄
 	Player::Player(const shared_ptr<Stage>& StagePtr) :
-		GameObject(StagePtr){}
+		GameObject(StagePtr),
+		m_MaxSpeed(40.0f),	//最高速度
+		m_Decel(0.95f),	//減速値
+		m_Mass(1.0f)	//質量
+	{}
 
 	//初期化
 	void Player::Create(){
@@ -20,12 +24,8 @@ namespace basedx11{
 		Ptr->SetRotation(0.0f, 0.0f, 0.0f);
 		Ptr->SetPosition(0, 0.125f, 0);
 
-		//操舵系のコンポーネントをつける場合はRigidbodyをつける
+		//Rigidbodyをつける
 		auto PtrRedit = AddComponent<Rigidbody>();
-		//きびきびした動きになるよう、質量を減らす。
-		PtrRedit->SetMass(0.5f);
-		//Seek操舵
-		AddComponent<SeekSteering>();
 		//重力をつける
 		auto PtrGravity = AddComponent<Gravity>();
 		//最下地点
@@ -93,7 +93,7 @@ namespace basedx11{
 				float TotalAngle = FrontAngle + CntlAngle;
 				//角度からベクトルを作成
 				Angle = Vector3(cos(TotalAngle), 0, sin(TotalAngle));
-				//正規化
+				//正規化する
 				Angle.Normalize();
 				//Y軸は変化させない
 				Angle.y = 0;
@@ -115,11 +115,14 @@ namespace basedx11{
 		if (ColPtr->GetHitObject() && GetStateMachine()->GetCurrentState() == JumpState::Instance()){
 			GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
-		//文字列をとりだす
-		auto PtrString = GetComponent<StringSprite>();
+
 		auto fps = App::GetApp()->GetStepTimer().GetFramesPerSecond();
-		wstring str(L"FPS: ");
-		str += Util::UintToWStr(fps);
+		wstring FPS(L"FPS: ");
+		FPS += Util::UintToWStr(fps);
+
+		wstring str = FPS;
+		//文字列をつける
+		auto PtrString = GetComponent<StringSprite>();
 		PtrString->SetText(str);
 	}
 
@@ -127,20 +130,29 @@ namespace basedx11{
 	//モーションを実装する関数群
 	//移動して向きを移動方向にする
 	void Player::MoveRotationMotion(){
+		float ElapsedTime = App::GetApp()->GetElapsedTime();
 		Vector3 Angle = GetAngle();
 		//Transform
 		auto PtrTransform = GetComponent<Transform>();
-
-		//現在位置を取り出す
-		auto Pos = PtrTransform->GetPosition();
-		//移動方向を加算。
-		//移動方向だけがわかればいいので、
-		//Angleは正規化されてて良い
-		Pos += Angle;
-		//Seek操舵
-		auto PtrSeek = GetComponent<SeekSteering>();
-		//加算された方向に追いかける
-		PtrSeek->SetTargetPosition(Pos);
+		//Rigidbodyを取り出す
+		auto PtrRedit = GetComponent<Rigidbody>();
+		//現在の速度を取り出す
+		auto Velo = PtrRedit->GetVelocity();
+		//目的地を最高速度を掛けて求める
+		auto Target = Angle * m_MaxSpeed;
+		//目的地に向かうために力のかける方向を計算する
+		//Forceはフォースである
+		auto Force = Target - Velo;
+		//yは0にする
+		Force.y = 0;
+		//加速度を求める
+		auto Accel = Force / m_Mass;
+		//ターン時間を掛けたものを速度に加算する
+		Velo += (Accel * ElapsedTime);
+		//減速する
+		Velo *= m_Decel;
+		//速度を設定する
+		PtrRedit->SetVelocity(Velo);
 		//回転の計算
 		float YRot = PtrTransform->GetRotation().y;
 		Quaternion Qt;

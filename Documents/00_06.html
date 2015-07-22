@@ -13,7 +13,7 @@
 </div>
 <!-- コンテンツ　-->
 <div id="contents">
-<h3>００６．速度を調整するプレイヤー</h3>
+<h3>００６．ステートと速度を調整するプレイヤー</h3>
 <br />
 <h4>速度を指定する</h4>
 　前項では、<b>Rigidbodyコンポーネント</b>による自動反発を実装してみました。<br />
@@ -44,6 +44,12 @@
         shared_ptr&lt; StateMachine&lt;Player> >  m_StateMachine;   //ステートマシーン
         //移動の向きを得る
         Vector3 GetAngle();
+        //最高速度
+        float m_MaxSpeed;
+        //減速率
+        float m_Decel;
+        //質量
+        float m_Mass;
     public:
 
         //中略
@@ -54,7 +60,6 @@
         shared_ptr&lt; StateMachine&lt;Player> > GetStateMachine() const{
             return m_StateMachine;
         }
-
         //モーションを実装する関数群
         //移動して向きを移動方向にする
         void MoveRotationMotion();
@@ -66,8 +71,6 @@
         //Aボタンでジャンプしている間の処理
         //ジャンプ終了したらtrueを返す
         bool JumpMoveMotion();
-
-        //更新
 
         //中略
     };
@@ -415,11 +418,20 @@ class DefaultState : public ObjState&lt;Player>
         auto PtrRedit = GetComponent&lt;Rigidbody>();
         //現在の速度を取り出す
         auto Velo = PtrRedit->GetVelocity();
-        //コントローラの向きを加える
-        Velo += Angle;
+        //目的地を最高速度を掛けて求める
+        auto Target = Angle * m_MaxSpeed;
+        //目的地に向かうために力のかける方向を計算する
+        //Forceはフォースである
+        auto Force = Target - Velo;
+        //yは0にする
+        Force.y = 0;
+        //加速度を求める
+        auto Accel = Force / m_Mass;
+        //ターン時間を掛けたものを速度に加算する
+        Velo += (Accel * ElapsedTime);
         //減速する
-        Velo *= (0.015f / ElapsedTime);
-        //減速0.015fを微調整すると、操作性が変わる
+        Velo *= m_Decel;
+        //速度を設定する
         PtrRedit->SetVelocity(Velo);
         //回転の計算
         float YRot = PtrTransform->GetRotation().y;
@@ -470,19 +482,51 @@ class DefaultState : public ObjState&lt;Player>
         auto PtrRedit = GetComponent&lt;Rigidbody>();
         //現在の速度を取り出す
         auto Velo = PtrRedit->GetVelocity();
-        //コントローラの向きを加える
-        Velo += Angle;
+        <span class="red">//目的地を最高速度を掛けて求める
+        auto Target = Angle * m_MaxSpeed;
+        //目的地に向かうために力のかける方向を計算する
+        //Forceはフォースである
+        auto Force = Target - Velo;
+        //yは0にする
+        Force.y = 0;
+        //加速度を求める
+        auto Accel = Force / m_Mass;
+        //ターン時間を掛けたものを速度に加算する
+        Velo += (Accel * ElapsedTime);
         //減速する
-        Velo *= (0.015f / ElapsedTime);
-        //減速0.015fを微調整すると、操作性が変わる
+        Velo *= m_Decel;</span>
+        //速度を設定する
         PtrRedit->SetVelocity(Velo);
         //中略
     }
 </pre>
 </div>
-　という処理になります。現在の速度を取り出し、<b>移動方向を加算</b>し、最終的に減速します。<br/>
-　この、<b>加算</b>は重要です。コントローラからの方向を直接新しい速度に設定すると、コントローラの傾きが0の場合に、いきなり静止してしまいます。かといって、加算だけでは、永遠に加速してしまいます。適度な減速をしながら、コントローラからの情報をプレイヤーに反映させるのが重要です。<br />
-　この部分の計算は、上記の計算がベストではありません。ゲームにより、いろんな表現があると思いましが、ポイントは上記したように<b>Velosity（速度）を調節する</b>、ということです。<br />
+　という処理をしています。<br/>
+　赤い文字のところポイントです。<br />
+　まず、コントローラの向きを元に、向かおうとする場所を計算します。これは、移動方向に最高速度を掛けることで算出します。
+　次に、その場所に向かうのに、どのような力を加えたらいいのか（フォース）を計算します。<br />
+　以下の図を見てみましょう
+<p>&nbsp;</p>
+<img src="img/0006c.jpg" width="60%"/>
+<p>図0006c</p>
+<p>&nbsp;</p>
+　この図は、現在の速度と、向かいたい場所、そしてかけるべき力の関係を示しています。<br />
+　図のように、必要な力を得るために、ベクトルの引き算を行います。<br />
+　続いて、加速度を求めます。加速度は、フォースを質量で割って算出します。つまり、重いものは動かすのに多くの力が必要ですし、軽いものは小さい力ですみます。<br />
+　このようにして得た加速度<b>Accel</b>を、現在の速度に加算すればいいのですが、この処理は毎ターンごとに行いますので、ターン時間で掛けて（つまりターン単位に分割して）その結果を加算します。<br />
+　ここまでで、一応、コントローラの値をプレイヤーに伝達できますが、加速する分にはいいのですが減速するためにコントローラのスティックを逆方向に動かさなければいけません。<br />
+　それでは操作性が悪い（スティックを離したら自動的に止まる）ようにするために、速度全体を減速します。<br />
+　これらの処理を行うのに、メンバ変数として<b>m_MaxSpeed（最高速度）、m_Mass（質量）、m_Decel（減速率）</b>を持ちます。それぞれコンストラクタの初期化指定子で初期化され、値は
+<div class="box1">
+<pre>
+        m_MaxSpeed(40.0f),  //最高速度
+        m_Decel(0.95f), //減速値
+        m_Mass(1.0f)    //質量
+</pre>
+</div>
+　となっています。これらの値を変更すると、動きが変わります。いろいろ試してみましょう。<br />
+<br />
+　プレーヤーの動きの計算は、上記の計算がベストではありません。ゲームにより、いろんな表現があると思いますが、ポイントは上記したように<b>Velosity（速度）を調節する</b>、ということです。<br />
 <br />
 <h4>そのほかのオブジェクト</h4>
 　チュートリアル６には、このほかにいくつかの障害物が実装されています。<b>Charactor.hとCharactor.cpp</b>に記述がありますので、確認しましょう。<br />

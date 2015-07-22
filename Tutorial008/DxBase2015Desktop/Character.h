@@ -12,6 +12,12 @@ namespace basedx11{
 		shared_ptr< StateMachine<SeekObject> >  m_StateMachine;	//ステートマシーン
 		Vector3 m_StartPos;
 		float m_BaseY;
+		float m_StateChangeSize;
+		//ユーティリティ関数群
+		//プレイヤーの位置を返す
+		Vector3 GetPlayerPosition() const;
+		//プレイヤーまでの距離を返す
+		float GetPlayerLength() const;
 	public:
 		//構築と破棄
 		SeekObject(const shared_ptr<Stage>& StagePtr, const Vector3& StartPos);
@@ -19,42 +25,46 @@ namespace basedx11{
 		//初期化
 		virtual void Create() override;
 		//アクセサ
-		shared_ptr< StateMachine<SeekObject> > GetStateMachine() const;
-		//ステート関数群
-		//プレイヤーの位置を返す
-		Vector3 GetPlayerPosition() const;
-		//プレイヤーまでの距離を返す
-		float GetPlayerLength() const;
-		//速度が小さくなったら動きを止める（止めた場合はtrue）
-		bool SetIfNearVelocity();
+		shared_ptr< StateMachine<SeekObject> > GetStateMachine() const{
+			return m_StateMachine;
+		}
+		//モーションを実装する関数群
+		void  SeekStartMoton();
+		bool  SeekUpdateMoton();
+		void  SeekEndMoton();
+
+		void  ArriveStartMoton();
+		bool  ArriveUpdateMoton();
+		void  ArriveEndMoton();
+
 		//操作
 		virtual void Update() override;
 		virtual void Update3() override;
 	};
 
 	//--------------------------------------------------------------------------------------
-	//	class SeekFarState : public ObjState<SeekObject>;
+	//	class FarState : public ObjState<SeekObject>;
 	//	用途: プレイヤーから遠いときの移動
 	//--------------------------------------------------------------------------------------
-	class SeekFarState : public ObjState<SeekObject>
+	class FarState : public ObjState<SeekObject>
 	{
-		SeekFarState(){}
+		FarState(){}
 	public:
-		static shared_ptr<SeekFarState> Instance();
+		static shared_ptr<FarState> Instance();
 		virtual void Enter(const shared_ptr<SeekObject>& Obj)override;
 		virtual void Execute(const shared_ptr<SeekObject>& Obj)override;
 		virtual void Exit(const shared_ptr<SeekObject>& Obj)override;
 	};
 
 	//--------------------------------------------------------------------------------------
-	//	class ArriveNearState : public ObjState<SeekObject>;
+	//	class NearState : public ObjState<SeekObject>;
 	//	用途: プレイヤーから近いときの移動
 	//--------------------------------------------------------------------------------------
-	class ArriveNearState : public ObjState<SeekObject>
+	class NearState : public ObjState<SeekObject>
 	{
-		ArriveNearState(){}
+		NearState(){}
 	public:
-		static shared_ptr<ArriveNearState> Instance();
+		static shared_ptr<NearState> Instance();
 		virtual void Enter(const shared_ptr<SeekObject>& Obj)override;
 		virtual void Execute(const shared_ptr<SeekObject>& Obj)override;
 		virtual void Exit(const shared_ptr<SeekObject>& Obj)override;

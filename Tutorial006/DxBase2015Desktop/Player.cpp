@@ -10,7 +10,11 @@ namespace basedx11{
 	//--------------------------------------------------------------------------------------
 	//構築と破棄
 	Player::Player(const shared_ptr<Stage>& StagePtr) :
-		GameObject(StagePtr){}
+		GameObject(StagePtr),
+		m_MaxSpeed(40.0f),	//最高速度
+		m_Decel(0.95f),	//減速値
+		m_Mass(1.0f)	//質量
+	{}
 
 	//初期化
 	void Player::Create(){
@@ -89,8 +93,8 @@ namespace basedx11{
 				float TotalAngle = FrontAngle + CntlAngle;
 				//角度からベクトルを作成
 				Angle = Vector3(cos(TotalAngle), 0, sin(TotalAngle));
-				//正規化しない
-				//Angle.Normalize();
+				//正規化する
+				Angle.Normalize();
 				//Y軸は変化させない
 				Angle.y = 0;
 			}
@@ -111,12 +115,63 @@ namespace basedx11{
 		if (ColPtr->GetHitObject() && GetStateMachine()->GetCurrentState() == JumpState::Instance()){
 			GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
-		//文字列をとりだす
-		auto PtrString = GetComponent<StringSprite>();
+
 		auto fps = App::GetApp()->GetStepTimer().GetFramesPerSecond();
-		wstring str(L"FPS: ");
-		str += Util::UintToWStr(fps);
+		wstring FPS(L"FPS: ");
+		FPS += Util::UintToWStr(fps);
+		FPS += L"\n";
+
+
+		auto Pos = GetComponent<Transform>()->GetWorldMatrix().PosInMatrix();
+		wstring PositionStr(L"Position:\t");
+		PositionStr += L"X=" + Util::FloatToWStr(Pos.x, 6, Util::FloatModify::Fixed) + L",\t";
+		PositionStr += L"Y=" + Util::FloatToWStr(Pos.y, 6, Util::FloatModify::Fixed) + L",\t";
+		PositionStr += L"Z=" + Util::FloatToWStr(Pos.z, 6, Util::FloatModify::Fixed) + L"\n";
+
+		wstring RididStr(L"Velocity:\t");
+		auto Velocity = GetComponent<Rigidbody>()->GetVelocity();
+		RididStr += L"X=" + Util::FloatToWStr(Velocity.x, 6, Util::FloatModify::Fixed) + L",\t";
+		RididStr += L"Y=" + Util::FloatToWStr(Velocity.y, 6, Util::FloatModify::Fixed) + L",\t";
+		RididStr += L"Z=" + Util::FloatToWStr(Velocity.z, 6, Util::FloatModify::Fixed) + L"\n";
+
+		wstring GravStr(L"Gravity:\t");
+		auto Grav = GetComponent<Gravity>()->GetGravity();
+		GravStr += L"X=" + Util::FloatToWStr(Grav.x, 6, Util::FloatModify::Fixed) + L",\t";
+		GravStr += L"Y=" + Util::FloatToWStr(Grav.y, 6, Util::FloatModify::Fixed) + L",\t";
+		GravStr += L"Z=" + Util::FloatToWStr(Grav.z, 6, Util::FloatModify::Fixed) + L"\n";
+
+
+		wstring GravityStr(L"GravityVelocity:\t");
+		auto GravityVelocity = GetComponent<Gravity>()->GetGravityVelocity();
+		GravityStr += L"X=" + Util::FloatToWStr(GravityVelocity.x, 6, Util::FloatModify::Fixed) + L",\t";
+		GravityStr += L"Y=" + Util::FloatToWStr(GravityVelocity.y, 6, Util::FloatModify::Fixed) + L",\t";
+		GravityStr += L"Z=" + Util::FloatToWStr(GravityVelocity.z, 6, Util::FloatModify::Fixed) + L"\n";
+
+		wstring InvGravityStr(L"InvGravity: ");
+		auto InvGravity = GetComponent<Gravity>()->GetInvGravity();
+		InvGravityStr += L"X=" + Util::FloatToWStr(InvGravity.x, 6, Util::FloatModify::Fixed) + L", ";
+		InvGravityStr += L"Y=" + Util::FloatToWStr(InvGravity.y, 6, Util::FloatModify::Fixed) + L", ";
+		InvGravityStr += L"Z=" + Util::FloatToWStr(InvGravity.z, 6, Util::FloatModify::Fixed) + L"\n";
+
+		wstring OnObjectStr(L"OnObject: ");
+		auto OnObject = GetComponent<Gravity>()->GetOnObject();
+		if (OnObject){
+			OnObjectStr += Util::UintToWStr((UINT)OnObject.get()) + L"\n";
+		}
+		else{
+			OnObjectStr += L"NULL\n";
+		}
+		wstring statestr = L"JUMP: ";
+		if (m_StateMachine->GetCurrentState() == DefaultState::Instance()){
+			statestr = L"DEFAULT\n";
+		}
+
+		wstring str = FPS + PositionStr + RididStr + GravStr + GravityStr + InvGravityStr + OnObjectStr + statestr;
+		//文字列をつける
+		auto PtrString = GetComponent<StringSprite>();
 		PtrString->SetText(str);
+
+
 
 	}
 
@@ -132,11 +187,20 @@ namespace basedx11{
 		auto PtrRedit = GetComponent<Rigidbody>();
 		//現在の速度を取り出す
 		auto Velo = PtrRedit->GetVelocity();
-		//コントローラの向きを加える
-		Velo += Angle;
+		//目的地を最高速度を掛けて求める
+		auto Target = Angle * m_MaxSpeed;
+		//目的地に向かうために力のかける方向を計算する
+		//Forceはフォースである
+		auto Force = Target - Velo;
+		//yは0にする
+		Force.y = 0;
+		//加速度を求める
+		auto Accel = Force / m_Mass;
+		//ターン時間を掛けたものを速度に加算する
+		Velo += (Accel * ElapsedTime);
 		//減速する
-		Velo *= (0.015f / ElapsedTime);
-		//減速0.015fを微調整すると、操作性が変わる
+		Velo *= m_Decel;
+		//速度を設定する
 		PtrRedit->SetVelocity(Velo);
 		//回転の計算
 		float YRot = PtrTransform->GetRotation().y;

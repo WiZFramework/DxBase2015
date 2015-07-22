@@ -13,50 +13,101 @@
 </div>
 <!-- コンテンツ　-->
 <div id="contents">
-<h3>００７．ステアリングを使用したプレイヤー</h3>
+<h3>００７．ステアリングを使用したキャラクター</h3>
 <br />
-<h4>速度の自動計算</h4>
+<h4>Seekオブジェクト</h4>
 　前項では、速度を計算して、<b>Rigidbodyコンポーネント</b>のパラメータ<b>速度</b>を調整する方法でプレイヤーの動きを実装しました。<br />
 　今回は、<b>ステアリング</b>というコンポーネントを使って、<b>速度</b>を調整します。<br />
 　<b>Tutorial007</b>ディレクトリのソリューションを開くと以下のような画面になります。<br />
-　内容は前項とほとんど同じですが、プレイヤーを動かしてみると、前項とは違った感触が得られると思います。<br />
-　どこが違うというと、<b>なんとなく思った方向にきびきび動かない</b>ということです。<br />
-　これは、<b>速度</b>を計算するのに、<b>ステアリング</b>というコンポーネントを利用しているからです。<br />
-　<b>ステアリング</b>は直訳すると<b>操舵</b>ですが、このコンポーネントは現実社会のように、何かの速度を変更したり、止めたりするのに<b>加速</b>を使用しています。<br />
-<br />
+　内容は前項とほとんど同じですが、プレイヤーを追い掛けてくるオブジェクトが出現します。<br />
 <p>&nbsp;</p>
 <img src="img/0007a.jpg" width="80%"/>
 <p>図0007a</p>
 <p>&nbsp;</p>
-<br/>
-　<b>速度（Velocity）</b>は<b>加速</b>を加えることで増減します。動いているのが止まるのも、実は後ろ向きの加速が加わっています。ですから、<b>加速</b>を動的に変えることができれば<b>速度（Velocity）</b>を動的に変更できます。<br />
+　このオブジェクトは<b>ステアリング類</b>に属する<b>SeekSteeringとArriveSteeringそしてSeparationSteeringというコンポーネント</b>を利用して、<b>AI動作</b>を実装しています。<b>AI動作</b>の実装に、<b>ステアリングは威力を発揮</b>します。<br />
+　<b>ステアリング</b>は直訳すると<b>操舵</b>ですが、これらのコンポーネントは現実社会のように、何かの速度を変更したり、止めたりするのに、前項でも出てきました<b>フォースと加速度</b>を使用しています。<br />
 <br />
-　では加速を変化させるのにはどうしたらいいかというと、まず、いわゆる<b>力（フォース）</b>を作り出します。たとえば何かを追いかけるとすれば、<b>追いかけようとするフォース</b>がありますし、目的地に到着するとすれば<b>到着しようとするフォース（ブレーキのようなもの）</b>が発生します。あるルートパスがあってそれに沿って進むとすれば、<b>その道筋に沿うようなフォース</b>が発生します。<b>複数のオブジェクトがお互いに引き合うフォース</b>もありますし、<b>お互いに離れようとするフォース</b>があります。<br />
-　これらの一つ一つのフォースを作り出す仕組みが<b>ステアリング（操舵）</b>ということになります。<br/>
-　そして、それらのフォースを加算していって、<b>最終的にその物体に影響するフォース</b>を作り出します。<br />
+<h4>ステートとステアリング</h4>
+　このオブジェクトのステートは2つです。<br />
+　プレイヤーから一定距離離れているときのステート、<b>FarState</b>と近いときのステート、<b>NearState</b>です。<br />
+　<b>FarState</b>のときは、<b>SeekSteering</b>というステアリングを使用します。<b>NearState</b>のときは<b>ArriveSteering</b>というステアリングを使用します。また、常時<b>SeparationSteering</b>は実装しておきます。<br />
+　<b>SeekSteering</b>はある目標を、ひたすら追いかけるステアリングです。前項のプレイヤーの実装に、この計算式の一部を使用しています<br />
+　<b>ArriveSteering</b>は、<b>到着する</b>ステアリングです。目標に近づくと減速して、そこに到着しようとします。<br />
+　<b>SeparationSteerin</b>は<b>分離行動</b>をするステアリングです。グループに登録しておくと、そのグループ内のほかのオブジェクトと、くっつかないように調整します。<br />
+　<b>ステアリング</b>で設定するパラメータはあくまで<b>努力目標</b>です。指定した操舵を計算で求めますが、調整するのは<b>フォースや加速度</b>です。ですので、現在の速度が充分に速ければ、別方向への操舵が働いても、これらの操舵は急には働きません。<b>車は急には止まれない</b>のと同じです。<br />
+　ステアリングはコンポーネントです。ですので通常、<b>Create関数</b>で実装します。以下は、<b>SeekObjectクラスのCreate関数</b>です。<b>Charactor.cpp</b>にあります。
+<div class="box1">
+<pre>
+    //初期化
+    void SeekObject::Create(){
+        auto PtrTransform = GetComponent&lt;Transform>();
+        PtrTransform->SetPosition(m_StartPos);
+        PtrTransform->SetScale(0.125f, 0.25f, 0.25f);
+        PtrTransform->SetRotation(0.0f, 0.0f, 0.0f);
+        <span class="red">//操舵系のコンポーネントをつける場合はRigidbodyをつける
+        auto PtrRegid = AddComponent&lt;Rigidbody>();
+        //Seek操舵
+        auto PtrSeek = AddComponent&lt;SeekSteering>();
+        //Arrive操舵
+        auto PtrArrive = AddComponent&lt;ArriveSteering>();
+        //Arriveは無効にしておく
+        PtrArrive->SetUpdateActive(false);
+
+        //オブジェクトのグループを得る
+        auto Group = GetStage()->GetSharedObjectGroup(L"ObjectGroup");
+        //グループに自分自身を追加
+        Group->IntoGroup(GetThis&lt;SeekObject>());
+        //分離行動をつける
+        AddComponent&lt;SeparationSteering>(Group);</span>
+        //Obbの衝突判定をつける
+        auto PtrColl = AddComponent&lt;CollisionObb>();
+
+        //影をつける
+        auto ShadowPtr = AddComponent&lt;Shadowmap>();
+        ShadowPtr->SetMeshResource(L"DEFAULT_CUBE");
+
+        auto PtrDraw = AddComponent&lt;BasicPNTDraw>();
+        PtrDraw->SetMeshResource(L"DEFAULT_CUBE");
+        PtrDraw->SetTextureResource(L"TRACE_TX");
+        //透明処理をする
+        SetAlphaActive(true);
+
+        //ステートマシンの構築
+        m_StateMachine = make_shared&lt; StateMachine&lt;SeekObject> >(GetThis&lt;SeekObject>());
+        //最初のステートをSeekFarStateに設定
+        m_StateMachine->SetCurrentState(FarState::Instance());
+        //初期化実行を行う
+        m_StateMachine->GetCurrentState()->Enter(GetThis&lt;SeekObject>());
+    }
+</pre>
+</div>
+　ここで注意したいのは、初期ステートは<b>FarState</b>になります。そのため、<b>SeekSteering</b>は有効にしますが、<b>ArriveSteering</b>は、実装はしておきますが、無効にしておきます。<br />
 <br />
-　全体的なフォースを求めましたら、物質によって質量が違いますので、質量を加味して加速に変換します。重いものに加速を加えるのには多くの力が必要ですし、軽いものであれば少なく済みます。それを計算するのです。<br />
-　そして各物質に対する、一瞬一瞬の加速が出せましたら、その加速を使って、<b>現在の速度（Velocity）</b>を変化させます。<br />
+　ステートのヘッダは、特別注意すべき点はありません。これまでの項で解説したとおりです。<br />
 <br />
-　さて、今回、プレイヤーの場合具体的にはどのような<b>フォース</b>を発生させて、加速を計算してるのかというと、<b>Seek</b>という<b>ステアリング（操舵）</b>を使って<b>フォース</b>を発生させ、<b>Rigidbody</b>を使って加速を計算します。<br />
+<h4>モーション関数群</h4>
+　ステートによって呼ばれる、<b>モーション関数群</b>は以下になります。<b>Charactor.hのSeekObject宣言</b>に記述があります。
+<div class="box1">
+<pre>
+        //モーションを実装する関数群
+        void  SeekStartMoton();
+        bool  SeekUpdateMoton();
+        void  SeekEndMoton();
+
+        void  ArriveStartMoton();
+        bool  ArriveUpdateMoton();
+        void  ArriveEndMoton();
+</pre>
+</div>
+　今回はそれぞれ、各ステアリングの開始時、実行時、終了時に実行すべき内容を記述する形になります。このオブジェクトは、ステートが変われば実装すべきモーションも完全に変わります。<br />
+　つまりプレイヤーのように、ステートが変化しても同様に行う処理がないので、ステートと1対1になるように記述可能です。<br />
+　なお、<b>SeparationSteerin</b>は各ステートにまたいでますが、これはCreate時に設定すれば、あとは何の処理も必要ないので、ステートによるモーション実行のような処理は、必要ありません。<br />
 <br />
-　前項でも以下の図は説明しましたが、プレイヤーとコントローラの関係は以下のような関係になります。
-<p>&nbsp;</p>
-<img src="img/0006b.jpg" width="60%"/>
-<p>図0006b</p>
-<p>&nbsp;</p>
-　赤い線が<b>プレイヤーの目的の方向</b>です。<br />
-　前項では。この方向を加算していましたが、今回は別の方法を使ってます。<br />
-　<b>フォース</b>の向きは、以下のようになります。
-<p>&nbsp;</p>
-<img src="img/0007b.jpg" width="60%"/>
-<p>図0007b</p>
-<p>&nbsp;</p>
-　つまり、<b>目的地へのベクトルから現在の速度を引いたベクトル</b>が、求めるべき<b>フォース</b>となります。<br/>
-　カメラと自分の向きから、向いたいベクトルは算出できますので、そこに向かうフォースは<b>Seek</b>という<b>ステアリング（操舵）</b>を使って算出します。<br />
-　<b>Seekステアリング（操舵）</b>は、コンポーネントとして実装します。<br/>
-　コンポーネントの実装は、前項のように<b>Player::Create()</b>に記述します。<br />
-　ここでは、<b>Rigidbody、SeekSteering</b>のほかに重力を加味するので、<b>Gravityコンポーネント</b>も追加しています。
+　モーション関数の内容は、それぞれソースを参照してください。<br />
+<br />
+<h4>Update3()関数</h4>
+　このオブジェクトは、更新処理関数として、<b>Update3()関数</b>が実装されています。この関数は、<b>RigitBodyコンポーネント</b>を実装した場合でも、安全に<b>Transformを変更</b>できます。<br />
+ この関数は、このオブジェクトの更新処理の最後の最後に呼ばれます。この処理の後、<b>RigitBodyコンポーネント</b>などの自動計算などは行われません。ここでは、回転処理と、オブジェクトのY位置を設定しています。<b>Transformを直接変更</b>するので<b>Update3()関数</b>に記述しています。<br />
 
 
 <br />

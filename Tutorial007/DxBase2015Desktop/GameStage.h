@@ -18,6 +18,8 @@ namespace basedx11{
 		void CreateFixedBox();
 		//上下移動しているボックスの作成
 		void CreateMoveBox();
+		//追いかけるオブジェクトの作成
+		void CreateSeekObject();
 		//プレイヤーの作成
 		void CreatePlayer();
 	public:

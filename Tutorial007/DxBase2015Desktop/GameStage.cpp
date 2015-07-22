@@ -103,6 +103,24 @@ namespace basedx11{
 			);
 	}
 
+	//追いかけるオブジェクトの作成
+	void GameStage::CreateSeekObject(){
+		//オブジェクトのグループを作成する
+		auto Group = CreateSharedObjectGroup(L"ObjectGroup");
+		//配列の初期化
+		vector<Vector3> Vec = {
+			{ 0, 0.125f, 10.0f },
+			{ 10.0f, 0.125f, 0.0f },
+			{ -10.0f, 0.125f, 0.0f },
+			{ 0, 0.125f, -10.0f },
+		};
+		//配置オブジェクトの作成
+		for (auto v : Vec){
+			AddGameObject<SeekObject>(v);
+		}
+	}
+
+
 
 	//プレイヤーの作成
 	void GameStage::CreatePlayer(){
@@ -126,6 +144,8 @@ namespace basedx11{
 			CreateFixedBox();
 			//上下移動しているボックスの作成
 			CreateMoveBox();
+			//追いかけるオブジェクトの作成
+			CreateSeekObject();
 			//プレーヤーの作成
 			CreatePlayer();
 
