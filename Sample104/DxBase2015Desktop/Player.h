@@ -4,7 +4,6 @@
 
 namespace basedx11{
 
-
 	//--------------------------------------------------------------------------------------
 	//	class Player : public GameObject;
 	//	用途: プレイヤー
@@ -13,6 +12,12 @@ namespace basedx11{
 		shared_ptr< StateMachine<Player> >  m_StateMachine;	//ステートマシーン
 		//移動の向きを得る
 		Vector3 GetAngle();
+		//最高速度
+		float m_MaxSpeed;
+		//減速率
+		float m_Decel;
+		//質量
+		float m_Mass;
 	public:
 		//構築と破棄
 		Player(const shared_ptr<Stage>& StagePtr);
@@ -23,10 +28,6 @@ namespace basedx11{
 		shared_ptr< StateMachine<Player> > GetStateMachine() const{
 			return m_StateMachine;
 		}
-		//更新
-		virtual void Update() override;
-		virtual void Update2() override;
-
 		//モーションを実装する関数群
 		//移動して向きを移動方向にする
 		void MoveRotationMotion();
@@ -45,6 +46,9 @@ namespace basedx11{
 		void TorusCreateMotion();
 
 
+		//更新
+		virtual void Update() override;
+		virtual void Update2() override;
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -67,7 +71,7 @@ namespace basedx11{
 
 	//--------------------------------------------------------------------------------------
 	//	class JumpState : public ObjState<Player>;
-	//	用途: Aボタンでジャンプしたときの処理
+	//	用途: ジャンプ状態
 	//--------------------------------------------------------------------------------------
 	class JumpState : public ObjState<Player>
 	{
@@ -82,7 +86,6 @@ namespace basedx11{
 		//ステートにから抜けるときに呼ばれる関数
 		virtual void Exit(const shared_ptr<Player>& Obj)override;
 	};
-
 
 
 }

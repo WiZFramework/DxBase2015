@@ -4,13 +4,18 @@
 
 namespace basedx11{
 
+
 	//--------------------------------------------------------------------------------------
 	//	class Player : public GameObject;
 	//	用途: プレイヤー
 	//--------------------------------------------------------------------------------------
 	//構築と破棄
 	Player::Player(const shared_ptr<Stage>& StagePtr) :
-		GameObject(StagePtr){}
+		GameObject(StagePtr),
+		m_MaxSpeed(40.0f),	//最高速度
+		m_Decel(0.95f),	//減速値
+		m_Mass(1.0f)	//質量
+	{}
 
 	//初期化
 	void Player::Create(){
@@ -28,6 +33,12 @@ namespace basedx11{
 		PtrGravity->SetBaseY(0.125f);
 		//衝突判定をつける
 		auto PtrCol = AddComponent<CollisionSphere>();
+
+		//文字列をつける
+		auto PtrString = AddComponent<StringSprite>();
+		PtrString->SetText(L"");
+		PtrString->SetTextRect(Rect2D<float>(16.0f, 16.0f, 640.0f, 480.0f));
+
 
 		//影をつける（シャドウマップを描画する）
 		auto ShadowPtr = AddComponent<Shadowmap>();
@@ -83,12 +94,15 @@ namespace basedx11{
 				float TotalAngle = FrontAngle + CntlAngle;
 				//角度からベクトルを作成
 				Angle = Vector3(cos(TotalAngle), 0, sin(TotalAngle));
+				//正規化する
+				Angle.Normalize();
 				//Y軸は変化させない
 				Angle.y = 0;
 			}
 		}
 		return Angle;
 	}
+
 
 	//更新
 	void Player::Update(){
@@ -109,6 +123,8 @@ namespace basedx11{
 		}
 	}
 
+
+	//モーションを実装する関数群
 	//移動して向きを移動方向にする
 	void Player::MoveRotationMotion(){
 		float ElapsedTime = App::GetApp()->GetElapsedTime();
@@ -119,11 +135,20 @@ namespace basedx11{
 		auto PtrRedit = GetComponent<Rigidbody>();
 		//現在の速度を取り出す
 		auto Velo = PtrRedit->GetVelocity();
-		//コントローラの向きを加える
-		Velo += Angle;
+		//目的地を最高速度を掛けて求める
+		auto Target = Angle * m_MaxSpeed;
+		//目的地に向かうために力のかける方向を計算する
+		//Forceはフォースである
+		auto Force = Target - Velo;
+		//yは0にする
+		Force.y = 0;
+		//加速度を求める
+		auto Accel = Force / m_Mass;
+		//ターン時間を掛けたものを速度に加算する
+		Velo += (Accel * ElapsedTime);
 		//減速する
-		Velo *= (0.015f / ElapsedTime);
-		//減速0.015fを微調整すると、操作性が変わる
+		Velo *= m_Decel;
+		//速度を設定する
 		PtrRedit->SetVelocity(Velo);
 		//回転の計算
 		float YRot = PtrTransform->GetRotation().y;
@@ -212,19 +237,19 @@ namespace basedx11{
 		return false;
 	}
 
+
 	//Aボタンでジャンプするどうかを得る
 	bool Player::IsJumpMotion(){
 		//コントローラの取得
 		auto CntlVec = App::GetApp()->GetInputDevice().GetControlerVec();
 		if (CntlVec[0].bConnected){
-			//Aボタンが押された瞬間なら砲弾発射
+			//Aボタンが押された瞬間ならジャンプ
 			if (CntlVec[0].wPressedButtons & XINPUT_GAMEPAD_A){
 				return true;
 			}
 		}
 		return false;
 	}
-
 	//Aボタンでジャンプする瞬間の処理
 	void Player::JumpMotion(){
 		auto PtrTrans = GetComponent<Transform>();
@@ -245,15 +270,14 @@ namespace basedx11{
 	//Aボタンでジャンプしている間の処理
 	//ジャンプ終了したらtrueを返す
 	bool Player::JumpMoveMotion(){
-		//重力を得る
+		auto PtrTransform = GetComponent<Transform>();
+		//重力
 		auto PtrGravity = GetComponent<Gravity>();
-		if (PtrGravity->IsGravityVelocityZero()){
-			//落下終了
+		if (PtrGravity->GetGravityVelocity().Length() <= 0 || PtrTransform->GetParent()){
 			return true;
 		}
 		return false;
 	}
-
 
 	//Bボタンで砲弾を発射するどうかを得る
 	bool Player::IsShellThrowMotion(){
@@ -294,7 +318,7 @@ namespace basedx11{
 				auto ShellPtr = dynamic_pointer_cast<ShellBall>(Ptr.lock());
 				if (ShellPtr){
 					if ((!ShellPtr->IsUpdateActive()) && (!ShellPtr->IsDrawActive())){
-						ShellPtr->Refresh(PtrTrans->GetPosition(), ShellSpeed,false);
+						ShellPtr->Refresh(PtrTrans->GetPosition(), ShellSpeed, false);
 						return;
 					}
 				}
@@ -302,10 +326,12 @@ namespace basedx11{
 		}
 		//ここまで来たら空きがなかったことになる
 		//砲弾の追加
-		auto Sh = GetStage()->AddGameObject<ShellBall>(PtrTrans->GetPosition(), ShellSpeed,false);
+		auto Sh = GetStage()->AddGameObject<ShellBall>(PtrTrans->GetPosition(), ShellSpeed, false);
 		//グループに追加
 		Group->IntoGroup(Sh);
 	}
+
+
 
 
 	//--------------------------------------------------------------------------------------
@@ -369,10 +395,9 @@ namespace basedx11{
 		//何もしない
 	}
 
-
 	//--------------------------------------------------------------------------------------
 	//	class JumpState : public ObjState<Player>;
-	//	用途: Aボタンでジャンプしたときの処理
+	//	用途: ジャンプ状態
 	//--------------------------------------------------------------------------------------
 	//ステートのインスタンス取得
 	shared_ptr<JumpState> JumpState::Instance(){
@@ -386,18 +411,18 @@ namespace basedx11{
 	void JumpState::Enter(const shared_ptr<Player>& Obj){
 		//ジャンプ中も移動可能とする
 		Obj->MoveRotationMotion();
+		//ジャンプ中も砲弾発射可能
+		if (Obj->IsShellThrowMotion()){
+			Obj->ShellThrowMotion();
+		}
 		Obj->JumpMotion();
 	}
 	//ステート実行中に毎ターン呼ばれる関数
 	void JumpState::Execute(const shared_ptr<Player>& Obj){
 		//ジャンプ中も移動可能とする
 		Obj->MoveRotationMotion();
-		//ジャンプ中も砲弾発射可能
-		if (Obj->IsShellThrowMotion()){
-			Obj->ShellThrowMotion();
-		}
 		if (Obj->JumpMoveMotion()){
-			//落下終了ならステート変更
+			//通常状態に戻る
 			Obj->GetStateMachine()->ChangeState(DefaultState::Instance());
 		}
 	}
@@ -405,7 +430,6 @@ namespace basedx11{
 	void JumpState::Exit(const shared_ptr<Player>& Obj){
 		//何もしない
 	}
-
 
 
 }

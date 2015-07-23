@@ -119,59 +119,11 @@ namespace basedx11{
 		auto fps = App::GetApp()->GetStepTimer().GetFramesPerSecond();
 		wstring FPS(L"FPS: ");
 		FPS += Util::UintToWStr(fps);
-		FPS += L"\n";
 
-
-		auto Pos = GetComponent<Transform>()->GetWorldMatrix().PosInMatrix();
-		wstring PositionStr(L"Position:\t");
-		PositionStr += L"X=" + Util::FloatToWStr(Pos.x, 6, Util::FloatModify::Fixed) + L",\t";
-		PositionStr += L"Y=" + Util::FloatToWStr(Pos.y, 6, Util::FloatModify::Fixed) + L",\t";
-		PositionStr += L"Z=" + Util::FloatToWStr(Pos.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring RididStr(L"Velocity:\t");
-		auto Velocity = GetComponent<Rigidbody>()->GetVelocity();
-		RididStr += L"X=" + Util::FloatToWStr(Velocity.x, 6, Util::FloatModify::Fixed) + L",\t";
-		RididStr += L"Y=" + Util::FloatToWStr(Velocity.y, 6, Util::FloatModify::Fixed) + L",\t";
-		RididStr += L"Z=" + Util::FloatToWStr(Velocity.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring GravStr(L"Gravity:\t");
-		auto Grav = GetComponent<Gravity>()->GetGravity();
-		GravStr += L"X=" + Util::FloatToWStr(Grav.x, 6, Util::FloatModify::Fixed) + L",\t";
-		GravStr += L"Y=" + Util::FloatToWStr(Grav.y, 6, Util::FloatModify::Fixed) + L",\t";
-		GravStr += L"Z=" + Util::FloatToWStr(Grav.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-
-		wstring GravityStr(L"GravityVelocity:\t");
-		auto GravityVelocity = GetComponent<Gravity>()->GetGravityVelocity();
-		GravityStr += L"X=" + Util::FloatToWStr(GravityVelocity.x, 6, Util::FloatModify::Fixed) + L",\t";
-		GravityStr += L"Y=" + Util::FloatToWStr(GravityVelocity.y, 6, Util::FloatModify::Fixed) + L",\t";
-		GravityStr += L"Z=" + Util::FloatToWStr(GravityVelocity.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring InvGravityStr(L"InvGravity: ");
-		auto InvGravity = GetComponent<Gravity>()->GetInvGravity();
-		InvGravityStr += L"X=" + Util::FloatToWStr(InvGravity.x, 6, Util::FloatModify::Fixed) + L", ";
-		InvGravityStr += L"Y=" + Util::FloatToWStr(InvGravity.y, 6, Util::FloatModify::Fixed) + L", ";
-		InvGravityStr += L"Z=" + Util::FloatToWStr(InvGravity.z, 6, Util::FloatModify::Fixed) + L"\n";
-
-		wstring OnObjectStr(L"OnObject: ");
-		auto OnObject = GetComponent<Gravity>()->GetOnObject();
-		if (OnObject){
-			OnObjectStr += Util::UintToWStr((UINT)OnObject.get()) + L"\n";
-		}
-		else{
-			OnObjectStr += L"NULL\n";
-		}
-		wstring statestr = L"JUMP: ";
-		if (m_StateMachine->GetCurrentState() == DefaultState::Instance()){
-			statestr = L"DEFAULT\n";
-		}
-
-		wstring str = FPS + PositionStr + RididStr + GravStr + GravityStr + InvGravityStr + OnObjectStr + statestr;
+		wstring str = FPS;
 		//•¶Žš—ñ‚ð‚Â‚¯‚é
 		auto PtrString = GetComponent<StringSprite>();
 		PtrString->SetText(str);
-
-
 
 	}
 
