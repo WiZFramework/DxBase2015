@@ -326,6 +326,59 @@ namespace basedx11{
 		}
 	}
 
+	float SS5AnimeFloatVal::GetScaleValue(float Time){
+		if (pImpl->line.size() <= 0){
+			return 1.0f;
+		}
+		size_t TgtVecIndex = 0;
+		SsInterpolationType::_enum Type;
+		Type = SsInterpolationType::none;
+
+		float Start = 1.0f;
+		float End = 1.0f;
+
+		float StartTime = 0;
+		float EndTime = 0;
+		SsCurve curve;
+		for (auto ptr : pImpl->line){
+			if (ptr.time <= Time){
+				Start = ptr.val;
+				StartTime = ptr.time;
+				Type = ptr.ipType;
+				curve = ptr.curve;
+			}
+		}
+		End = Start;
+		EndTime = StartTime;
+		for (auto ptr : pImpl->line){
+			if (ptr.time > Time){
+				End = ptr.val;
+				EndTime = ptr.time;
+				break;
+			}
+		}
+
+		if (Type == SsInterpolationType::bezier)
+		{
+			// ベジェのみキーの開始・終了時間が必要
+			curve.startKeyTime = StartTime;
+			curve.endKeyTime = EndTime;
+		}
+		double spanFreme = Time - StartTime;
+		double totalFrame = abs(EndTime - StartTime);
+		double tgtFrame = 0;
+		if (totalFrame > 0){
+			tgtFrame = spanFreme / totalFrame;
+		}
+		if (SS5Util::SsNeedsCurveParams(Type)){
+			return SS5Util::SsInterpolate(Type, (float)tgtFrame, Start, End, &curve);
+		}
+		else{
+			return SS5Util::SsInterpolate(Type, (float)tgtFrame, Start, End, nullptr);
+		}
+	}
+
+
 	//--------------------------------------------------------------------------------------
 	//	struct SS5AnimeCellVal::Impl;
 	//	用途: Implイディオム
@@ -847,6 +900,8 @@ namespace basedx11{
 		Vertex2DAnimeData GetVirtex2DData();
 
 		void GetIfFloatVal(bool b, shared_ptr<SS5AnimeLine>& ptr, float& dest, float AnimeFrame);
+		void GetIfFloatScaleVal(bool b, shared_ptr<SS5AnimeLine>& ptr, float& dest, float AnimeFrame);
+
 	};
 
 	SS5PartAnimation::Impl::Impl(IXMLDOMNodePtr TgtNode, SS5Animation* pSS5Animation) :
@@ -907,6 +962,14 @@ namespace basedx11{
 			dest = v->GetValue(AnimeFrame);
 		}
 	}
+
+	void SS5PartAnimation::Impl::GetIfFloatScaleVal(bool b, shared_ptr<SS5AnimeLine>& ptr, float& dest, float AnimeFrame){
+		if (b){
+			auto v = dynamic_pointer_cast<SS5AnimeFloatVal>(ptr);
+			dest = v->GetScaleValue(AnimeFrame);
+		}
+	}
+
 
 	bool SS5PartAnimation::Impl::GetHide(){
 		bool ret = false;
@@ -980,8 +1043,8 @@ namespace basedx11{
 			GetIfFloatVal(ptr->GetType() == SsAttributeKind::rotx, ptr, Rot.x, AnimeFrame);
 			GetIfFloatVal(ptr->GetType() == SsAttributeKind::roty, ptr, Rot.y, AnimeFrame);
 			GetIfFloatVal(ptr->GetType() == SsAttributeKind::rotz, ptr, Rot.z, AnimeFrame);
-			GetIfFloatVal(ptr->GetType() == SsAttributeKind::sclx, ptr, Scale.x, AnimeFrame);
-			GetIfFloatVal(ptr->GetType() == SsAttributeKind::scly, ptr, Scale.y, AnimeFrame);
+			GetIfFloatScaleVal(ptr->GetType() == SsAttributeKind::sclx, ptr, Scale.x, AnimeFrame);
+			GetIfFloatScaleVal(ptr->GetType() == SsAttributeKind::scly, ptr, Scale.y, AnimeFrame);
 		}
 
 		Pos.x /= m_pSS5Animation->get_gridSize();
@@ -2030,6 +2093,8 @@ namespace basedx11{
 	}
 
 	void SS5ssae::Draw(){
+		//コンポーネント描画
+		ComponentDraw();
 		vector<SSPart*> PartVec;
 		pImpl->m_RootPart->SetPartInVector(PartVec);
 		std::sort(PartVec.begin(), PartVec.end(), ZSortModelFunc);

@@ -591,6 +591,7 @@ namespace basedx11{
 		virtual ~SS5AnimeFloatVal();
 		//設定された補間をもとに指定時間の値を返す
 		float GetValue(float Time);
+		float GetScaleValue(float Time);
 	private:
 		//Implイディオム
 		struct Impl;
