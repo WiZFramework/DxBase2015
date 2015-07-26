@@ -191,6 +191,10 @@ namespace basedx11{
 		void SetTextureResource(const wstring& ResKey);
 		void SetTextureResource(const shared_ptr<TextureResource>& TextureResourcePtr);
 
+		void SetTextureOnlyNoLight(bool b);
+		bool GetTextureOnlyNoLight() const;
+		bool IsTextureOnlyNoLight() const;
+
 
 		//ëÄçÏ
 		virtual void Update()override{}

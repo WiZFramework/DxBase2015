@@ -22,7 +22,7 @@ cbuffer Parameters : register(b0)
     float3x3 WorldInverseTranspose  : packoffset(c19);
     float4x4 WorldViewProj          : packoffset(c22);
 	float4x4 LightWorldViewProj		: packoffset(c26);   // ライトビューの正射影行列
-	uint4 activeflags				: packoffset(c30);	//フラグ、texture=x,shadow = y,lightsize=z
+	uint4 activeflags				: packoffset(c30);	//フラグ、texture=x,shadow = y,lightsize=z,lightなし(テクスチャオンリー)=w
 
 	float4 LPos: packoffset(c31);
 	float4x4 lView: packoffset(c32);

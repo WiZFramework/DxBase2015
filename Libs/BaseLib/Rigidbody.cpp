@@ -1834,43 +1834,18 @@ namespace basedx11{
 		//相手にCollisionObbが見つかった
 		OBB DestObb = DestCollisionObbPtr->GetObb();
 		OBB DestBeforeObb = DestCollisionObbPtr->GetBeforeObb();
-		if (DestObb.IsRotIdentity() && DestBeforeObb.IsRotIdentity()){
-			//回転が0のときのみAABBとみなす
-			Vector3 MinPos = DestObb.m_Center - DestObb.m_Size;
-			Vector3 MaxPos = DestObb.m_Center + DestObb.m_Size;
-			AABB DestAabb(MinPos, MaxPos);
-			MinPos = DestBeforeObb.m_Center - DestBeforeObb.m_Size;
-			MaxPos = DestBeforeObb.m_Center + DestBeforeObb.m_Size;
-			AABB DestBeforeAabb(MinPos, MaxPos);
-			Vector3 DestVelocity = DestAabb.GetCenter() - DestBeforeAabb.GetCenter();
-			Vector3 SpanVelocity = SrcVelocity - DestVelocity;
-
-			SpanVelocity /= ElapsedTime;
-			float HitTime = 0;
-			if (HitTest::CollisionTestSphereAabb(SrcBeforSphere, SpanVelocity, DestAabb, 0, ElapsedTime, HitTime)){
-				//ヒット地点まで戻る
-				PtrT->LerpBeforeToNow(HitTime);
-				//ヒットオブジェクトを設定
-				//続いて残りも判定するが、最終的に、一番Before地点に近いオブジェクトが
-				//設定される
-				SetHitTime(HitTime);
-				SetHitObject(DestObj);
-			}
-		}
-		else{
-			Vector3 DestVelocity = DestObb.m_Center - DestBeforeObb.m_Center;
-			Vector3 SpanVelocity = SrcVelocity - DestVelocity;
-			SpanVelocity /= ElapsedTime;
-			float HitTime = 0;
-			if (HitTest::CollisionTestSphereObb(SrcBeforSphere, SpanVelocity, DestObb, 0, ElapsedTime, HitTime)){
-				//ヒット地点まで戻る
-				PtrT->LerpBeforeToNow(HitTime);
-				//ヒットオブジェクトを設定
-				//続いて残りも判定するが、最終的に、一番Before地点に近いオブジェクトが
-				//設定される
-				SetHitTime(HitTime);
-				SetHitObject(DestObj);
-			}
+		Vector3 DestVelocity = DestObb.m_Center - DestBeforeObb.m_Center;
+		Vector3 SpanVelocity = SrcVelocity - DestVelocity;
+		SpanVelocity /= ElapsedTime;
+		float HitTime = 0;
+		if (HitTest::CollisionTestSphereObb(SrcBeforSphere, SpanVelocity, DestObb, 0, ElapsedTime, HitTime)){
+			//ヒット地点まで戻る
+			PtrT->LerpBeforeToNow(HitTime);
+			//ヒットオブジェクトを設定
+			//続いて残りも判定するが、最終的に、一番Before地点に近いオブジェクトが
+			//設定される
+			SetHitTime(HitTime);
+			SetHitObject(DestObj);
 		}
 	}
 

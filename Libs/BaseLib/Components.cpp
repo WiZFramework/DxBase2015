@@ -78,6 +78,11 @@ namespace basedx11{
 	void Component::SetUpdate2Active(bool b){
 		pImpl->m_Update2Active = b;
 	}
+	void Component::SetUpdateAllActive(bool b){
+		pImpl->m_UpdateActive = b;
+		pImpl->m_Update2Active = b;
+	}
+
 
 
 	bool Component::IsDrawActive() const{

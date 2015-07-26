@@ -1358,6 +1358,10 @@ namespace basedx11{
 		//スプライトの1メートル当たりのピクセル
 		float m_SpritePixelParMeter;
 
+		//ライティングしないかどうか（デフォルトtrue）
+		bool m_TextureOnlyNoLight;
+
+
 		//頂点変更時のデータ
 		Vertex2DAnimeData m_Vertex2DAnimeData;
 		//構築と破棄
@@ -1383,7 +1387,8 @@ namespace basedx11{
 		m_Prio(0),
 		m_Alpha(1.0f),
 		m_SpriteType(SpriteType),
-		m_SpritePixelParMeter(8.0f)
+		m_SpritePixelParMeter(8.0f),
+		m_TextureOnlyNoLight(true)
 	{
 		try{
 			name = SS5Util::TextToWstr(TgtNode, L"name");
@@ -1559,6 +1564,18 @@ namespace basedx11{
 			ptr->SetSpritePixelParMeter(f);
 		}
 	}
+
+	void SSPart::SetTextureOnlyNoLight(bool b){
+		pImpl->m_TextureOnlyNoLight = b;
+	}
+	bool SSPart::GetTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+	bool SSPart::IsTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
 
 
 	//アニメーションを変更する
@@ -1765,6 +1782,7 @@ namespace basedx11{
 					PtrDraw->SetMeshResource(pImpl->m_SquareRes);
 					PtrDraw->SetDiffuse(Color4(1.0f, 1.0f, 1.0f, pImpl->m_Alpha));
 					PtrDraw->SetTextureResource(pImpl->m_TextureResource);
+					PtrDraw->SetTextureOnlyNoLight(pImpl->m_TextureOnlyNoLight);
 					PtrDraw->Draw();
 				}
 			}
@@ -1806,6 +1824,9 @@ namespace basedx11{
 		//スプライトかどうか
 		bool m_SpriteType;
 
+		//ライティングしないかどうか（デフォルトtrue）
+		bool m_TextureOnlyNoLight;
+
 		//構築と破棄
 		Impl(const shared_ptr<Stage>& StagePtr, const wstring& BaseDir, const wstring& Xmlfilename, const wstring& StartAnimeName,bool SpriteType);
 		~Impl(){}
@@ -1822,7 +1843,8 @@ namespace basedx11{
 		m_NowAnimation(L""),
 		m_NowAnimationPtr(nullptr),
 		m_ToAnimeMatrix(),
-		m_SpriteType(SpriteType)
+		m_SpriteType(SpriteType),
+		m_TextureOnlyNoLight(true)
 	{
 		try{
 
@@ -2083,6 +2105,18 @@ namespace basedx11{
 		pImpl->m_RootPart->SetSpritePixelParMeter(f);
 	}
 
+	void SS5ssae::SetTextureOnlyNoLight(bool b){
+		pImpl->m_TextureOnlyNoLight = b;
+	}
+	bool SS5ssae::GetTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+	bool SS5ssae::IsTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+
 
 
 	bool ZSortModelFunc(SSPart* rLeft, SSPart* rRight){
@@ -2111,6 +2145,7 @@ namespace basedx11{
 				Vector3 Z(0, 0, count);
 				Pos += Z;
 				PtrT->SetPosition(Pos);
+				ptr->SetTextureOnlyNoLight(pImpl->m_TextureOnlyNoLight);
 				ptr->Draw();
 				count -= 0.001f;
 			}

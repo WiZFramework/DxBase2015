@@ -39,8 +39,15 @@ float4 main(PixelShaderInputShadow pin) : SV_Target0
 	}
 	float4 color = 0;
 	if (activeflags.x == 1){
-		//テクスチャと合わせる
-		color = Texture.Sample(Sampler, pin.TexCoord) * pin.Diffuse;
+		if (activeflags.w == 1){
+			//テクスチャオンリー
+			//テクスチャと合わせない
+			color = Texture.Sample(Sampler, pin.TexCoord);
+		}
+		else{
+			//テクスチャと合わせる
+			color = Texture.Sample(Sampler, pin.TexCoord) *pin.Diffuse;
+		}
 	}
 	else{
 		color = pin.Diffuse;

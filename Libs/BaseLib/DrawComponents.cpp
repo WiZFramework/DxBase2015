@@ -662,6 +662,7 @@ namespace basedx11{
 		size_t m_Virsion;		//シェーダーのバージョン
 		weak_ptr<MeshResource> m_MeshResource;	//メッシュリソース
 		weak_ptr<TextureResource> m_TextureResource;	//テクスチャリソース
+		bool m_TextureOnlyNoLight;				//テクスチャオンリーかどうか
 		ID3D11SamplerState* m_pSamplerState;	//サンプラーステート（オプション）
 		Impl() :
 			m_Diffuse(0.7f, 0.7f, 0.7f, 1.0f),
@@ -671,6 +672,7 @@ namespace basedx11{
 			m_CullNone(false),
 			m_ZBufferUse(true),
 			m_Virsion(1),
+			m_TextureOnlyNoLight(false),
 			m_pSamplerState(nullptr)
 		{}
 		~Impl(){}
@@ -830,6 +832,19 @@ namespace basedx11{
 		pImpl->m_TextureResource = TextureResourcePtr;
 	}
 
+	void BasicPNTDraw::SetTextureOnlyNoLight(bool b){
+		pImpl->m_TextureOnlyNoLight = b;
+	}
+	bool BasicPNTDraw::GetTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+	bool BasicPNTDraw::IsTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+
+
 	void BasicPNTDraw::Draw(){
 
 		//m_GameObjectがnullならDrawできない
@@ -925,6 +940,13 @@ namespace basedx11{
 				}
 				if (PtrTextureResource){
 					Cb.m_ActiveFlg.x = 1;
+					if (IsTextureOnlyNoLight()){
+						Cb.m_ActiveFlg.z = 0;
+						Cb.m_ActiveFlg.w = 1;
+					}
+					else{
+						Cb.m_ActiveFlg.w = 0;
+					}
 				}
 
 				//コンスタントバッファの更新

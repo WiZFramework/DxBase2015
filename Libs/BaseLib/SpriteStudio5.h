@@ -857,6 +857,11 @@ namespace basedx11{
 		float GetSpritePixelParMeter() const;
 		void SetSpritePixelParMeter(float f);
 
+		void SetTextureOnlyNoLight(bool b);
+		bool GetTextureOnlyNoLight() const;
+		bool IsTextureOnlyNoLight() const;
+
+
 		//操作
 		//アニメーションを変更する
 		void ChangeAnimation(shared_ptr<SS5Animation> AnimationPtr);
@@ -908,6 +913,11 @@ namespace basedx11{
 		void SetLooped(bool b);
 		//現在選択されているアニメーションが実行終了したかどうか
 		bool IsAnimeEnd() const;
+
+		void SetTextureOnlyNoLight(bool b);
+		bool GetTextureOnlyNoLight() const;
+		bool IsTextureOnlyNoLight() const;
+
 
 		//操作
 		//アニメーションを変更する
