@@ -1464,7 +1464,7 @@ namespace basedx11{
 				if (!m_SS5ssae.expired()){
 					auto SS5ssaePtr = m_SS5ssae.lock();
 					ret *= SS5ssaePtr->GetToAnimeMatrix();
-					auto mat = SS5ssaePtr->GetComponent<Transform>()->GetLocalMatrix();
+					auto mat = SS5ssaePtr->GetComponent<Transform>()->GetWorldMatrix();
 					ret *= mat;
 				}
 				else{
@@ -2141,7 +2141,7 @@ namespace basedx11{
 			float count = 0;
 			for (auto ptr : PartVec){
 				auto PtrT = ptr->GetComponent<Transform>();
-				Vector3 Pos = PtrT->GetPosition();
+				auto Pos = PtrT->GetPosition();
 				Vector3 Z(0, 0, count);
 				Pos += Z;
 				PtrT->SetPosition(Pos);
