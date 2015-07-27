@@ -294,20 +294,26 @@ namespace basedx11{
 			//自分はOBB
 			OBB SrcObb = OnObjectCollisionObbPtr->GetObb();
 			OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
-
-			Vector3 StartPoint = Vector3(0, 0, 0);
-			StartPoint.y -= SrcObb.GetMaxSize() * 0.9f;
-			StartPoint.Transform(DestObb.GetRotMatrix());
-			StartPoint += SrcObb.m_Center;
-
-			Vector3 EndPoint = Vector3(0, 0, 0);
-			EndPoint.y -= SrcObb.GetMaxSize() * pImpl->m_RayUnderSize;
-			EndPoint.Transform(DestObb.GetRotMatrix());
-			EndPoint += SrcObb.m_Center;
-			//上に乗ってるかどうかを検証
-			//レイを打ち込んでみる
-			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-				return true;
+			//SrcObbから底辺の４点を求める
+			//中心からの相対距離で作成する
+			vector<Vector3> BottomPoints = {
+				Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
+				Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
+				Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
+				Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
+			};
+			for (auto p : BottomPoints){
+				Vector3 StartPoint = p + Vector3(0, 0.1f, 0);
+				StartPoint.Transform(DestObb.GetRotMatrix());
+				StartPoint += SrcObb.m_Center;
+				Vector3 EndPoint = p + Vector3(0, -0.1f, 0);
+				EndPoint.Transform(DestObb.GetRotMatrix());
+				EndPoint += SrcObb.m_Center;
+				//上に乗ってるかどうかを検証
+				//レイを打ち込んでみる
+				if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+					return true;
+				}
 			}
 			return false;
 		}
