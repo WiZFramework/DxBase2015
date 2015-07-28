@@ -83,12 +83,12 @@ struct Rect2D{
 	}
 	Rect2D<T> operator+(Point2D<T> point) const throw(){
 		Rect2D<T> rect(*this);
-		rect += pt;
+		rect += point;
 		return rect;
 	}
 	Rect2D<T> operator-(Point2D<T> point) const throw(){
 		Rect2D<T> rect(*this);
-		rect -= pt;
+		rect -= point;
 		return rect;
 	}
 	//ƒ|ƒCƒ“ƒg‚ªŠÜ‚Ü‚ê‚é‚©‚Ç‚¤‚©
