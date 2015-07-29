@@ -18,7 +18,7 @@ namespace basedx11{
 			m_InvGravity(0,0,0),
 			m_GravityVelocity(0, 0, 0),
 			m_BaseY(0),
-			m_RayUnderSize(1.5f)
+			m_RayUnderSize(1.25f)
 		{}
 		~Impl(){}
 	};
@@ -252,7 +252,7 @@ namespace basedx11{
 			OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
 
 			Vector3 StartPoint = Vector3(0, 0, 0);
-			StartPoint.y -= SrcSphere.m_Radius * 0.9f;
+			StartPoint.y -= SrcSphere.m_Radius *0.9f;
 			StartPoint.Transform(DestObb.GetRotMatrix());
 			StartPoint += SrcSphere.m_Center;
 
@@ -1918,7 +1918,7 @@ namespace basedx11{
 			HitTest::SPHERE_OBB(SrcSphere, DestObb, ClosestPoint);
 			Vector3 Normal = SrcSphere.m_Center - ClosestPoint;
 			Normal.Normalize();
-			DestObb.GetNearNormalRot(Normal, 0.5f, Normal);
+			DestObb.GetNearNormalRot(Normal, 0.0001f, Normal);
 			//ç≈ãﬂê⁄ì_Ç©ÇÁNormalï˚å¸Ç…îºåaÇ‘ÇÒà⁄ìÆ
 			float EscF = SrcSphere.m_Radius + (SrcSphere.m_Radius * GetEscapeSpanMin());
 			Normal *= EscF;
