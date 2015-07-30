@@ -1,3 +1,10 @@
+/*!
+@file Rigidbody.cpp
+@brief Gravity,Rigidbody,Collision,SteeringComponentとその派生クラス
+
+@copyright Copyright (c) 2015 WiZ Tamura Hiroki,Yamanoi Yasushi.
+*/
+
 #include "stdafx.h"
 
 namespace basedx11{
@@ -12,6 +19,7 @@ namespace basedx11{
 		Vector3 m_GravityVelocity;		//重力加速度による現在の速度
 		float m_BaseY;	//最下落下地点
 		float m_RayUnderSize;	//レイを下部に打ち込む長さ
+		weak_ptr<GameObject> m_SecondParent;	//第2の親
 	public:
 		Impl() :
 			m_Gravity(0, -9.8f, 0),
@@ -198,6 +206,7 @@ namespace basedx11{
 					SetInvGravity(InvGravity);
 					SetGravityVelocityZero();
 				}
+				//ヒットオブジェクトはクリア
 				PtrCollision->SetHitObject(nullptr);
 			}
 			else{
@@ -237,85 +246,10 @@ namespace basedx11{
 		if (!OnObject){
 			return false;
 		}
-		auto UnderObjectCollisionObbPtr = OnObject->GetComponent<CollisionObb>(false);
-		if (!UnderObjectCollisionObbPtr){
-			//下のオブジェクトはOBB以外は設定できない
-			return false;
-		}
-		//自分自身をチェック
-		auto OnObjectCollisionSpherePtr = GetGameObject()->GetComponent<CollisionSphere>(false);
-		auto OnObjectCollisionCapsulePtr = GetGameObject()->GetComponent<CollisionCapsule>(false);
-		auto OnObjectCollisionObbPtr = GetGameObject()->GetComponent<CollisionObb>(false);
-		if (OnObjectCollisionSpherePtr){
-			//自分はSphere
-			SPHERE SrcSphere = OnObjectCollisionSpherePtr->GetSphere();
-			OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
-
-			Vector3 StartPoint = Vector3(0, 0, 0);
-			StartPoint.y -= SrcSphere.m_Radius *0.9f;
-			StartPoint.Transform(DestObb.GetRotMatrix());
-			StartPoint += SrcSphere.m_Center;
-
-			Vector3 EndPoint = Vector3(0, 0, 0);
-			EndPoint.y -= SrcSphere.m_Radius * pImpl->m_RayUnderSize;
-			EndPoint.Transform(DestObb.GetRotMatrix());
-			EndPoint += SrcSphere.m_Center;
-
-			//上に乗ってるかどうかを検証
-			//レイを打ち込んでみる
-			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-				return true;
-			}
-			return false;
-		}
-		else if (OnObjectCollisionCapsulePtr){
-			//自分はCapsule
-			CAPSULE SrcSCapsule = OnObjectCollisionCapsulePtr->GetCapsule();
-			OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
-
-			Vector3 StartPoint = Vector3(0, 0, 0);
-			StartPoint.y -= SrcSCapsule.GetHeightRadius() * 0.9f;
-			StartPoint.Transform(DestObb.GetRotMatrix());
-			StartPoint += SrcSCapsule.GetCenter();
-
-			Vector3 EndPoint = Vector3(0, 0, 0);
-			EndPoint.y -= SrcSCapsule.GetHeightRadius() * pImpl->m_RayUnderSize;
-			EndPoint.Transform(DestObb.GetRotMatrix());
-			EndPoint += SrcSCapsule.GetCenter();
-
-			//上に乗ってるかどうかを検証
-			//レイを打ち込んでみる
-			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-				return true;
-			}
-			return false;
-		}
-		else if (OnObjectCollisionObbPtr){
-			//自分はOBB
-			OBB SrcObb = OnObjectCollisionObbPtr->GetObb();
-			OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
-			//SrcObbから底辺の４点を求める
-			//中心からの相対距離で作成する
-			vector<Vector3> BottomPoints = {
-				Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
-				Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
-				Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
-				Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
-			};
-			for (auto p : BottomPoints){
-				Vector3 StartPoint = p + Vector3(0, 0.1f, 0);
-				StartPoint.Transform(DestObb.GetRotMatrix());
-				StartPoint += SrcObb.m_Center;
-				Vector3 EndPoint = p + Vector3(0, -0.1f, 0);
-				EndPoint.Transform(DestObb.GetRotMatrix());
-				EndPoint += SrcObb.m_Center;
-				//上に乗ってるかどうかを検証
-				//レイを打ち込んでみる
-				if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-					return true;
-				}
-			}
-			return false;
+		//Collisionに処理を任せる
+		auto PtrCollision = GetGameObject()->GetComponent<Collision>(false);
+		if (PtrCollision){
+			return PtrCollision->CheckOnObjectBase(OnObject);
 		}
 		return false;
 	}
@@ -1454,6 +1388,10 @@ namespace basedx11{
 	}
 
 
+	bool Collision::CheckOnObjectBase(const shared_ptr<GameObject>& OnObject){
+		//仮想関数呼び出し
+		return CheckOnObject(OnObject);
+	}
 
 
 	//操作
@@ -1928,6 +1866,37 @@ namespace basedx11{
 		}
 	}
 
+	//Gravityから呼ばれる
+	bool CollisionSphere::CheckOnObject(const shared_ptr<GameObject>& OnObject){
+		auto UnderObjectCollisionObbPtr = OnObject->GetComponent<CollisionObb>(false);
+		if (!UnderObjectCollisionObbPtr){
+			//下のオブジェクトはOBB以外は設定できない
+			return false;
+		}
+		//自分はSphere
+		SPHERE SrcSphere = GetSphere();
+		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
+
+		Vector3 StartPoint = Vector3(0, 0, 0);
+		StartPoint.y -= SrcSphere.m_Radius *0.9f;
+		StartPoint.Transform(DestObb.GetRotMatrix());
+		StartPoint += SrcSphere.m_Center;
+		Vector3 EndPoint = Vector3(0, 0, 0);
+		auto PtrGravity = GetGameObject()->GetComponent<Gravity>();
+		EndPoint.y -= SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
+		EndPoint.Transform(DestObb.GetRotMatrix());
+		EndPoint += SrcSphere.m_Center;
+
+		//上に乗ってるかどうかを検証
+		//レイを打ち込んでみる
+		if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+			return true;
+		}
+		return false;
+	}
+
+
+
 	//--------------------------------------------------------------------------------------
 	//	struct CollisionCapsule::Impl;
 	//	用途: コンポーネントImplクラス
@@ -2149,8 +2118,9 @@ namespace basedx11{
 		//最近接点からNormal方向に半径ぶん移動
 		Vector3 EscV = Normal;
 		EscV.Normalize();
-		float EscF = SrcCapsule.m_Radius + (SrcCapsule.m_Radius * GetEscapeSpanMin());
-		EscV *= EscF;
+//		float EscF = SrcCapsule.m_Radius + (SrcCapsule.m_Radius * GetEscapeSpanMin());
+		float EscF = GetEscapeSpanMin();
+		EscV *= 0.2f;
 		SrcCapsule.SetCenter(ClosestPoint + EscV);
 		auto PtrTrans = GetGameObject()->GetComponent<Transform>();
 		PtrTrans->SetPosition(SrcCapsule.GetCenter());
@@ -2168,15 +2138,49 @@ namespace basedx11{
 			//上向きの法線
 			Vector3 Normal(0,1.0f,0);
 			Normal.Normalize();
-			DestObb.GetNearNormalRot(Normal, 0.5f, Normal);
+			DestObb.GetNearNormalRot(Normal, 0.001f, Normal);
 			//最近接点からNormal方向に半径ぶん移動
-			float EscF = SrcCapsule.m_Radius + (SrcCapsule.m_Radius * GetEscapeSpanMin());
+			float EscF = SrcCapsule.GetHeightRadius() + 0.02f;
 			Normal *= EscF;
+			Normal.Transform(DestObb.GetRotMatrix());
 			SrcCapsule.SetCenter(ClosestPoint + Normal);
 			auto PtrTrans = GetGameObject()->GetComponent<Transform>();
 			PtrTrans->SetPosition(SrcCapsule.GetCenter());
 		}
 	}
+
+	//Gravityから呼ばれる
+	bool CollisionCapsule::CheckOnObject(const shared_ptr<GameObject>& OnObject){
+		auto UnderObjectCollisionObbPtr = OnObject->GetComponent<CollisionObb>(false);
+		if (!UnderObjectCollisionObbPtr){
+			//下のオブジェクトはOBB以外は設定できない
+			return false;
+		}
+		//自分はCapsule
+		CAPSULE SrcSCapsule = GetCapsule();
+		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
+
+		Vector3 StartPoint = Vector3(0, 0, 0);
+		StartPoint.y -= SrcSCapsule.GetHeightRadius() * 0.9f;
+		StartPoint.Transform(DestObb.GetRotMatrix());
+		StartPoint += SrcSCapsule.GetCenter();
+
+		Vector3 EndPoint = Vector3(0, 0, 0);
+		auto PtrGravity = GetGameObject()->GetComponent<Gravity>();
+
+		EndPoint.y -= SrcSCapsule.GetHeightRadius() * 1.1f;
+//		EndPoint.y -= SrcSCapsule.GetHeightRadius() * PtrGravity->GetRayUnderSize();
+		EndPoint.Transform(DestObb.GetRotMatrix());
+		EndPoint += SrcSCapsule.GetCenter();
+
+		//上に乗ってるかどうかを検証
+		//レイを打ち込んでみる
+		if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+			return true;
+		}
+		return false;
+	}
+
 
 	//--------------------------------------------------------------------------------------
 	//	struct CollisionObb::Impl;
@@ -2449,6 +2453,41 @@ namespace basedx11{
 	void CollisionObb::EscapeFromDestParent(const shared_ptr<GameObject>&  ParentObject){
 		//OBBがOBBに乗る形は未対応
 	}
+
+	//Gravityから呼ばれる
+	bool CollisionObb::CheckOnObject(const shared_ptr<GameObject>& OnObject){
+		auto UnderObjectCollisionObbPtr = OnObject->GetComponent<CollisionObb>(false);
+		if (!UnderObjectCollisionObbPtr){
+			//下のオブジェクトはOBB以外は設定できない
+			return false;
+		}
+		//自分はOBB
+		OBB SrcObb = GetObb();
+		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
+		//SrcObbから底辺の４点を求める
+		//中心からの相対距離で作成する
+		vector<Vector3> BottomPoints = {
+			Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
+			Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
+			Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
+			Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
+		};
+		for (auto p : BottomPoints){
+			Vector3 StartPoint = p + Vector3(0, 0.1f, 0);
+			StartPoint.Transform(DestObb.GetRotMatrix());
+			StartPoint += SrcObb.m_Center;
+			Vector3 EndPoint = p + Vector3(0, -0.1f, 0);
+			EndPoint.Transform(DestObb.GetRotMatrix());
+			EndPoint += SrcObb.m_Center;
+			//上に乗ってるかどうかを検証
+			//レイを打ち込んでみる
+			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 }
 

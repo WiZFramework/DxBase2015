@@ -61,8 +61,6 @@ namespace basedx11{
 	void GameStage::CreateActionObject(){
 		//配置用のテーブル
 		vector<Vector3> Vec{
-//			{ 0, 0.125f, 0 },
-//			{ 0, 0.125f, 1.0f },
 			{ 0, 0.125f, 2.0f },
 		};
 		//配置オブジェクトの作成

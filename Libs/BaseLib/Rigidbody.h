@@ -1,3 +1,10 @@
+/*!
+@file Rigidbody.h
+@brief Gravity,Rigidbody,Collision,SteeringComponentとその派生クラス
+
+@copyright Copyright (c) 2015 WiZ Tamura Hiroki,Yamanoi Yasushi.
+*/
+
 #pragma once
 #include "stdafx.h"
 
@@ -424,6 +431,7 @@ namespace basedx11{
 	//	用途: 衝突判定コンポーネントの親クラス
 	//--------------------------------------------------------------------------------------
 	class Collision : public Component {
+		friend class Gravity;
 		void ResetHitObject();
 		bool IsNewDest() const;
 		bool NeedAfterCollision() const;
@@ -432,7 +440,6 @@ namespace basedx11{
 		//除外グループに属しているかを調べる
 		bool ChkExcludeCollisionObject(const shared_ptr<GameObject>&  CheckGameObject);
 
-
 		virtual void CollisionWithSphere(const shared_ptr<GameObject>& DestObj) = 0;
 		virtual void CollisionWithCapsule(const shared_ptr<GameObject>& DestObj) = 0;
 		virtual void CollisionWithObb(const shared_ptr<GameObject>& DestObj) = 0;
@@ -440,7 +447,8 @@ namespace basedx11{
 		virtual void GetNormalClosetPointWithHitObject(const shared_ptr<GameObject>& DestObj, Vector3& Normal, Vector3& ClosestPoint) = 0;
 		virtual void EscapeFromDestObject(const shared_ptr<GameObject>&  DestGameObject, const Vector3& Normal,const Vector3& ClosestPoint) = 0;
 		virtual void EscapeFromDestParent(const shared_ptr<GameObject>&  ParentObject) = 0;
-
+		//onオブジェクトが現在も有効かどうかをチェックする
+		virtual bool CheckOnObject(const shared_ptr<GameObject>& OnObject) = 0;
 	protected:
 		//構築と破棄
 		explicit Collision(const shared_ptr<GameObject>& GameObjectPtr);
@@ -454,7 +462,6 @@ namespace basedx11{
 		void SetEscapeSpanMin(float f);
 		float GetEscapeAlignPlus() const;
 		void SetEscapeAlignPlus(float f);
-
 	public:
 		//アクセサ
 		bool GetFixed() const;
@@ -499,9 +506,13 @@ namespace basedx11{
 		float GetHitTime() const;
 		void SetHitTime(float f);
 
+		//onオブジェクトが現在も有効かどうかをチェックする
+		//Gravityから呼ばれる
+		bool CheckOnObjectBase(const shared_ptr<GameObject>& OnObject);
 
 		//仮想関数
 		virtual Matrix4X4 GetCollisionMatrix() const = 0;
+
 		//操作
 		virtual void Update()override;
 		virtual void Update2()override;
@@ -524,6 +535,8 @@ namespace basedx11{
 		virtual void GetNormalClosetPointWithHitObject(const shared_ptr<GameObject>& DestObj, Vector3& Normal, Vector3& ClosestPoint)override;
 		virtual void EscapeFromDestObject(const shared_ptr<GameObject>&  DestGameObject, const Vector3& Normal, const Vector3& ClosestPoint)override;
 		virtual void EscapeFromDestParent(const shared_ptr<GameObject>&  ParentObject)override;
+		//GravityからCollision経由で呼ばれる
+		virtual bool CheckOnObject(const shared_ptr<GameObject>& OnObject)override;
 	public:
 		//構築と破棄
 		explicit CollisionSphere(const shared_ptr<GameObject>& GameObjectPtr);
@@ -561,6 +574,8 @@ namespace basedx11{
 		virtual void GetNormalClosetPointWithHitObject(const shared_ptr<GameObject>& DestObj, Vector3& Normal, Vector3& ClosestPoint)override;
 		virtual void EscapeFromDestObject(const shared_ptr<GameObject>&  DestGameObject, const Vector3& Normal, const Vector3& ClosestPoint)override;
 		virtual void EscapeFromDestParent(const shared_ptr<GameObject>&  ParentObject)override;
+		//GravityからCollision経由で呼ばれる
+		virtual bool CheckOnObject(const shared_ptr<GameObject>& OnObject)override;
 	public:
 		//構築と破棄
 		explicit CollisionCapsule(const shared_ptr<GameObject>& GameObjectPtr);
@@ -599,6 +614,8 @@ namespace basedx11{
 		virtual void GetNormalClosetPointWithHitObject(const shared_ptr<GameObject>& DestObj, Vector3& Normal, Vector3& ClosestPoint)override;
 		virtual void EscapeFromDestObject(const shared_ptr<GameObject>&  DestGameObject, const Vector3& Normal, const Vector3& ClosestPoint)override;
 		virtual void EscapeFromDestParent(const shared_ptr<GameObject>&  ParentObject)override;
+		//GravityからCollision経由で呼ばれる
+		virtual bool CheckOnObject(const shared_ptr<GameObject>& OnObject)override;
 	public:
 		//構築と破棄
 		explicit CollisionObb(const shared_ptr<GameObject>& GameObjectPtr);
