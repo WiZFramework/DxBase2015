@@ -318,7 +318,8 @@ namespace basedx11{
 			auto PtrT = GetGameObject()->GetComponent<Transform>();
 			if (PtrT){
 				//所持オブジェクトがあればその位置に初期化
-				pImpl->m_TargetPosition = PtrT->GetPosition();
+				pImpl->m_TargetPosition = Vector3(0,0,0);
+//				pImpl->m_TargetPosition = PtrT->GetPosition();
 			}
 		}
 	}
@@ -942,7 +943,7 @@ namespace basedx11{
 			m_VelocityZeroCommand(false),
 			m_HitVelocity(0,0,0),
 			m_MaxSpeed(10.0f),
-			m_MinVelocity(0.01f,0.5f,0.01f),
+			m_MinVelocity(0.01f,0.01f,0.01f),
 			m_AngularVelocity(0, 0, 0),
 			m_Mass(1.0f),
 			m_Reflection(1.0f),

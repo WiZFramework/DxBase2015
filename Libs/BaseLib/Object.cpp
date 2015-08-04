@@ -271,7 +271,8 @@ namespace basedx11{
 			auto ShPtr = pImpl->m_CameraObject.lock();
 			auto TransPtr = ShPtr->GetComponent<Transform>();
 			if (TransPtr){
-				pImpl->m_ViewMatrix.LookAtLH(TransPtr->GetPosition(), pImpl->m_At, pImpl->m_Up);
+				pImpl->m_Eye = TransPtr->GetPosition();
+				pImpl->m_ViewMatrix.LookAtLH(pImpl->m_Eye, pImpl->m_At, pImpl->m_Up);
 				if (pImpl->m_Pers){
 					pImpl->m_ProjMatrix.PerspectiveFovLH(pImpl->m_FovY, pImpl->m_Aspect, pImpl->m_Near, pImpl->m_Far);
 				}
