@@ -43,6 +43,10 @@ namespace basedx11{
 		bool GetZBufferUse() const;
 		void SetZBufferUse(bool b);
 
+		bool IsAlphaBlendSrcOne()const;
+		bool GetAlphaBlendSrcOne()const;
+		void SetAlphaBlendSrcOne(bool b);
+
 
 		//1メータあたりのピクセル数
 		float GetPixelParMeter() const;

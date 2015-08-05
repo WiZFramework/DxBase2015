@@ -974,6 +974,10 @@ namespace basedx11{
 		void SetTotalTime(float f);
 		void AddTotalTime(float f);
 
+		float GetMaxTime() const;
+		void SetMaxTime(float f);
+
+
 		shared_ptr<TextureResource> GetTextureResource(bool ExceptionActive = true) const;
 		void SetTextureResource(const wstring& ResKey);
 		void SetTextureResource(const shared_ptr<TextureResource>& TextureResourcePtr);
@@ -1000,6 +1004,7 @@ namespace basedx11{
 		vector< shared_ptr<Particle> >& GetParticleVec() const;
 		//操作
 		shared_ptr<Particle> InsertParticle(size_t Count, Particle::DrawOption Option = Particle::DrawOption::Billboard);
+		virtual void Update()override;
 		virtual void Draw()override;
 	private:
 		// pImplイディオム
@@ -1026,6 +1031,11 @@ namespace basedx11{
 		bool GetZBufferUse() const;
 		bool IsZBufferUse() const;
 		void SetZBufferUse(bool b);
+
+		bool IsAlphaBlendSrcOne()const;
+		bool GetAlphaBlendSrcOne()const;
+		void SetAlphaBlendSrcOne(bool b);
+
 
 		bool GetSamplerWrap() const;
 		bool IsSamplerWrap() const;

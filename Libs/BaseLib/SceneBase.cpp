@@ -412,12 +412,14 @@ namespace basedx11{
 		vector<ParticleSprite> m_ParticleSpriteVec;	//保存しておくスプライトの配列
 		Vector3 m_EmitterPos;			//エミッター位置
 		float m_TotalTime;				//タイマー制御する場合に使用する変数
+		float m_MaxTime;				//このパーティクル集合体の表示時間
 		weak_ptr<TextureResource> m_TextureResource;	//テクスチャ
 		Impl(size_t Count, DrawOption Option):
 			m_DrawOption(Option),
 			m_ParticleSpriteVec(Count),
 			m_EmitterPos(0,0,0),
-			m_TotalTime(0)
+			m_TotalTime(0),
+			m_MaxTime(0)
 		{}
 		~Impl(){}
 	};
@@ -458,6 +460,14 @@ namespace basedx11{
 		pImpl->m_TotalTime += f;
 	}
 
+	float Particle::GetMaxTime() const{
+		return pImpl->m_MaxTime;
+	}
+	void Particle::SetMaxTime(float f){
+		pImpl->m_MaxTime = f;
+	}
+
+
 
 	bool Particle::IsActive() const{
 		for (auto Psp : pImpl->m_ParticleSpriteVec){
@@ -492,6 +502,7 @@ namespace basedx11{
 		pImpl->m_DrawOption = Option;
 		pImpl->m_EmitterPos = Vector3(0, 0, 0);
 		pImpl->m_TotalTime = 0;
+		pImpl->m_MaxTime = 0;
 		pImpl->m_ParticleSpriteVec.clear();
 		pImpl->m_ParticleSpriteVec.resize(Count);
 		for (auto Psp : pImpl->m_ParticleSpriteVec){
@@ -588,6 +599,25 @@ namespace basedx11{
 		return ParticlePtr;
 	}
 
+	void MultiParticle::Update(){
+		//前回のターンからの時間
+		float ElapsedTime = App::GetApp()->GetElapsedTime();
+		for (auto ParticlePtr : GetParticleVec()){
+			ParticlePtr->AddTotalTime(ElapsedTime);
+			for (auto& rParticleSprite : ParticlePtr->GetParticleSpriteVec()){
+				if (rParticleSprite.m_Active){
+					//移動速度に従って移動させる
+					rParticleSprite.m_LocalPos += rParticleSprite.m_Velocity * ElapsedTime;
+					if (ParticlePtr->GetTotalTime() >= ParticlePtr->GetMaxTime()){
+						//制限時間になったら
+						rParticleSprite.m_Active = false;
+					}
+				}
+			}
+		}
+	}
+
+
 	void MultiParticle::Draw(){
 		if (pImpl->m_ParticleVec.size() > 0){
 			for (auto Ptr : pImpl->m_ParticleVec){
@@ -631,6 +661,7 @@ namespace basedx11{
 		UINT m_NumVertices;				//頂点の数
 		UINT m_NumIndicis;				//インデックスの数
 		bool m_ZBufferUse;				//Zバッファを使用するかどうか
+		bool m_AlphaBlendSrcOne;	//透明処理のSRC_ONE設定
 		bool m_SamplerWrap;				//サンプラーのラッピングするかどうか
 
 		//Draw準備のための構造体の配列
@@ -640,7 +671,8 @@ namespace basedx11{
 			m_NumVertices{ 0 },
 			m_NumIndicis{ 0 },
 			m_ZBufferUse{ true },
-			m_SamplerWrap{false}
+			m_AlphaBlendSrcOne(false),
+			m_SamplerWrap{ false }
 		{}
 		~Impl(){}
 		//頂点バッファの作成
@@ -731,6 +763,17 @@ namespace basedx11{
 	void ParticleManager::SetZBufferUse(bool b){
 		pImpl->m_ZBufferUse = b;
 	}
+
+	bool ParticleManager::IsAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	bool ParticleManager::GetAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	void ParticleManager::SetAlphaBlendSrcOne(bool b){
+		pImpl->m_AlphaBlendSrcOne = b;
+	}
+
 
 	bool ParticleManager::GetSamplerWrap() const{
 		return pImpl->m_SamplerWrap;
@@ -921,11 +964,11 @@ namespace basedx11{
 			//ステータスの設定
 			//アルファブレンド
 			if (IsAlphaActive()){
-				if (IsAlphaExActive()){
-					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
+				if (IsAlphaBlendSrcOne()){
+					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
 				}
 				else{
-					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
 				}
 			}
 			else{

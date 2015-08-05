@@ -1108,24 +1108,24 @@ struct Quaternion : public XMFLOAT4{
 	void Billboard(const Vector3& Line);
 
 /**************************************************************************
-	void Faceing(
+	void Facing(
 	const Vector3& Line			//計算元となる線(オブジェクトからカメラ位置を引いたもの)
 	)t;
 	用途: Lineに対してフェイシング角度をthisに設定する
 	戻り値: なし
 	＊thisに結果を設定する
 ***************************************************************************/
-	void Faceing(const Vector3& Line);
+	void Facing(const Vector3& Line);
 
 /**************************************************************************
-	void FaceingY(
+	void FacingY(
 	const Vector3& Line			//計算元となる線(オブジェクトからカメラ位置を引いたもの)
 	)t;
 	用途: Lineに対してY軸フェイシング角度をthisに設定する
 	戻り値: なし
 	＊thisに結果を設定する
 ***************************************************************************/
-	void FaceingY(const Vector3& Line);
+	void FacingY(const Vector3& Line);
 
 
 };
@@ -2165,7 +2165,7 @@ inline void Quaternion::Billboard(const Vector3& Line){
 }
 
 
-inline void Quaternion::Faceing(const Vector3& Line){
+inline void Quaternion::Facing(const Vector3& Line){
 	Vector3 Temp = Line;
 	Matrix4X4 RotMatrix;
 	Vector4 dammi(0, 0, 0, 0);
@@ -2180,7 +2180,7 @@ inline void Quaternion::Faceing(const Vector3& Line){
 	this->Normalize();
 }
 
-inline void Quaternion::FaceingY(const Vector3& Line){
+inline void Quaternion::FacingY(const Vector3& Line){
 	Vector3 Temp = Line;
 	Temp.Normalize();
 	this->Identity();

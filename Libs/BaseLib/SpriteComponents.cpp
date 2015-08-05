@@ -23,6 +23,8 @@ namespace basedx11{
 
 		bool m_ZBufferUse;
 
+		bool m_AlphaBlendSrcOne;	//透明処理のSRC_ONE設定
+
 		float m_PixelParMeter;	//1メートルあたりのピクセル
 		Sprite::Coordinate m_Coordinate;	//座標系
 		//ミューテックス
@@ -38,6 +40,7 @@ namespace basedx11{
 			m_RightBottom(Color),
 			m_SamplerWrap(false),
 			m_ZBufferUse(false),
+			m_AlphaBlendSrcOne(false),
 			m_PixelParMeter(32.0f),
 			m_Coordinate(Sprite::Coordinate::m_LeftTopZeroPlusDownY)
 		{}
@@ -181,6 +184,17 @@ namespace basedx11{
 		pImpl->m_ZBufferUse = b;
 	}
 
+	bool Sprite::IsAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	bool Sprite::GetAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	void Sprite::SetAlphaBlendSrcOne(bool b){
+		pImpl->m_AlphaBlendSrcOne = b;
+	}
+
+
 
 	//1メータあたりのピクセル数
 	float Sprite::GetPixelParMeter() const{
@@ -322,12 +336,13 @@ namespace basedx11{
 			}
 			//ステータスの設定
 			//アルファブレンド
+			//アルファEXによる振り分けは無し
 			if (GetGameObject()->GetAlphaActive()){
-				if (GetGameObject()->GetAlphaExActive()){
-					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
+				if (IsAlphaBlendSrcOne()){
+					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
 				}
 				else{
-					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
 				}
 			}
 			else{

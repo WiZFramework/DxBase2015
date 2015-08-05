@@ -118,6 +118,9 @@ namespace basedx11{
 		bool IsZBufferUse() const;
 		void SetZBufferUse(bool b);
 
+		bool IsAlphaBlendSrcOne()const;
+		bool GetAlphaBlendSrcOne()const;
+		void SetAlphaBlendSrcOne(bool b);
 
 		size_t GetShaderVirsion() const;
 		void SetShaderVirsion(size_t v);
@@ -174,6 +177,11 @@ namespace basedx11{
 		bool GetZBufferUse() const;
 		bool IsZBufferUse() const;
 		void SetZBufferUse(bool b);
+
+		bool IsAlphaBlendSrcOne()const;
+		bool GetAlphaBlendSrcOne()const;
+		void SetAlphaBlendSrcOne(bool b);
+
 
 
 		size_t GetShaderVirsion() const;
@@ -234,6 +242,11 @@ namespace basedx11{
 		bool GetOwnShadowActive() const;
 		bool IsOwnShadowActive() const;
 		void SetOwnShadowActive(bool b);
+
+		bool IsAlphaBlendSrcOne()const;
+		bool GetAlphaBlendSrcOne()const;
+		void SetAlphaBlendSrcOne(bool b);
+
 
 		void SetSamplerState(ID3D11SamplerState* pSamplerState);
 		ID3D11SamplerState* GetSamplerState() const;

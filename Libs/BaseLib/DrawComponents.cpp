@@ -340,12 +340,14 @@ namespace basedx11{
 		weak_ptr<TextureResource> m_TextureResource;	//テクスチャリソース
 		ID3D11SamplerState* m_pSamplerState;	//サンプラーステート（オプション）
 		bool m_ZBufferUse;		//Zバッファを有効にするかどうか
+		bool m_AlphaBlendSrcOne;	//透明処理のSRC_ONE設定
 		size_t m_Virsion;		//シェーダーのバージョン
 		Impl() :
 			m_Diffuse(0.5f, 0.5f, 0.5f, 1.0f),
 			m_OwnShadowActive(false),
 			m_pSamplerState(nullptr),
 			m_ZBufferUse(true),
+			m_AlphaBlendSrcOne(false),
 			m_Virsion(2)
 		{}
 		~Impl(){}
@@ -377,6 +379,16 @@ namespace basedx11{
 	}
 	void SimplePNTDraw::SetZBufferUse(bool b){
 		pImpl->m_ZBufferUse = b;
+	}
+
+	bool SimplePNTDraw::IsAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	bool SimplePNTDraw::GetAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	void SimplePNTDraw::SetAlphaBlendSrcOne(bool b){
+		pImpl->m_AlphaBlendSrcOne = b;
 	}
 
 
@@ -620,8 +632,14 @@ namespace basedx11{
 			pID3D11DeviceContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 			pID3D11DeviceContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
 			if (PtrGameObject->IsAlphaActive()){
-				//透明処理
-				pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+				if (IsAlphaBlendSrcOne()){
+					//透明処理
+					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+				}
+				else{
+					//半透明処理
+					pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
+				}
 				//レンダリングステート
 				pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullFront());
 				//描画
@@ -659,6 +677,7 @@ namespace basedx11{
 		bool m_OwnShadowActive;		//自身への影投影
 		bool m_CullNone;		//両面描画かどうか
 		bool m_ZBufferUse;		//Zバッファを有効にするかどうか
+		bool m_AlphaBlendSrcOne;	//透明処理のSRC_ONE設定
 		size_t m_Virsion;		//シェーダーのバージョン
 		weak_ptr<MeshResource> m_MeshResource;	//メッシュリソース
 		weak_ptr<TextureResource> m_TextureResource;	//テクスチャリソース
@@ -671,6 +690,7 @@ namespace basedx11{
 			m_OwnShadowActive(false),
 			m_CullNone(false),
 			m_ZBufferUse(true),
+			m_AlphaBlendSrcOne(false),
 			m_Virsion(1),
 			m_TextureOnlyNoLight(false),
 			m_pSamplerState(nullptr)
@@ -736,6 +756,17 @@ namespace basedx11{
 	void BasicPNTDraw::SetZBufferUse(bool b){
 		pImpl->m_ZBufferUse = b;
 	}
+
+	bool BasicPNTDraw::IsAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	bool BasicPNTDraw::GetAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	void BasicPNTDraw::SetAlphaBlendSrcOne(bool b){
+		pImpl->m_AlphaBlendSrcOne = b;
+	}
+
 
 
 	void BasicPNTDraw::SetSamplerState(ID3D11SamplerState* pSamplerState){
@@ -1026,13 +1057,13 @@ namespace basedx11{
 				pID3D11DeviceContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 				pID3D11DeviceContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
 				if (PtrGameObject->IsAlphaActive()){
-					if (PtrGameObject->IsAlphaExActive()){
-						//半透明処理
-						pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
-					}
-					else{
+					if (IsAlphaBlendSrcOne()){
 						//透明処理
 						pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+					}
+					else{
+						//半透明処理
+						pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
 					}
 					//レンダリングステート
 					pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullFront());
@@ -1082,6 +1113,7 @@ namespace basedx11{
 		bool m_OwnShadowActive;		//自身への影投影
 		weak_ptr<FbxMeshResource> m_FbxMeshResource;	//FBXメッシュリソース
 		Matrix4X4 m_MeshToTransform;
+		bool m_AlphaBlendSrcOne;	//透明処理のSRC_ONE設定
 		ID3D11SamplerState* m_pSamplerState;	//サンプラーステート（オプション）
 		Impl() :
 			m_Diffuse(0.7f, 0.7f, 0.7f, 1.0f),
@@ -1089,6 +1121,7 @@ namespace basedx11{
 			m_SpecularAndPower(0.4f, 0.4f, 0.4f, 1.0f),
 			m_OwnShadowActive(false),
 			m_MeshToTransform(),
+			m_AlphaBlendSrcOne(false),
 			m_pSamplerState(nullptr)
 		{}
 		~Impl(){}
@@ -1116,6 +1149,18 @@ namespace basedx11{
 	bool BasicFbxPNTDraw::GetOwnShadowActive() const { return pImpl->m_OwnShadowActive; }
 	bool BasicFbxPNTDraw::IsOwnShadowActive() const { return pImpl->m_OwnShadowActive; }
 	void BasicFbxPNTDraw::SetOwnShadowActive(bool b){ pImpl->m_OwnShadowActive = b; }
+
+	bool BasicFbxPNTDraw::IsAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	bool BasicFbxPNTDraw::GetAlphaBlendSrcOne()const{
+		return pImpl->m_AlphaBlendSrcOne;
+	}
+	void BasicFbxPNTDraw::SetAlphaBlendSrcOne(bool b){
+		pImpl->m_AlphaBlendSrcOne = b;
+	}
+
+
 
 	void BasicFbxPNTDraw::SetSamplerState(ID3D11SamplerState* pSamplerState){
 		pImpl->m_pSamplerState = pSamplerState;
@@ -1330,8 +1375,14 @@ namespace basedx11{
 
 
 					if (PtrGameObject->IsAlphaActive()){
-						//透明処理
-						pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+						if (IsAlphaBlendSrcOne()){
+							//透明処理
+							pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+						}
+						else{
+							//半透明処理
+							pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
+						}
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullFront());
 						//描画
@@ -1635,8 +1686,14 @@ namespace basedx11{
 
 
 					if (PtrGameObject->IsAlphaActive()){
-						//透明処理
-						pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+						if (IsAlphaBlendSrcOne()){
+							//透明処理
+							pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlend(), nullptr, 0xffffffff);
+						}
+						else{
+							//半透明処理
+							pID3D11DeviceContext->OMSetBlendState(RenderStatePtr->GetAlphaBlendEx(), nullptr, 0xffffffff);
+						}
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullFront());
 						//描画
