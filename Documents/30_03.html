@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Trからのぷろansitional//EN">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<title>DxBase2015ドキュメント(2015年)</title>
+</head>
+<body>
+<!-- 全体コンテナ　-->
+<div id="container">
+<div id="header">
+<h2>３．演出補助</h2>
+</div>
+<!-- コンテンツ　-->
+<div id="contents">
+<br/>
+<h3>３０３．画面分割１</h3>
+<br />
+<h4>画面分割が必要になるとき</h4>
+　複数のプレイヤーでプレイするとき、あるいは、ミニマップや、別の角度からのカメラで表示したい時など、画面分割は頻繁に行われます。<br />
+　<b>Sample303</b>はそんな画面分割の方法を説明します。<br />
+　ただし、<b>Sample303</b>は１つの画面を複数の方向から見る場合に有効です。たとえば、スプライトは画面分割の外において、分割に関係なく共有して使いたい場合は、<b>Sample304</b>の方法を試してください。<br />
+　<b>Sample303</b>のソリューションを開き、リビルドして実行すると、以下の画面が現れます。<br />
+<p>&nbsp;</p>
+<img src="img/3003a.jpg" width="80%"/>
+<p>図3003a</p>
+<p>&nbsp;</p>
+　左がいつものようにコントローラで操作できる画面、右は固定カメラで、中央上部の小さい画面は、ミニマップ風で真上から見ています。<br />
+　ようは、１つの画面を３方向から見ている感じになります。<br />
+　このような画面分割を実装するためには、<b>複数のビュー</b>を使います。<br />
+　具体的には、チュートリアル006に、<b>GameStage.cppのGameStage::CreateViews()関数</b>にビューを追加するだけで、このサンプルは出来上がります。
+<div class="box1">
+<pre>
+    void GameStage::CreateViews(){
+        //最初にデフォルトのレンダリングターゲット類を作成する
+        CreateDefaultRenderTargets();
+        //マルチビューコンポーネントの取得
+        auto PtrMultiView = GetComponent&lt;MultiView>();
+        //マルチビューにビューの追加1
+        auto PtrView = PtrMultiView->AddView();
+        //ビューの矩形を設定（ゲームサイズ左半分）
+        Rect2D&lt;float> rect(0, 0, <span class="red">(float)320, (float)480</span>);
+        //最初のビューにパラメータの設定
+        PtrView->ResetParamaters&lt;LookAtCamera, MultiLight>(rect, 
+            Color4(0.0f, 0.125f, 0.3f, 1.0f), 1, <span class="red">0.2f, 1.0f</span>);
+        auto PtrCamera = PtrView->GetCamera();
+        PtrCamera->SetEye(Vector3(0.0f, 2.0f, -5.0f));
+        PtrCamera->SetAt(Vector3(0.0f, 0.0f, 0.0f));
+
+        //マルチビューにビューの追加2
+        PtrView = PtrMultiView->AddView();
+        //ビューの矩形を設定（ゲームサイズ右半分）
+        rect = Rect2D&lt;float>(0, 0, <span class="red">(float)320, (float)480</span>);
+        <span class="red">rect += Point2D&lt;float>(320.0f, 0);</span>
+
+        //2番目のビューにパラメータの設定
+        PtrView->ResetParamaters&lt;Camera, MultiLight>(rect, 
+            Color4(0.0f, 0.125f, 0.3f, 1.0f), 1, <span class="red">0.2f, 1.0f</span>);
+        PtrCamera = PtrView->GetCamera();
+        PtrCamera->SetEye(Vector3(0.0f, 2.0f, -5.0f));
+        PtrCamera->SetAt(Vector3(0.0f, 0.0f, 0.0f));
+
+
+        //マルチビューにビューの追加3
+        PtrView = PtrMultiView->AddView();
+        //ビューの矩形を設定（ミニマップ風）
+        rect = Rect2D&lt;float>(0, 0, <span class="red">(float)160, (float)120</span>);
+        <span class="red">rect += Point2D&lt;float>(240.0f, 0);</span>
+
+        //2番目のビューにパラメータの設定
+        PtrView->ResetParamaters&lt;Camera, MultiLight>(rect, 
+            Color4(0.0f, 0.125f, 0.3f, 1.0f), 1, <span class="red">0.0f, 0.2f</span>);
+        PtrCamera = PtrView->GetCamera();
+        PtrCamera->SetEye(Vector3(0.0f, 10.0f, 0.0f));
+        PtrCamera->SetAt(Vector3(0.0f, 0.0f, 0.0f));
+        PtrCamera->SetUp(Vector3(0.0f, 0.0f, 1.0f));    //上から見るのでUpを変える
+
+    }
+</pre>
+</div>
+　赤くなってるところが重要なところです。
+<div class="box1">
+<pre>
+        //最初のビューにパラメータの設定
+        PtrView->ResetParamaters&lt;LookAtCamera, MultiLight>(rect, 
+            Color4(0.0f, 0.125f, 0.3f, 1.0f), 1, <span class="red">0.2f, 1.0f</span>);
+</pre>
+</div>
+　で、<b>0.2f,1.0f</b>と指定しているのは、使用する奥行（Z方向）です。<br />
+　奥行は0.0fから1.0fまでの間に設定することができ、通常は<b>0.0f,1.0f</b>と設定します。<br />
+　しかし画面分割をする場合、<b>画面同士が並んだり重なったり</b>します。<br />
+　並ぶ場合は、<b>0.0f,1.0f</b>で問題ないのですが、重なった場合は、奥行で使用する範囲を設定しなければなりません。<br />
+　ここでは、左右の画面は<b>0.2f,1.0f</b>とし、重なるミニマップ風画面を<b>0.0f,0.2f</b>としています。こうすることでうまく重なります。<br />
+
+
+<br />
+</div>
+<!-- /コンテンツ　-->
+<hr>
+<!-- フッタ　-->
+<ul class="foot_navi">
+<li><a href="30_02.html">前ページ</a></li>
+<li><a href="index.html">目次</a></li>
+<li><a href="30_04.html">次ページ</a></li>
+</ul>
+<!-- /フッタ　-->
+
+
+</div>
+<!-- /全体コンテナ　-->
+</body>
+</html>
