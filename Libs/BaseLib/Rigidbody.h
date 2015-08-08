@@ -212,8 +212,13 @@ namespace basedx11{
 
 		//アクセサ
 		//回避する壁の配列
-		shared_ptr< vector<PLANE> > GetPlaneVec() const;
-		void SetPlaneVec(const shared_ptr< vector<PLANE> >& planevec);
+		vector<PLANE>& GetPlaneVec() const;
+		void SetPlaneVec(const vector<PLANE>& planevec);
+		//Plane型を渡す
+		void SetPlaneVec(const vector<Plane>& planevec);
+
+		//壁と衝突しているか
+		bool IsWallArribed() const;
 
 		//操作
 		virtual void Update()override;

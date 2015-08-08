@@ -313,6 +313,13 @@ struct PLANE : public CollisionVolume{
 	PLANE(const Vector3& PointA,const Vector3& PointB,const Vector3& PointC){
 		Set(PointA,PointB,PointC);
 	}
+	//Planeå^Ç©ÇÁïΩñ ÇçÏê¨
+	PLANE(const Plane& plane){
+		m_Normal.x = plane.x;
+		m_Normal.y = plane.x;
+		m_Normal.z = plane.z;
+		m_DotValue = -plane.w;
+	}
 };
 
 

@@ -561,8 +561,10 @@ namespace basedx11{
 	//	用途: コンポーネントImplクラス
 	//--------------------------------------------------------------------------------------
 	struct WallAvoidanceSteering::Impl{
-		weak_ptr< vector<PLANE> > m_PlaneVecPtr;		//回避すべき面の配列のポインタ
-		Impl()
+		vector<PLANE> m_PlaneVec;//回避すべき面の配列
+		bool m_WallArrived;	//壁と衝突したか
+		Impl():
+			m_WallArrived(false)
 		{}
 		~Impl(){}
 	};
@@ -578,15 +580,31 @@ namespace basedx11{
 	WallAvoidanceSteering::~WallAvoidanceSteering(){}
 
 	//アクセサ
-	shared_ptr< vector<PLANE> > WallAvoidanceSteering::GetPlaneVec() const{
-		if (!pImpl->m_PlaneVecPtr.expired()){
-			return pImpl->m_PlaneVecPtr.lock();
+	vector<PLANE>& WallAvoidanceSteering::GetPlaneVec() const{
+		return pImpl->m_PlaneVec;
+	}
+	void WallAvoidanceSteering::SetPlaneVec(const vector<PLANE>& planevec){
+		//必ずクリアする
+		pImpl->m_PlaneVec.clear();
+		for (auto v : planevec){
+			pImpl->m_PlaneVec.push_back(v);
 		}
-		return nullptr;
 	}
-	void WallAvoidanceSteering::SetPlaneVec(const shared_ptr< vector<PLANE> >& planevec){
-		pImpl->m_PlaneVecPtr = planevec;
+	void WallAvoidanceSteering::SetPlaneVec(const vector<Plane>& planevec){
+		//必ずクリアする
+		pImpl->m_PlaneVec.clear();
+		for (auto v : planevec){
+			PLANE p(v);
+			pImpl->m_PlaneVec.push_back(p);
+		}
 	}
+
+
+	//壁と衝突しているか
+	bool WallAvoidanceSteering::IsWallArribed() const{
+		return pImpl->m_WallArrived;
+	}
+
 
 	//操作
 	void WallAvoidanceSteering::Update(){
@@ -594,16 +612,18 @@ namespace basedx11{
 		if (IsGameObjectActive()){
 			auto RigidPtr = GetGameObject()->GetComponent<Rigidbody>();
 			auto TransPtr = GetGameObject()->GetComponent<Transform>();
+			pImpl->m_WallArrived = false;
 			if (RigidPtr && TransPtr){
 				Vector3 Force = RigidPtr->GetForce();
 				Vector3 WorkForce(0,0,0);
-				if (!pImpl->m_PlaneVecPtr.expired()){
-					auto& PlaneVec = *(pImpl->m_PlaneVecPtr.lock());
-					WorkForce = Steering::WallAvoidance(TransPtr->GetWorldMatrix(),
-						RigidPtr->GetVelocity(), RigidPtr->GetMaxSpeed(), PlaneVec);
-				}
+				WorkForce = Steering::WallAvoidance(TransPtr->GetWorldMatrix(),
+					RigidPtr->GetVelocity(), RigidPtr->GetMaxSpeed(), pImpl->m_PlaneVec) * GetWeight();
 				Steering::AccumulateForce(Force, WorkForce, RigidPtr->GetMaxForce());
 				RigidPtr->SetForce(Force);
+				if (WorkForce.Length() > 0.0f){
+					//壁に衝突している
+					pImpl->m_WallArrived = true;
+				}
 			}
 		}
 	}
@@ -671,7 +691,7 @@ namespace basedx11{
 				Vector3 WorkForce(0, 0, 0);
 				WorkForce = Steering::ObstacleAvoidance(TransPtr->GetWorldMatrix(),
 					RigidPtr->GetVelocity(), RigidPtr->GetMaxSpeed(),pImpl->m_RoadWidth,pImpl->m_RoadHeight,
-					pImpl->m_ObstacleSphereVec);
+					pImpl->m_ObstacleSphereVec) * GetWeight();
 				Steering::AccumulateForce(Force, WorkForce, RigidPtr->GetMaxForce());
 				RigidPtr->SetForce(Force);
 			}
