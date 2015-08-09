@@ -29,7 +29,7 @@ VSOutputTx main(VSInputNmTxWeights vin)
 
 	Skin(vin, 4);
 
-	CommonVSOutput cout = ComputeCommonVSOutputWithLighting(vin.Position, vin.Normal, 3);
+	CommonVSOutput cout = ComputeCommonVSOutputWithLighting(vin.Position, vin.Normal, activeflags.z);
 	SetCommonVSOutputParams;
 
 	vout.TexCoord = vin.TexCoord;

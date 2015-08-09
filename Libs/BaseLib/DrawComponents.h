@@ -259,6 +259,9 @@ namespace basedx11{
 		const Matrix4X4& GetMeshToTransform() const;
 		void SetMeshToTransform(const Matrix4X4& Mat);
 
+		void SetTextureOnlyNoLight(bool b);
+		bool GetTextureOnlyNoLight() const;
+		bool IsTextureOnlyNoLight() const;
 
 		//ëÄçÏ
 		virtual void Update()override{}

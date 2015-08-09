@@ -341,8 +341,8 @@ namespace basedx11{
 	};
 
 	struct BasicBoneShadowConstantBuffer{
-		XMUINT4 m_ActiveFlg;			//影がアクティブかどうか
-		//y=Shadow
+		XMUINT4 m_ActiveFlg;			//影がアクティブかどうか,ライトを無効にするかどうか
+		//y=Shadow,w=NoLight
 		BasicBoneShadowConstantBuffer(){
 			memset(this, 0, sizeof(BasicBoneShadowConstantBuffer));
 		}

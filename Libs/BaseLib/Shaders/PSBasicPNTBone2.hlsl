@@ -26,8 +26,17 @@ float4 main(PSInputTxShadow pin) : SV_Target0
 			}
 		}
 	}
-	float4 color = Texture.Sample(Sampler, pin.TexCoord) * pin.Diffuse;
-		color.rgb = color.rgb * shadowColor;
+	float4 color = 0;
+	if (activeflags.w == 1){
+		//テクスチャオンリー
+		//テクスチャと合わせない
+		color = Texture.Sample(Sampler, pin.TexCoord);
+	}
+	else{
+		//テクスチャと合わせる
+		color = Texture.Sample(Sampler, pin.TexCoord) * pin.Diffuse;
+	}
+	color.rgb = color.rgb * shadowColor;
 	AddSpecular(color, pin.Specular.rgb);
 	return color;
 }

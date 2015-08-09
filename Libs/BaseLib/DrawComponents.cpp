@@ -143,6 +143,7 @@ namespace basedx11{
 				Cb.mProj = Matrix4X4EX::Transpose(LightProj);
 
 				bool IsSkin = false;
+				bool IsSkinStride = false;
 				if (PtrMeshResource->IsSkining()){
 					auto DrawCompPtr = GetGameObject()->GetDynamicComponent<DrawComponent>(false);
 					if (auto* pLocalBoneVec = DrawCompPtr->GetVecLocalBonesPtr()){
@@ -161,7 +162,7 @@ namespace basedx11{
 							IsSkin = true;
 						}
 					}
-
+					IsSkinStride = true;
 				}
 
 
@@ -186,6 +187,9 @@ namespace basedx11{
 					pID3D11DeviceContext->IASetInputLayout(VSShadowmap::GetPtr()->GetInputLayout());
 					//ストライドとオフセット
 					UINT stride = sizeof(VertexPositionNormalTexture);
+					if (IsSkinStride){
+						stride = sizeof(VertexPositionNormalTextureSkinning);
+					}
 					UINT offset = 0;
 					//頂点バッファをセット
 					pID3D11DeviceContext->IASetVertexBuffers(0, 1, PtrMeshResource->GetVertexBuffer().GetAddressOf(), &stride, &offset);
@@ -1113,6 +1117,7 @@ namespace basedx11{
 		bool m_OwnShadowActive;		//自身への影投影
 		weak_ptr<FbxMeshResource> m_FbxMeshResource;	//FBXメッシュリソース
 		Matrix4X4 m_MeshToTransform;
+		bool m_TextureOnlyNoLight;				//テクスチャオンリーかどうか
 		bool m_AlphaBlendSrcOne;	//透明処理のSRC_ONE設定
 		ID3D11SamplerState* m_pSamplerState;	//サンプラーステート（オプション）
 		Impl() :
@@ -1121,6 +1126,7 @@ namespace basedx11{
 			m_SpecularAndPower(0.4f, 0.4f, 0.4f, 1.0f),
 			m_OwnShadowActive(false),
 			m_MeshToTransform(),
+			m_TextureOnlyNoLight(false),
 			m_AlphaBlendSrcOne(false),
 			m_pSamplerState(nullptr)
 		{}
@@ -1215,6 +1221,18 @@ namespace basedx11{
 		pImpl->m_MeshToTransform = Mat;
 	}
 
+	void BasicFbxPNTDraw::SetTextureOnlyNoLight(bool b){
+		pImpl->m_TextureOnlyNoLight = b;
+	}
+	bool BasicFbxPNTDraw::GetTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+	bool BasicFbxPNTDraw::IsTextureOnlyNoLight() const{
+		return pImpl->m_TextureOnlyNoLight;
+	}
+
+
 
 	//操作
 	void BasicFbxPNTDraw::Draw(){
@@ -1304,12 +1322,23 @@ namespace basedx11{
 					Cb.m_ActiveFlg.y = 1;
 				}
 				Cb.m_ActiveFlg.x = 1;
-
-
+				if (IsTextureOnlyNoLight()){
+					Cb.m_ActiveFlg.z = 0;
+					Cb.m_ActiveFlg.w = 1;
+				}
+				else{
+					Cb.m_ActiveFlg.w = 0;
+				}
 
 
 				//ストライドとオフセット
 				UINT stride = sizeof(VertexPositionNormalTexture);
+				//ボーンが登録されていたらボーンを探す
+				if (PtrMeshResource->IsSkining()){
+					stride = sizeof(VertexPositionNormalTextureSkinning);
+				}
+
+
 				UINT offset = 0;
 				//描画方法（3角形）
 				pID3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -1449,6 +1478,13 @@ namespace basedx11{
 			pImpl->m_vecLocalBones.resize(PtrMeshResource->GetBonesVec().size());
 			pImpl->m_vecLocalBones = PtrMeshResource->GetBonesVec();
 		}
+		else{
+			throw BaseException(
+				L"ボーンが見つかりません",
+				L"if (PtrMeshResource->GetNumBones() <= 0)",
+				L"BasicFbxPNTBoneDraw::SetBoneVec()"
+				);
+		}
 	}
 
 
@@ -1544,6 +1580,8 @@ namespace basedx11{
 			}
 			//ステージからカメラを取り出す
 			auto PtrCamera = PtrStage->GetTargetCamera();
+			//マルチライトを取り出す
+			auto Lights = PtrStage->GetTargetMultiLight();
 			//ステージから0番目のライトを取り出す
 			auto PtrLight = PtrStage->GetTargetLight(0);
 			//メッシュリソースの取得
@@ -1585,8 +1623,6 @@ namespace basedx11{
 				}
 
 
-
-
 				//カメラの取得
 				Matrix4X4 View, Proj, TransWorldViewProj;
 				View = PtrCamera->GetViewMatrix();
@@ -1601,9 +1637,28 @@ namespace basedx11{
 				Cb.diffuseColor = GetDiffuse();
 				Cb.emissiveColor = GetEmissive();
 				Cb.specularColorAndPower = GetSpecularAndPower();
-				Cb.lightDirection[0] = (XMVECTOR)PtrLight->GetDirectional();
-				Cb.lightDiffuseColor[0] = (XMVECTOR)PtrLight->GetDiffuseColor();
-				Cb.lightSpecularColor[0] = (XMVECTOR)PtrLight->GetSpecularColor();
+
+				UINT lightcount = 0;
+				for (size_t lc = 0; lc < Lights->GetLightCount(); lc++){
+					auto LocalLight = PtrStage->GetTargetLight(lc);
+					Cb.lightDirection[lc] = (XMVECTOR)LocalLight->GetDirectional();
+					Cb.lightDiffuseColor[lc] = (XMVECTOR)LocalLight->GetDiffuseColor();
+					Cb.lightSpecularColor[lc] = (XMVECTOR)LocalLight->GetSpecularColor();
+					lightcount++;
+					if (lc >= 2){
+						break;
+					}
+				}
+				CbShadow.m_ActiveFlg.z = lightcount;
+
+				if (IsTextureOnlyNoLight()){
+					CbShadow.m_ActiveFlg.z = 0;
+					CbShadow.m_ActiveFlg.w = 1;
+				}
+				else{
+					CbShadow.m_ActiveFlg.w = 0;
+				}
+
 
 				XMMATRIX viewInverse = XMMatrixInverse(nullptr, View);
 				Cb.eyePosition = viewInverse.r[3];
