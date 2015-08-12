@@ -2121,12 +2121,24 @@ namespace basedx11{
 			//相手にDestCollisionObbPtrが見つかった
 			CAPSULE SrcCapsle = GetCapsule();
 			OBB DestObb = DestCollisionObbPtr->GetObb();
-			HitTest::CAPSULE_OBB(SrcCapsle, DestObb, ClosestPoint);
-			float t;
-			Vector3 RetVec;
-			HitTest::ClosetPtPointSegment(ClosestPoint, SrcCapsle.m_PointA, SrcCapsle.m_PointB, t, RetVec);
-			Normal = RetVec - ClosestPoint;
-			Normal.Normalize();
+			int flg;
+			ClosestPoint = HitTest::ClosestPtCapsuleOBB(SrcCapsle, DestObb, flg);
+
+			if (flg < 0){
+				Normal = SrcCapsle.m_PointA - ClosestPoint;
+				Normal.Normalize();
+			}
+			else if (flg > 0){
+				Normal = SrcCapsle.m_PointB - ClosestPoint;
+				Normal.Normalize();
+			}
+			else{
+				float t;
+				Vector3 RetVec;
+				HitTest::ClosetPtPointSegment(ClosestPoint, SrcCapsle.m_PointB, SrcCapsle.m_PointA, t, RetVec);
+				Normal = RetVec - ClosestPoint;
+				Normal.Normalize();
+			}
 		}
 		else{
 			Normal = Vector3(0, 0, 0);
@@ -2136,15 +2148,15 @@ namespace basedx11{
 
 	void CollisionCapsule::EscapeFromDestObject(const shared_ptr<GameObject>&  DestGameObject, const Vector3& Normal, const Vector3& ClosestPoint){
 		CAPSULE SrcCapsule = GetCapsule();
-		//最近接点からNormal方向に半径ぶん移動
+		//最近接点からNormal方向にEscFぶん移動
 		Vector3 EscV = Normal;
 		EscV.Normalize();
-//		float EscF = SrcCapsule.m_Radius + (SrcCapsule.m_Radius * GetEscapeSpanMin());
-		float EscF = GetEscapeSpanMin();
-		EscV *= 0.2f;
-		SrcCapsule.SetCenter(ClosestPoint + EscV);
+		float EscF = SrcCapsule.m_Radius * GetEscapeSpanMin();
+		EscV *= EscF;
+		Vector3 Center = SrcCapsule.GetCenter();
+		Center += EscV;
 		auto PtrTrans = GetGameObject()->GetComponent<Transform>();
-		PtrTrans->SetPosition(SrcCapsule.GetCenter());
+		PtrTrans->SetPosition(Center);
 	}
 
 	void CollisionCapsule::EscapeFromDestParent(const shared_ptr<GameObject>&  ParentObject){
@@ -2153,18 +2165,29 @@ namespace basedx11{
 			//相手にCollisionObbが見つかった
 			CAPSULE SrcCapsule = GetCapsule();
 			OBB DestObb = DestCollisionObbPtr->GetObb();
+			int flg;
+			HitTest::ClosestPtCapsuleOBB(SrcCapsule, DestObb, flg);
+			if (flg >= 0){
+				//下側の球体のみ対応
+				return;
+			}
+
+			SPHERE SrcSphere;
+			SrcSphere.m_Center = SrcCapsule.m_PointA;
+			SrcSphere.m_Radius = SrcCapsule.m_Radius;
 			//最近接点を得る
 			Vector3 ClosestPoint;
-			HitTest::CAPSULE_OBB(SrcCapsule, DestObb, ClosestPoint);
-			//上向きの法線
-			Vector3 Normal(0,1.0f,0);
+			HitTest::SPHERE_OBB(SrcSphere, DestObb, ClosestPoint);
+			Vector3 Normal = SrcSphere.m_Center - ClosestPoint;
 			Normal.Normalize();
-			DestObb.GetNearNormalRot(Normal, 0.001f, Normal);
+			DestObb.GetNearNormalRot(Normal, 0.0001f, Normal);
 			//最近接点からNormal方向に半径ぶん移動
-			float EscF = SrcCapsule.GetHeightRadius() + 0.02f;
+			float EscF = SrcSphere.m_Radius + (SrcSphere.m_Radius * GetEscapeSpanMin());
 			Normal *= EscF;
-			Normal.Transform(DestObb.GetRotMatrix());
-			SrcCapsule.SetCenter(ClosestPoint + Normal);
+			SrcSphere.m_Center = ClosestPoint + Normal;
+			Vector3 Span = SrcSphere.m_Center - SrcCapsule.m_PointA;
+			SrcCapsule.m_PointA = SrcSphere.m_Center;
+			SrcCapsule.m_PointB += Span;
 			auto PtrTrans = GetGameObject()->GetComponent<Transform>();
 			PtrTrans->SetPosition(SrcCapsule.GetCenter());
 		}
@@ -2179,20 +2202,21 @@ namespace basedx11{
 		}
 		//自分はCapsule
 		CAPSULE SrcSCapsule = GetCapsule();
+		//下のSphereで判別
+		SPHERE SrcSphere;
+		SrcSphere.m_Center = SrcSCapsule.m_PointA;
+		SrcSphere.m_Radius = SrcSCapsule.m_Radius;
 		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
 
 		Vector3 StartPoint = Vector3(0, 0, 0);
-		StartPoint.y -= SrcSCapsule.GetHeightRadius() * 0.9f;
+		StartPoint.y -= SrcSphere.m_Radius *0.9f;
 		StartPoint.Transform(DestObb.GetRotMatrix());
-		StartPoint += SrcSCapsule.GetCenter();
-
+		StartPoint += SrcSphere.m_Center;
 		Vector3 EndPoint = Vector3(0, 0, 0);
 		auto PtrGravity = GetGameObject()->GetComponent<Gravity>();
-
-		EndPoint.y -= SrcSCapsule.GetHeightRadius() * 1.1f;
-//		EndPoint.y -= SrcSCapsule.GetHeightRadius() * PtrGravity->GetRayUnderSize();
+		EndPoint.y -= SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
 		EndPoint.Transform(DestObb.GetRotMatrix());
-		EndPoint += SrcSCapsule.GetCenter();
+		EndPoint += SrcSphere.m_Center;
 
 		//上に乗ってるかどうかを検証
 		//レイを打ち込んでみる

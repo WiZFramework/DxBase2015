@@ -420,6 +420,10 @@ namespace basedx11{
 	void Transform::LerpBeforeToNow(float LerpTime){
 		//前回のターンからの時間
 		float ElapsedTime = App::GetApp()->GetElapsedTime();
+		//LerpTimeは衝突タイムなので、少し前に置く
+		if (LerpTime >= 0.001f){
+			LerpTime -= 0.001f;
+		}
 
 		pImpl->m_Scale = Lerp::CalculateLerp<Vector3>(
 			pImpl->m_BeforeScale, pImpl->m_Scale, 0, ElapsedTime, LerpTime, Lerp::Linear

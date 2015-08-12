@@ -1164,6 +1164,47 @@ static bool SEGMENT_PLANE(const Vector3& a,const Vector3& b,
 		return CollisionTestSphereObb(SrcSp, SrcVelocity, DestObb, mid, EndTime, HitTime);
 	}
 
+	static Vector3 ClosestPtCapsuleOBB(const CAPSULE& cp, const OBB& obb,int& flg){
+		SPHERE Sp;
+		Sp.m_Center = cp.m_PointA;
+		Sp.m_Radius = cp.m_Radius;
+		Vector3 retvec;
+		//スタート位置で最近接点を得る
+		HitTest::SPHERE_OBB(Sp, obb, retvec);
+		//内積を図る
+		Vector3 Base = cp.m_PointB - cp.m_PointA;
+		Base.Normalize();
+		Vector3 Dest = retvec - cp.m_PointA;
+		float dot = Base.Dot(Dest);
+		if (dot < 0){
+			//スタート位置の球体の外側
+			//retvecは有効
+			flg = -1;
+			return retvec;
+		}
+		float  size = Vector3EX::Length(cp.m_PointB - cp.m_PointA);
+		if (dot > size){
+			//終点より先にある
+			Sp.m_Center = cp.m_PointB;
+			HitTest::SPHERE_OBB(Sp, obb, retvec);
+			//終点で最近接点をとる
+			flg = 1;
+			return retvec;
+		}
+		//中心とobbの最近接点を得る
+		HitTest::ClosestPtPointOBB(cp.GetCenter(), obb, retvec);
+		float t;
+		Vector3 SegPoint;
+		HitTest::ClosetPtPointSegment(retvec, cp.m_PointA, cp.m_PointB, t, SegPoint);
+		Vector3 Span = retvec - SegPoint;
+		Span.Normalize();
+		Span *= cp.m_Radius;
+		SegPoint += Span;
+		retvec = SegPoint;
+		flg = 0;
+		return retvec;
+	}
+
 	/**************************************************************************
 	static bool CAPSULE_OBB(
 	const CAPSULE& cp,		//カプセル
@@ -1176,8 +1217,12 @@ static bool SEGMENT_PLANE(const Vector3& a,const Vector3& b,
 	static bool CAPSULE_OBB(const CAPSULE& cp, const OBB& obb, Vector3& retvec){
 		//スィープさせる球
 		SPHERE StartSp, EndSp;
-		float LenA = Vector3EX::Length(cp.m_PointA - obb.m_Center);
-		float LenB = Vector3EX::Length(cp.m_PointB - obb.m_Center);
+		//各点とobbの最近接点を得る
+		Vector3 ToObb;
+		HitTest::ClosestPtPointOBB(cp.m_PointA, obb, ToObb);
+		float LenA = Vector3EX::Length(cp.m_PointA - ToObb);
+		HitTest::ClosestPtPointOBB(cp.m_PointB, obb, ToObb);
+		float LenB = Vector3EX::Length(cp.m_PointB - ToObb);
 		if (LenA < LenB){
 			//スタートはA側
 			StartSp.m_Center = cp.m_PointA;
@@ -1192,33 +1237,24 @@ static bool SEGMENT_PLANE(const Vector3& a,const Vector3& b,
 			EndSp.m_Center = cp.m_PointA;
 			EndSp.m_Radius = cp.m_Radius;
 		}
+		//カプセルとOBBの最近接点を得る（衝突してるかどうかは関係ない）
+		int flg;
+		retvec = ClosestPtCapsuleOBB(cp, obb,flg);
 		float HitTime;
 		Vector3 Velocity = EndSp.m_Center - StartSp.m_Center;
 		if (CollisionTestSphereObb(StartSp, Velocity,obb, 0, 1.0f, HitTime)){
-			//どこかで衝突した
-			SPHERE HitSp;
-			HitSp.m_Radius = cp.m_Radius;
-			HitSp.m_Center = Lerp::CalculateLerp(StartSp.m_Center, EndSp.m_Center,
-				0, 1.0f, HitTime, Lerp::Linear);
-			HitTest::SPHERE_OBB(HitSp, obb, retvec);
 			return true;
 		}
-		//ヒットしてなくても最近接点は返す
-		float t;
-		HitTest::ClosetPtPointSegment(obb.m_Center, cp.m_PointA, cp.m_PointB, t, retvec);
-		HitTest::ClosestPtPointOBB(retvec, obb, retvec);
 		return false;
 	}
 
 	static bool CollisionTestCapsuleObb(const CAPSULE& SrcCapsule, const Vector3& SrcVelocity,
 		const OBB& DestObb, float StartTime, float EndTime, float& HitTime){
 		const float m_EPSILON = 0.005f;
-
 		CAPSULE SrcCapsule2 = SrcCapsule;
 		float mid = (StartTime + EndTime) * 0.5f;
 		SrcCapsule2.m_Radius = (mid - StartTime) * SrcVelocity.Length() + SrcCapsule.m_Radius;
 		float Scale = SrcCapsule2.m_Radius / SrcCapsule.m_Radius;
-
 		//中心が原点の元のカプセルを作成
 		CAPSULE SrcBaseCapsule = SrcCapsule;
 		SrcBaseCapsule.SetCenter(Vector3(0, 0, 0));
@@ -1231,8 +1267,6 @@ static bool SEGMENT_PLANE(const Vector3& a,const Vector3& b,
 		SrcCapsule2.m_PointB = Vector3EX::Transform(SrcBaseCapsule.m_PointB, ScalMat);
 		//中心を移動
 		SrcCapsule2.SetCenter(SrcCapsule.GetCenter() + SrcVelocity * mid);
-
-
 		Vector3 RetVec;
 		if (!HitTest::CAPSULE_OBB(SrcCapsule2, DestObb, RetVec)){
 			return false;
