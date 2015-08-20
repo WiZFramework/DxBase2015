@@ -281,7 +281,7 @@ namespace basedx11{
 	//	);
 	//--------------------------------------------------------------------------------------
 	size_t CsvFile::AddRow(vector<wstring>& Row){
-		wstring temp = L'';
+		wstring temp = L"";
 		bool flg = false;
 		for (auto l : Row){
 			if (flg){
@@ -328,7 +328,7 @@ namespace basedx11{
 					return;
 				}
 			}
-			wstring temp = L'';
+			wstring temp = L"";
 			bool flg = false;
 			for (auto l : Row){
 				if (flg){
@@ -414,7 +414,7 @@ namespace basedx11{
 			}
 			//éwíËÇÃà íuÇÃÉZÉãÇç∑Çµë÷Ç¶
 			LineVec[ColNum] = Cell;
-			wstring temp = L'';
+			wstring temp = L"";
 			bool flg = false;
 			for (auto l : LineVec){
 				if (flg){

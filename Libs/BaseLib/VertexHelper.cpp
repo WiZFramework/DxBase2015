@@ -64,9 +64,9 @@ void VertexUtil::CreateCylinderCap(vector<VertexPositionNormalTexture>& vertices
         }
 
         size_t vbase = vertices.size();
-        indices.push_back(vbase);
-        indices.push_back(vbase + i1);
-        indices.push_back(vbase + i2);
+        indices.push_back((uint16_t)vbase);
+        indices.push_back((uint16_t)(vbase + i1));
+        indices.push_back((uint16_t)(vbase + i2));
     }
 
     // Which end of the cylinder is this?
@@ -137,13 +137,13 @@ void VertexUtil::CreateCube(float size,
 
 			//ÉCÉìÉfÉbÉNÉXÇÃìoò^
 			size_t vbase = vertices.size();
-			indices.push_back(vbase + 0);
-			indices.push_back(vbase + 1);
-			indices.push_back(vbase + 2);
+			indices.push_back((uint16_t)vbase + 0);
+			indices.push_back((uint16_t)vbase + 1);
+			indices.push_back((uint16_t)vbase + 2);
 
-			indices.push_back(vbase + 0);
-			indices.push_back(vbase + 2);
-			indices.push_back(vbase + 3);
+			indices.push_back((uint16_t)vbase + 0);
+			indices.push_back((uint16_t)vbase + 2);
+			indices.push_back((uint16_t)vbase + 3);
 			//í∏ì_ÇÃìoò^
 			vertices.push_back(VertexPositionNormalTexture((normal - side1 - side2) * size, normal, textureCoordinates[0]));
 			vertices.push_back(VertexPositionNormalTexture((normal - side1 + side2) * size, normal, textureCoordinates[1]));
@@ -218,13 +218,13 @@ void VertexUtil::CreateSphere(float diameter,size_t tessellation,
 				size_t nextI = i + 1;
 				size_t nextJ = (j + 1) % stride;
 
-				indices.push_back(i * stride + j);
-				indices.push_back(nextI * stride + j);
-				indices.push_back(i * stride + nextJ);
+				indices.push_back((uint16_t)(i * stride + j));
+				indices.push_back((uint16_t)(nextI * stride + j));
+				indices.push_back((uint16_t)(i * stride + nextJ));
 
-				indices.push_back(i * stride + nextJ);
-				indices.push_back(nextI * stride + j);
-				indices.push_back(nextI * stride + nextJ);
+				indices.push_back((uint16_t)(i * stride + nextJ));
+				indices.push_back((uint16_t)(nextI * stride + j));
+				indices.push_back((uint16_t)(nextI * stride + nextJ));
 			}
 		}
 		//RHÇ©ÇÁLHÇ…ïœçX
@@ -320,13 +320,13 @@ void VertexUtil::CreateCapsule(float diameter,
 				size_t nextI = i + 1;
 				size_t nextJ = (j + 1) % stride;
 
-				indices.push_back(i * stride + j);
-				indices.push_back(nextI * stride + j);
-				indices.push_back(i * stride + nextJ);
+				indices.push_back((uint16_t)(i * stride + j));
+				indices.push_back((uint16_t)(nextI * stride + j));
+				indices.push_back((uint16_t)(i * stride + nextJ));
 
-				indices.push_back(i * stride + nextJ);
-				indices.push_back(nextI * stride + j);
-				indices.push_back(nextI * stride + nextJ);
+				indices.push_back((uint16_t)(i * stride + nextJ));
+				indices.push_back((uint16_t)(nextI * stride + j));
+				indices.push_back((uint16_t)(nextI * stride + nextJ));
 			}
 		}
 		//RHÇ©ÇÁLHÇ…ïœçX
@@ -719,13 +719,13 @@ void VertexUtil::CreateCylinder(float height,float diameter,size_t tessellation,
 			vertices.push_back(VertexPositionNormalTexture(sideOffset + topOffset, normal, textureCoordinate));
 			vertices.push_back(VertexPositionNormalTexture(sideOffset - topOffset, normal, textureCoordinate + g_XMIdentityR1));
 
-			indices.push_back(i * 2);
-			indices.push_back((i * 2 + 2) % (stride * 2));
-			indices.push_back(i * 2 + 1);
+			indices.push_back((uint16_t)(i * 2));
+			indices.push_back((uint16_t)((i * 2 + 2) % (stride * 2)));
+			indices.push_back((uint16_t)(i * 2 + 1));
 
-			indices.push_back(i * 2 + 1);
-			indices.push_back((i * 2 + 2) % (stride * 2));
-			indices.push_back((i * 2 + 3) % (stride * 2));
+			indices.push_back((uint16_t)(i * 2 + 1));
+			indices.push_back((uint16_t)((i * 2 + 2) % (stride * 2)));
+			indices.push_back((uint16_t)((i * 2 + 3) % (stride * 2)));
 		}
 		// Create flat triangle fan caps to seal the top and bottom.
 		CreateCylinderCap(vertices, indices, tessellation, height, radius, true);
@@ -791,9 +791,9 @@ void VertexUtil::CreateCone(float diameter, float height, size_t tessellation,
 			vertices.push_back(VertexPositionNormalTexture(topOffset, normal, g_XMZero));
 			vertices.push_back(VertexPositionNormalTexture(pt, normal, textureCoordinate + g_XMIdentityR1 ));
 
-			indices.push_back(i * 2);
-			indices.push_back((i * 2 + 3) % (stride * 2));
-			indices.push_back((i * 2 + 1) % (stride * 2));
+			indices.push_back((uint16_t)(i * 2));
+			indices.push_back((uint16_t)((i * 2 + 3) % (stride * 2)));
+			indices.push_back((uint16_t)((i * 2 + 1) % (stride * 2)));
 		}
 
 		// Create flat triangle fan caps to seal the bottom.
@@ -869,13 +869,13 @@ void VertexUtil::CreateTorus(float diameter, float thickness, size_t tessellatio
 				size_t nextI = (i + 1) % stride;
 				size_t nextJ = (j + 1) % stride;
 
-				indices.push_back(i * stride + j);
-				indices.push_back(i * stride + nextJ);
-				indices.push_back(nextI * stride + j);
+				indices.push_back((uint16_t)(i * stride + j));
+				indices.push_back((uint16_t)(i * stride + nextJ));
+				indices.push_back((uint16_t)(nextI * stride + j));
 
-				indices.push_back(i * stride + nextJ);
-				indices.push_back(nextI * stride + nextJ);
-				indices.push_back(nextI * stride + j);
+				indices.push_back((uint16_t)(i * stride + nextJ));
+				indices.push_back((uint16_t)(nextI * stride + nextJ));
+				indices.push_back((uint16_t)(nextI * stride + j));
 			}
 		}
 
@@ -930,9 +930,9 @@ void VertexUtil::CreateTetrahedron(float size,
 			normal = XMVector3Normalize( normal );
 
 			size_t base = vertices.size();
-			indices.push_back( base );
-			indices.push_back( base + 1 );
-			indices.push_back( base + 2 );
+			indices.push_back((uint16_t) base );
+			indices.push_back((uint16_t) base + 1 );
+			indices.push_back((uint16_t) base + 2 );
  
 			// Duplicate vertices to use face normals
 			XMVECTOR position = XMVectorScale( verts[ v0 ], size );
@@ -1013,9 +1013,9 @@ void VertexUtil::CreateOctahedron(float size,
 			normal = XMVector3Normalize( normal );
 
 			size_t base = vertices.size();
-			indices.push_back( base );
-			indices.push_back( base + 1 );
-			indices.push_back( base + 2 );
+			indices.push_back((uint16_t) base );
+			indices.push_back((uint16_t) base + 1 );
+			indices.push_back((uint16_t) base + 2 );
  
 			// Duplicate vertices to use face normals
 			XMVECTOR position = XMVectorScale( verts[ v0 ], size );
@@ -1147,17 +1147,17 @@ void VertexUtil::CreateDodecahedron(float size,
 
 			size_t base = vertices.size();
 
-			indices.push_back( base );
-			indices.push_back( base + 1 );
-			indices.push_back( base + 2 );
+			indices.push_back( (uint16_t)base );
+			indices.push_back( (uint16_t)base + 1 );
+			indices.push_back( (uint16_t)base + 2 );
 
-			indices.push_back( base );
-			indices.push_back( base + 2 );
-			indices.push_back( base + 3 );
+			indices.push_back( (uint16_t)base );
+			indices.push_back( (uint16_t)base + 2 );
+			indices.push_back( (uint16_t)base + 3 );
 
-			indices.push_back( base );
-			indices.push_back( base + 3 );
-			indices.push_back( base + 4 );
+			indices.push_back( (uint16_t)base );
+			indices.push_back( (uint16_t)base + 3 );
+			indices.push_back( (uint16_t)base + 4 );
 
 			// Duplicate vertices to use face normals
 			XMVECTOR position = XMVectorScale( verts[ v0 ], size );
@@ -1265,9 +1265,9 @@ void VertexUtil::CreateIcosahedron(float size,
 			normal = XMVector3Normalize( normal );
 
 			size_t base = vertices.size();
-			indices.push_back( base );
-			indices.push_back( base + 1 );
-			indices.push_back( base + 2 );
+			indices.push_back( (uint16_t)base );
+			indices.push_back( (uint16_t)base + 1 );
+			indices.push_back( (uint16_t)base + 2 );
  
 			// Duplicate vertices to use face normals
 			XMVECTOR position = XMVectorScale( verts[ v0 ], size );
