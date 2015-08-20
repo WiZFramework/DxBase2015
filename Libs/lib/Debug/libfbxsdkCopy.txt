@@ -1,6 +1,0 @@
-ここに、デバッグバージョンの
-libfbxsdk.pdb
-libfbxsdk-mt.lib
-をコピーしてください。
-詳しくはDocumentを参照ください。
-
