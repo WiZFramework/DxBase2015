@@ -272,7 +272,7 @@ namespace basedx11{
 		//–À˜H‚Ìì¬
 		Labyrinth labyrinth(m_MapSizeX, m_MapSizeZ);
 		//–À˜Hƒ}ƒbƒv‚Ìæ“¾
-		auto& LabMap = labyrinth.getMap();
+		auto& LabMap = labyrinth.GetMap();
 		//‰¡²
 		vector< vector<int> > DataMap;
 		ChangeVecXZ(LabMap, DataMap);
