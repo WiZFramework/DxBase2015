@@ -1173,7 +1173,7 @@ static HRESULT _Generate2DMipsTriangleFilter( _In_ size_t levels, _In_ DWORD fil
             {
                 size_t v = yFrom->to[ j ].u;
                 assert( v < nheight );
-                TriangleRow* rowAcc = &rowActive.get()[ v ];
+                TriangleRow* rowAcc = &rowActive[ v ];
 
                 ++rowAcc->remaining;
 
@@ -1194,7 +1194,7 @@ static HRESULT _Generate2DMipsTriangleFilter( _In_ size_t levels, _In_ DWORD fil
             {
                 size_t v = yFrom->to[ j ].u;
                 assert( v < nheight );
-                TriangleRow* rowAcc = &rowActive.get()[ v ];
+                TriangleRow* rowAcc = &rowActive[ v ];
 
                 if ( !rowAcc->scanline )
                 {
@@ -1260,7 +1260,7 @@ static HRESULT _Generate2DMipsTriangleFilter( _In_ size_t levels, _In_ DWORD fil
             {
                 size_t v = yFrom->to[ j ].u;
                 assert( v < nheight );
-                TriangleRow* rowAcc = &rowActive.get()[ v ];
+                TriangleRow* rowAcc = &rowActive[ v ];
 
                 assert( rowAcc->remaining > 0 );
                 --rowAcc->remaining;
@@ -2320,7 +2320,7 @@ static HRESULT _Generate3DMipsTriangleFilter( _In_ size_t depth, _In_ size_t lev
             {
                 size_t w = zFrom->to[ j ].u;
                 assert( w < ndepth );
-                TriangleRow* sliceAcc = &sliceActive.get()[ w ];
+                TriangleRow* sliceAcc = &sliceActive[ w ];
 
                 ++sliceAcc->remaining;
 
@@ -2342,7 +2342,7 @@ static HRESULT _Generate3DMipsTriangleFilter( _In_ size_t depth, _In_ size_t lev
             {
                 size_t w = zFrom->to[ j ].u;
                 assert( w < ndepth );
-                TriangleRow* sliceAcc = &sliceActive.get()[ w ];
+                TriangleRow* sliceAcc = &sliceActive[ w ];
 
                 if ( !sliceAcc->scanline )
                 {
@@ -2432,7 +2432,7 @@ static HRESULT _Generate3DMipsTriangleFilter( _In_ size_t depth, _In_ size_t lev
             {
                 size_t w = zFrom->to[ j ].u;
                 assert( w < ndepth );
-                TriangleRow* sliceAcc = &sliceActive.get()[ w ];
+                TriangleRow* sliceAcc = &sliceActive[ w ];
 
                 assert( sliceAcc->remaining > 0 );
                 --sliceAcc->remaining;
@@ -2567,6 +2567,12 @@ HRESULT GenerateMipMaps( const Image& baseImage, DWORD filter, size_t levels, Sc
                             return E_POINTER;
 
                         ScratchImage tMipChain;
+                        hr = (baseImage.height > 1 || !allow1D)
+                             ? tMipChain.Initialize2D( DXGI_FORMAT_R32G32B32A32_FLOAT, baseImage.width, baseImage.height, 1, levels )
+                             : tMipChain.Initialize1D( DXGI_FORMAT_R32G32B32A32_FLOAT, baseImage.width, 1, levels ); 
+                        if ( FAILED(hr) )
+                            return hr;
+
                         hr = _GenerateMipMapsUsingWIC( *timg, filter, levels, GUID_WICPixelFormat128bppRGBAFloat, tMipChain, 0 );
                         if ( FAILED(hr) )
                             return hr;

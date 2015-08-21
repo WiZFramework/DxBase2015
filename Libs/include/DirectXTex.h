@@ -46,7 +46,18 @@
 #endif
 #endif
 
-#define DIRECTX_TEX_VERSION 131
+// VS 2010/2012 do not support =default =delete
+#ifndef DIRECTX_CTOR_DEFAULT
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
+#define DIRECTX_CTOR_DEFAULT {}
+#define DIRECTX_CTOR_DELETE ;
+#else
+#define DIRECTX_CTOR_DEFAULT =default;
+#define DIRECTX_CTOR_DELETE =delete;
+#endif
+#endif
+
+#define DIRECTX_TEX_VERSION 133
 
 namespace DirectX
 {
@@ -510,6 +521,9 @@ namespace DirectX
         TEX_COMPRESS_UNIFORM        = 0x40000,
             // Uniform color weighting for BC1-3 compression; by default uses perceptual weighting
 
+        TEX_COMPRESS_BC7_USE_3SUBSETS = 0x80000,
+            // Enables exhaustive search for BC7 compress for mode 0 and 2; by default skips trying these modes
+
         TEX_COMPRESS_SRGB_IN        = 0x1000000,
         TEX_COMPRESS_SRGB_OUT       = 0x2000000,
         TEX_COMPRESS_SRGB           = ( TEX_COMPRESS_SRGB_IN | TEX_COMPRESS_SRGB_OUT ),
@@ -577,7 +591,7 @@ namespace DirectX
         size_t w;
         size_t h;
 
-        Rect() {}
+        Rect() DIRECTX_CTOR_DEFAULT
         Rect( size_t _x, size_t _y, size_t _w, size_t _h ) : x(_x), y(_y), w(_w), h(_h) {}
     };
 
