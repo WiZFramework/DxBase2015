@@ -207,6 +207,10 @@ namespace basedx11{
 			CreateHitTestSquare();
 			//プレーヤーの作成
 			CreatePlayer();
+			//影を細かくする(デフォルト64)
+			Shadowmap::SetViewWidth(16.0f);
+			Shadowmap::SetViewHeight(16.0f);
+
 		}
 		catch (...){
 			throw;
