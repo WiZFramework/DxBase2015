@@ -84,24 +84,12 @@
                 VertexPositionNormalColor(V.position, V.normal, Col)
             );
         }
-        //ミューテックス
-        std::mutex Mutex;
-        //デバイスの取得
-        auto Dev = App::GetApp()->GetDeviceResources();
-        ID3D11Device* pDx11Device = Dev->GetD3DDevice();
-        <span class="red">//バッファの作成
-        Util::DemandCreate(m_VertexBuffer, Mutex, [&](ID3D11Buffer** pResult)
-        {
-            //頂点バッファの作成(頂点変更可能)
-            VertexUtil::CreateDynamicPrimitiveVertexBuffer(pDx11Device, m_BackupVirtex, pResult);
-        });
+        <span class="red">//頂点バッファの作成（頂点を変更できる）
+        VertexUtil::CreateDynamicVertexBuffer(m_VertexBuffer, m_BackupVirtex);
         //頂点数の設定
         m_NumVertices = static_cast&lt;UINT>(vertices.size());
-        Util::DemandCreate(m_IndexBuffer, Mutex, [&](ID3D11Buffer** pResult)
-        {
-            //インデックスバッファの作成
-            VertexUtil::CreatePrimitiveBuffer(pDx11Device, indices, D3D11_BIND_INDEX_BUFFER, pResult);
-        });
+        //インデックスバッファの作成
+        VertexUtil::CreateIndexBuffer(m_IndexBuffer, indices);
         //インデックス数の設定
         m_NumIndicis = static_cast&lt;UINT>(indices.size());</span>
     }
@@ -116,17 +104,20 @@
 </div>
 　で、正8面体を作成します。しかし作成される頂点の配列は<b>VertexPositionNormalTexture型</b>の配列なので、これを<b>VertexPositionNormalColor型</b>に変換します。<br />
 　<b>m_BackupVirtex</b>というのは、メンバの配列で、<b>VertexPositionNormalColor型</b>の配列です。ここに変換した頂点の配列を保持します。この際、コンストラクタの引数で与えられたパターンに合わせ、頂点色を決定します。<br />
-　頂点とインデックスの配列が出来ましたら、これをもとに、<b>頂点バッファとインデックスバッファ</b>を作成します。以下は頂点バッファの作成です。
+　頂点とインデックスの配列が出来ましたら、これをもとに、<b>頂点バッファとインデックスバッファ</b>を作成します。
 <div class="box1">
 <pre>
-        Util::DemandCreate(m_VertexBuffer, Mutex, [&](ID3D11Buffer** pResult)
-        {
-            //頂点バッファの作成(頂点変更可能)
-            VertexUtil::CreateDynamicPrimitiveVertexBuffer(pDx11Device, m_BackupVirtex, pResult);
-        });
+        //頂点バッファの作成（頂点を変更できる）
+        VertexUtil::CreateDynamicVertexBuffer(m_VertexBuffer, m_BackupVirtex);
+        //頂点数の設定
+        m_NumVertices = static_cast&lt;UINT>(vertices.size());
+        //インデックスバッファの作成
+        VertexUtil::CreateIndexBuffer(m_IndexBuffer, indices);
+        //インデックス数の設定
+        m_NumIndicis = static_cast&lt;UINT>(indices.size());
 </pre>
 </div>
-　ここで呼ばれている、<b>Util::DemandCreate()</b>は<b>ラムダ式の呼び出し関数（テンプレート関数）</b>です。<b>m_VertexBufferが無効だった場合に</b>安全に作成してくれます。<b>Mutex</b>を渡しているのは、内部でロックをかけるためです。<br />
+　ここで呼ばれている、<b>VertexUtil::CreateDynamicVertexBuffer()</b>は、頂点の配列から頂点バッファを作成します。同様<b>VertexUtil::CreateIndexBuffer()</b>はインデックスの配列からインデックスバッファを作成します。<br />
 　このようにして作成された、<b>m_VertexBuffer、m_IndexBuffer</b>と、頂点数、インデックス数をそれぞれメンバ変数に代入して、メッシュの作成は終了です。<br />
 <br />
 <h4>シェーダの作成</h4>
@@ -395,6 +386,7 @@
 <ul class="foot_navi">
 <li><a href="40_05.html">前ページ</a></li>
 <li><a href="index.html">目次</a></li>
+<li><a href="40_07.html">次ページ</a></li>
 </ul>
 <!-- /フッタ　-->
 

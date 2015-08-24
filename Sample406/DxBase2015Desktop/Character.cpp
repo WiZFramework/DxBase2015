@@ -201,25 +201,12 @@ namespace basedx11{
 				VertexPositionNormalColor(V.position, V.normal, Col)
 			);
 		}
-
-		//ミューテックス
-		std::mutex Mutex;
-		//デバイスの取得
-		auto Dev = App::GetApp()->GetDeviceResources();
-		ID3D11Device* pDx11Device = Dev->GetD3DDevice();
-		//バッファの作成
-		Util::DemandCreate(m_VertexBuffer, Mutex, [&](ID3D11Buffer** pResult)
-		{
-			//頂点バッファの作成(頂点変更可能)
-			VertexUtil::CreateDynamicPrimitiveVertexBuffer(pDx11Device, m_BackupVirtex, pResult);
-		});
+		//頂点バッファの作成（頂点を変更できる）
+		VertexUtil::CreateDynamicVertexBuffer(m_VertexBuffer, m_BackupVirtex);
 		//頂点数の設定
 		m_NumVertices = static_cast<UINT>(vertices.size());
-		Util::DemandCreate(m_IndexBuffer, Mutex, [&](ID3D11Buffer** pResult)
-		{
-			//インデックスバッファの作成
-			VertexUtil::CreatePrimitiveBuffer(pDx11Device, indices, D3D11_BIND_INDEX_BUFFER, pResult);
-		});
+		//インデックスバッファの作成
+		VertexUtil::CreateIndexBuffer(m_IndexBuffer, indices);
 		//インデックス数の設定
 		m_NumIndicis = static_cast<UINT>(indices.size());
 	}
