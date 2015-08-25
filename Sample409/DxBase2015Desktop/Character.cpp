@@ -17,8 +17,11 @@ namespace basedx11{
 	void Ball::Create(){
 
 		m_ConstantBuffer = make_shared<CBuffer<BallConstantBuffer> >();
+		//頂点シェーダの作成
 		m_VirtexShader = make_shared<VShader<VertexPositionNormalTexture>>(App::GetApp()->m_wstrRelativeShadersPath + L"VSBall.cso");
+		//ピクセルシェーダの作成
 		m_PixelShader = make_shared<PShader>(App::GetApp()->m_wstrRelativeShadersPath + L"PSBall.cso");
+		//ジオメトリシェーダの作成
 		m_GeometryShader = make_shared<GShader>(App::GetApp()->m_wstrRelativeShadersPath + L"GSBall.cso");
 
 		//Transformだけは追加しなくても取得できる
