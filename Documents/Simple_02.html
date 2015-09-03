@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Trからのぷろansitional//EN">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<title>DxBase2015ドキュメント(2015年)</title>
+</head>
+<body>
+<!-- 全体コンテナ　-->
+<div id="container">
+<div id="header">
+<h2>シンプルDxBase2015</h2>
+</div>
+<!-- コンテンツ　-->
+<div id="contents">
+<br/>
+<h3>Simple02．三角形の描画</h3>
+<br />
+<h4>デバイス座標に描画する三角形</h4>
+　毎度おなじみ三角形の描画です。フルバージョンの<b>サンプル401</b>とほぼ同じです。シェーダも前項と変わりません。<br />
+　<b>DxBase2015Simple/Simple02</b>のソリューションを開いて、リビルド、実行しますと以下の画面が現れます。
+<p>&nbsp;</p>
+<img src="img/Simple02a.jpg" width="80%"/>
+<p>図Simple02a</p>
+<p>&nbsp;</p>
+　今回は頂点を、3つだけ作成します。
+<div class="box1">
+<pre>
+    void GameObject::Create(){
+        //頂点を作成するための配列
+        vector&lt;VertexPosition> vertices = {
+            { VertexPosition(Vector3(0.0f, 0.5f, 0.5f)) },
+            { VertexPosition(Vector3(0.5f, -0.5f, 0.5f)) },
+            { VertexPosition(Vector3(-0.5f, -0.5f, 0.5f)) },
+        };
+        //メッシュの作成
+        VertexUtil::CreateVertexBuffer(m_VertexBuffer, vertices);
+        //頂点数の設定
+        m_NumVertices = static_cast&lt;UINT>(vertices.size());
+    }
+</pre>
+</div>
+　こんな感じです。<br />
+　描画は前項とは違って、<b>D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST</b>を使います。
+<div class="box1">
+<pre>
+    void GameObject::Draw(){
+        auto Dev = App::GetApp()->GetDeviceResources();
+        auto pD3D11DeviceContext = Dev->GetD3DDeviceContext();
+        //ステータスのポインタ
+        auto RenderStatePtr = Dev->GetRenderState();
+        //コンスタントバッファの準備
+        SimpleDirectConstantBuffer sb;
+        //三角形の色は黄色
+        sb.m_DiffuseColor = Color4(1.0f, 1.0f, 0, 1.0f);
+        //コンスタントバッファの更新
+        pD3D11DeviceContext->UpdateSubresource(
+            CBSimpleDirect::GetPtr()->GetBuffer(), 0, nullptr, &sb, 0, 0);
+        <span class="red">//描画方法（三角形）
+        pD3D11DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);</span>
+        //デプスステンシルは使用しない
+        pD3D11DeviceContext->OMSetDepthStencilState(RenderStatePtr->GetDepthNone(), 0);
+        //コンスタントバッファの設定(ピクセルシェーダのみでよい)
+        ID3D11Buffer* pConstantBuffer = CBSimpleDirect::GetPtr()->GetBuffer();
+        pD3D11DeviceContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
+        //シェーダの設定
+        pD3D11DeviceContext->VSSetShader(VSSimpleDirect::GetPtr()->GetShader(), nullptr, 0);
+        pD3D11DeviceContext->PSSetShader(PSSimpleDirect::GetPtr()->GetShader(), nullptr, 0);
+        //インプットレイアウトの設定
+        pD3D11DeviceContext->IASetInputLayout(VSSimpleDirect::GetPtr()->GetInputLayout());
+        //描画
+        //ストライドとオフセット
+        UINT stride = sizeof(VertexPosition);
+        UINT offset = 0;
+        pD3D11DeviceContext->IASetVertexBuffers(
+            0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
+        pD3D11DeviceContext->Draw(m_NumVertices, 0);
+        //後始末
+        Dev->InitializeStates(RenderStatePtr);
+    }
+</pre>
+</div>
+　赤くなってるところが、ポイントです。<br />
+　この項のサンプルは、前項とあまり変わりません。次項から、ワールド行列を使った描画を紹介します。
+<br />
+</div>
+<!-- /コンテンツ　-->
+<hr>
+<!-- フッタ　-->
+<ul class="foot_navi">
+<li><a href="Simple_01.html">前ページ</a></li>
+<li><a href="index.html">目次</a></li>
+<li><a href="Simple_03.html">次ページ</a></li>
+</ul>
+<!-- /フッタ　-->
+
+
+</div>
+<!-- /全体コンテナ　-->
+</body>
+</html>

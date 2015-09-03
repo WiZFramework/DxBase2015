@@ -4,68 +4,77 @@
 namespace basedx11{
 
 	//--------------------------------------------------------------------------------------
-	//	struct SimpleDirectConstantBuffer;
+	//	struct Simple3DConstantBuffer;
 	//	用途: 入力バッファのCPU側構造体
 	//--------------------------------------------------------------------------------------
-	struct SimpleDirectConstantBuffer
+	struct Simple3DConstantBuffer
 	{
-		Color4 m_DiffuseColor;
-		SimpleDirectConstantBuffer() {
-			memset(this, 0, sizeof(SimpleDirectConstantBuffer));
+		Matrix4X4 Model;
+		Matrix4X4 View;
+		Matrix4X4 Projection;
+		Vector4 LightDir;
+		Simple3DConstantBuffer() {
+			memset(this, 0, sizeof(Simple3DConstantBuffer));
 		};
 	};
 
 	//--------------------------------------------------------------------------------------
-	//	class CBSimpleDirect : public ConstantBuffer<CBSimpleDirect,SimpleDirectConstantBuffer>;
+	//	class CBSimple3D : public ConstantBuffer<CBSimple3D,Simple3DConstantBuffer>;
 	//	用途: コンスタントバッファ
 	//--------------------------------------------------------------------------------------
-	class CBSimpleDirect : public ConstantBuffer<CBSimpleDirect, SimpleDirectConstantBuffer>{
+	class CBSimple3D : public ConstantBuffer<CBSimple3D, Simple3DConstantBuffer>{
 	public:
 	};
 
 
 
 	//--------------------------------------------------------------------------------------
-	//	class VSSimpleDirect : public VertexShader<VSSimpleDirect, VertexPosition>;
-	//	用途: VSSimpleDirect頂点シェーダ
+	//	class VSSimple3D : public VertexShader<VSSimple3D, VertexPositionNormalColor>;
+	//	用途: VSSimple3D頂点シェーダ
 	//--------------------------------------------------------------------------------------
-	class VSSimpleDirect : public VertexShader<VSSimpleDirect, VertexPosition>{
-	public:
-		//構築
-		VSSimpleDirect();
-	};
-
-	//--------------------------------------------------------------------------------------
-	//	class PSSimpleDirect : public PixelShader<PSSimpleDirect>;
-	//	用途: PSSimpleピクセルシェーダ
-	//--------------------------------------------------------------------------------------
-	class PSSimpleDirect : public PixelShader<PSSimpleDirect>{
+	class VSSimple3D : public VertexShader<VSSimple3D, VertexPositionNormalColor>{
 	public:
 		//構築
-		PSSimpleDirect();
+		VSSimple3D();
 	};
 
+	//--------------------------------------------------------------------------------------
+	//	class PSSimple3D : public PixelShader<PSSimple3D>;
+	//	用途: PSSimple3Dピクセルシェーダ
+	//--------------------------------------------------------------------------------------
+	class PSSimple3D : public PixelShader<PSSimple3D>{
+	public:
+		//構築
+		PSSimple3D();
+	};
 
+	class GameStage;
 
 	//--------------------------------------------------------------------------------------
 	//	class GameObject : public Object, public SimpleInterface;
 	//	用途: ゲームオブジェクト
 	//--------------------------------------------------------------------------------------
 	class GameObject : public Object, public SimpleInterface{
+		weak_ptr<GameStage> m_GameStgae;
+		Vector3 m_Scale;
+		Quaternion m_Quaternion;
+		Vector3 m_Position;
+		Matrix4X4 m_WorldMatrix;
 		//頂点バッファ
 		ComPtr<ID3D11Buffer> m_VertexBuffer;
+		//インデックスバッファ
+		ComPtr<ID3D11Buffer> m_IndexBuffer;
 		//頂点の数
 		UINT m_NumVertices;
+		//インデックスの数
+		UINT m_NumIndicis;
 		//メッシュの作成
 		void CreateCustomMesh();
-		//頂点の変更
-		void UpdateCustomMesh();
-		//経過時間
-		float m_TotalTime;
 	public:
-		GameObject() :
-			m_TotalTime(0)
-		{}
+		GameObject(const shared_ptr<GameStage>& GStage,
+			const Vector3& StartScale,
+			const Vector3& StartRotation,
+			const Vector3& StartPos);
 		virtual ~GameObject(){}
 		virtual void Create()override;
 		virtual void Update()override;
@@ -86,6 +95,9 @@ namespace basedx11{
 	public:
 		GameStage(){}
 		virtual ~GameStage(){}
+		const shared_ptr<View>& GetView() const{
+			return m_View;
+		}
 		virtual void Create()override;
 		virtual void Update()override;
 		virtual void Draw()override;

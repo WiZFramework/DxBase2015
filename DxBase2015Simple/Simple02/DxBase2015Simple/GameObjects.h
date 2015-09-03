@@ -53,22 +53,15 @@ namespace basedx11{
 	//--------------------------------------------------------------------------------------
 	class GameObject : public Object, public SimpleInterface{
 		//頂点バッファ
-		ComPtr<ID3D11Buffer> m_VertexBuffer;
-		//頂点の数
-		UINT m_NumVertices;
-		//メッシュの作成
-		void CreateCustomMesh();
-		//頂点の変更
-		void UpdateCustomMesh();
-		//経過時間
-		float m_TotalTime;
+		//バッファ関連
+		ComPtr<ID3D11Buffer> m_VertexBuffer;	//頂点バッファ
+		UINT m_NumVertices;				//頂点の数
 	public:
-		GameObject() :
-			m_TotalTime(0)
+		GameObject()
 		{}
 		virtual ~GameObject(){}
 		virtual void Create()override;
-		virtual void Update()override;
+		virtual void Update()override{}
 		virtual void Draw()override;
 	};
 

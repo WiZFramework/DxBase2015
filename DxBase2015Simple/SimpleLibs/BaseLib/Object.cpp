@@ -182,12 +182,10 @@ namespace basedx11{
 	//アクセサ
 	const Vector3& Camera::GetEye() const{ return pImpl->m_Eye; }
 	void Camera::SetEye(const Vector3& Eye){ pImpl->m_Eye = Eye; }
-	void Camera::SetEye(float x, float y, float z){ pImpl->m_Eye = Vector3(x, y, z); }
-
+	void Camera::SetEye(float x, float y, float z){pImpl->m_Eye = Vector3(x, y, z); }
 	const Vector3& Camera::GetAt() const{ return pImpl->m_At; }
 	void Camera::SetAt(const Vector3& At){ pImpl->m_At = At; }
 	void Camera::SetAt(float x, float y, float z){ pImpl->m_At = Vector3(x, y, z); }
-
 	const Vector3& Camera::GetUp() const{ return pImpl->m_Up; }
 	void Camera::SetUp(const Vector3& Up){ pImpl->m_Up = Up; }
 	void Camera::SetUp(float x, float y, float z){ pImpl->m_Up = Vector3(x, y, z); }
@@ -222,7 +220,7 @@ namespace basedx11{
 	}
 
 
-	const Matrix4X4& Camera::GetViewMatrix() const{ return pImpl->m_ViewMatrix; }
+	const Matrix4X4& Camera::GetViewMatrix() const{return pImpl->m_ViewMatrix; }
 	const Matrix4X4& Camera::GetProjMatrix() const{ return pImpl->m_ProjMatrix; }
 
 	//操作
