@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Trからのぷろansitional//EN">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<title>DxBase2015ドキュメント(2015年)</title>
+</head>
+<body>
+<!-- 全体コンテナ　-->
+<div id="container">
+<div id="header">
+<h2>シンプルDxBase2015</h2>
+</div>
+<!-- コンテンツ　-->
+<div id="contents">
+<br/>
+<h3>Simple05．３Ｄオブジェクトの頂点色テクスチャ描画</h3>
+<br />
+<h4>テクスチャと頂点カラーの掛け合わせ</h4>
+　<b>DxBase2015Simple/Simple05</b>のソリューションを開いて、リビルド、実行しますと以下の画面が現れます。
+<p>&nbsp;</p>
+<img src="img/Simple05a.jpg" width="80%"/>
+<p>図Simple05a</p>
+<p>&nbsp;</p>
+　今項では、頂点に色を付けてグラデーションを表現し、テクスチャも実装しています。<br />
+　画面のように、独特の効果が出るのがわかります。<br />
+　今項は、前項と前々項のサンプルの合体です。ですから、頂点が<b>VertexPositionNormalColorTexture型</b>になったということに注意すれば、他は前項、前々項のサンプルの応用です。<br />
+　一つ注目点とすれば、ピクセルシェーダで、最終的な色の決定に
+<div class="box1">
+<pre>
+    //入力色とテクスチャ色とライト色を合成
+    return (input.Diffuse + TextureColor) * LightColor;
+</pre>
+</div>
+　と、頂点色とテクスチャを加算した後、ライティングを掛け算しています。<br />
+　これを、
+<div class="box1">
+<pre>
+    return input.Diffuse * TextureColor * LightColor;
+</pre>
+</div>
+　とすると、以下のようになり、ちょっと不気味な感じを演出できます。
+<p>&nbsp;</p>
+<img src="img/Simple05b.jpg" width="80%"/>
+<p>図Simple05b</p>
+<p>&nbsp;</p>
+　今回は使用してませんが、コンスタントバッファに色を渡すこともできます。すると、<b>頂点色、テクスチャ、ライティング、そしてコンスタントバッファ</b>と、様々な係数から<b>ピクセル色を決定</b>できる形になります。<br/>
+　このように、ピクセルシェーダの出力は、最終的なピクセル色の決定なので、それまで計算等で導き出した結果をどのような形で料理しても問題ありません。ぜひ自分なりのピクセル色を演出してみましょう。<br />
+<br />
+</div>
+<!-- /コンテンツ　-->
+<hr>
+<!-- フッタ　-->
+<ul class="foot_navi">
+<li><a href="Simple_04.html">前ページ</a></li>
+<li><a href="index.html">目次</a></li>
+</ul>
+<!-- /フッタ　-->
+
+
+</div>
+<!-- /全体コンテナ　-->
+</body>
+</html>
