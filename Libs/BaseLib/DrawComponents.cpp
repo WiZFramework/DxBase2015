@@ -1415,11 +1415,11 @@ namespace basedx11{
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullFront());
 						//描画
-						pID3D11DeviceContext->DrawIndexed(PtrMeshResource->GetNumIndicis(), 0, 0);
+						pID3D11DeviceContext->DrawIndexed(Mat.m_IndexCount, Mat.m_StartIndex, 0);
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullBack());
 						//描画
-						pID3D11DeviceContext->DrawIndexed(PtrMeshResource->GetNumIndicis(), 0, 0);
+						pID3D11DeviceContext->DrawIndexed(Mat.m_IndexCount, Mat.m_StartIndex, 0);
 					}
 					else{
 						//塗りつぶし
@@ -1427,7 +1427,7 @@ namespace basedx11{
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullBack());
 						//描画
-						pID3D11DeviceContext->DrawIndexed(PtrMeshResource->GetNumIndicis(), 0, 0);
+						pID3D11DeviceContext->DrawIndexed(Mat.m_IndexCount, Mat.m_StartIndex, 0);
 					}
 
 				}
@@ -1752,11 +1752,11 @@ namespace basedx11{
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullFront());
 						//描画
-						pID3D11DeviceContext->DrawIndexed(PtrMeshResource->GetNumIndicis(), 0, 0);
+						pID3D11DeviceContext->DrawIndexed(Mat.m_IndexCount, Mat.m_StartIndex, 0);
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullBack());
 						//描画
-						pID3D11DeviceContext->DrawIndexed(PtrMeshResource->GetNumIndicis(), 0, 0);
+						pID3D11DeviceContext->DrawIndexed(Mat.m_IndexCount, Mat.m_StartIndex, 0);
 					}
 					else{
 						//塗りつぶし
@@ -1764,7 +1764,7 @@ namespace basedx11{
 						//レンダリングステート
 						pID3D11DeviceContext->RSSetState(RenderStatePtr->GetCullBack());
 						//描画
-						pID3D11DeviceContext->DrawIndexed(PtrMeshResource->GetNumIndicis(), 0, 0);
+						pID3D11DeviceContext->DrawIndexed(Mat.m_IndexCount, Mat.m_StartIndex, 0);
 					}
 
 				}

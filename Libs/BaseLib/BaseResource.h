@@ -76,7 +76,15 @@ namespace basedx11{
 		*/
 		//--------------------------------------------------------------------------------------
 		ComPtr<ID3D11ShaderResourceView>& GetShaderResourceView() const;
-
+		//--------------------------------------------------------------------------------------
+		//	const wstring& GetTextureFileName() const;
+		/*!
+		@breaf テクスチャのファイル名の取得
+		@param なし
+		@return	このテクスチャのファイル名
+		*/
+		//--------------------------------------------------------------------------------------
+		const wstring& GetTextureFileName() const;
 	private:
 		// pImplイディオム
 		struct Impl;
@@ -598,6 +606,10 @@ namespace basedx11{
 	*/
 	//--------------------------------------------------------------------------------------
 	struct Material{
+		//!開始インデックス
+		UINT m_StartIndex;
+		//!描画インデックスカウント
+		UINT m_IndexCount;
 		//! デフィーズ（物体の色）
 		Color4 m_Diffuse;
 		//! スペキュラー（反射光）

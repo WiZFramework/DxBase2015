@@ -160,6 +160,10 @@ namespace basedx11{
 	ComPtr<ID3D11ShaderResourceView>& TextureResource::GetShaderResourceView() const{
 		return pImpl->m_ShaderResView;
 	}
+	const wstring& TextureResource::GetTextureFileName() const{
+		return pImpl->m_FileName;
+	}
+
 
 	//--------------------------------------------------------------------------------------
 	//	struct AudioResource::Impl;
@@ -1038,10 +1042,14 @@ namespace basedx11{
 			}
 		}
 
-		//インデックスを作成するための配列
-		vector<uint16_t> indices;
 		//マテリアルの数を取得する(一つのメッシュに対し、複数のマテリアルが割り当てられていることがある)
 		pImpl->m_MaterialCount = pImpl->m_FbxMesh->GetNode()->GetMaterialCount();
+		//マテリアルの読み込み
+		CreateMaterial();
+
+
+		//インデックスを作成するための配列
+		vector<uint16_t> indices;
 		//マテリアルのポインタを取得する
 		const FbxLayerElementMaterial*	fbxMaterial = pImpl->m_FbxMesh->GetLayer(0)->GetMaterials();
 		DWORD dwIndexCount = 0;
@@ -1054,14 +1062,21 @@ namespace basedx11{
 					int iPolygonSize = pImpl->m_FbxMesh->GetPolygonSize(j);
 					for (int k = 0; k < iPolygonSize; k++) {
 						indices.push_back(static_cast< uint16_t >(pImpl->m_FbxMesh->GetPolygonVertex(j, 2 - k)));
+						pImpl->m_MaterialVec[i].m_IndexCount++;
 					}
 				}
 			}
 		}
+
+		//マテリアル配列にスタート地点を設定
+		UINT StarIndex = 0;
+		for (DWORD i = 0; i < pImpl->m_MaterialVec.size(); i++) {
+			pImpl->m_MaterialVec[i].m_StartIndex = StarIndex;
+			StarIndex += pImpl->m_MaterialVec[i].m_IndexCount;
+		}
+
 		//配列をもとに頂点とインデックスを作成
 		pImpl->CreateBuffers(vertices, indices,false,Params);
-		//マテリアルの読み込み
-		CreateMaterial();
 
 		SetVertexBuffer(Params.m_VertexBuffer);
 		SetIndexBuffer(Params.m_IndexBuffer);
@@ -1184,12 +1199,14 @@ namespace basedx11{
 		FbxTime::EMode timeMode = globalTimeSettings.GetTimeMode();
 		pImpl->m_timePeriod.SetTime(0, 0, 0, 1, 0, timeMode);
 
-		//インデックスバッファの作成
-
-		//インデックスを作成するための配列
-		vector<uint16_t> indices;
 		//マテリアルの数を取得する(一つのメッシュに対し、複数のマテリアルが割り当てられていることがある)
 		pImpl->m_MaterialCount = pImpl->m_FbxMesh->GetNode()->GetMaterialCount();
+		//マテリアルの読み込み
+		CreateMaterial();
+
+		//インデックスバッファの作成
+		//インデックスを作成するための配列
+		vector<uint16_t> indices;
 		//マテリアルのポインタを取得する
 		const FbxLayerElementMaterial*	fbxMaterial = pImpl->m_FbxMesh->GetLayer(0)->GetMaterials();
 		DWORD dwIndexCount = 0;
@@ -1202,16 +1219,23 @@ namespace basedx11{
 					int iPolygonSize = pImpl->m_FbxMesh->GetPolygonSize(j);
 					for (int k = 0; k < iPolygonSize; k++) {
 						indices.push_back(static_cast< uint16_t >(pImpl->m_FbxMesh->GetPolygonVertex(j, 2 - k)));
+						pImpl->m_MaterialVec[i].m_IndexCount++;
 					}
 				}
 			}
 		}
 
+		//マテリアル配列にスタート地点を設定
+		UINT StarIndex = 0;
+		for (DWORD i = 0; i < pImpl->m_MaterialVec.size(); i++) {
+			pImpl->m_MaterialVec[i].m_StartIndex = StarIndex;
+			StarIndex += pImpl->m_MaterialVec[i].m_IndexCount;
+		}
+
+
 		//バッファの作成
 		pImpl->CreateBuffers(vertices, indices, false, Params);
 
-		//マテリアルの読み込み
-		CreateMaterial();
 
 		//ボーン数を得る
 		pImpl->m_NumBones = pImpl->m_FbxSkin->GetClusterCount();
@@ -1270,6 +1294,8 @@ namespace basedx11{
 		for (DWORD i = 0; i < pImpl->m_MaterialCount; i++) {
 			//マテリアル取得
 			Material material;
+			::ZeroMemory(&material, sizeof(Material));
+
 			FbxSurfaceMaterial*			pMaterial = pImpl->m_FbxMesh->GetNode()->GetMaterial(i);
 			FbxSurfacePhong*			pPhong = (FbxSurfacePhong*)pMaterial;
 			FbxPropertyT<FbxDouble3>	color;
