@@ -30,6 +30,8 @@ BEGIN_MESSAGE_MAP(CFbx2BinView, CFormView)
 	ON_WM_TIMER()
 	ON_BN_CLICKED(IDC_BUTTON_READFILE, &CFbx2BinView::OnClickedButtonReadfile)
 	ON_BN_CLICKED(IDC_BUTTON_SAVEFILE, &CFbx2BinView::OnClickedButtonSavefile)
+	ON_BN_CLICKED(IDC_BUTTON_SAVEFILE_SKIN, &CFbx2BinView::OnClickedButtonSavefileSkin)
+	ON_BN_CLICKED(IDC_BUTTON_RUN_SKIN, &CFbx2BinView::OnClickedButtonRunSkin)
 END_MESSAGE_MAP()
 
 // CFbx2BinView コンストラクション/デストラクション
@@ -68,6 +70,12 @@ void CFbx2BinView::DoDataExchange(CDataExchange* pDX)
 	DDV_MaxChars(pDX, m_BinFileHeader, 15);
 	DDX_Text(pDX, IDC_EDIT_BINFILENAME_EXT, m_BinFileNameExt);
 	DDX_Check(pDX, IDC_CHECK_IS_SCALING, m_IsScaling);
+	DDX_Control(pDX, IDC_EDIT_ANIME_START, m_AnimeSampleStart);
+	DDX_Control(pDX, IDC_EDIT_ANIME_END, m_AnimeSampleEnd);
+	DDX_Control(pDX, IDC_EDIT_ANIME_SAMPLE, m_AnimeSampleRate);
+	DDX_Control(pDX, IDC_BUTTON_SAVEFILE_SKIN, m_SaveFileSkinButton);
+	DDX_Control(pDX, IDC_BUTTON_RUN_SKIN, m_RunSkin);
+	DDX_Control(pDX, IDC_EDIT_ANIME_SAMPLE_SPAN, m_SampleSpan);
 }
 
 BOOL CFbx2BinView::PreCreateWindow(CREATESTRUCT& cs)
@@ -85,6 +93,16 @@ void CFbx2BinView::OnInitialUpdate()
 	ResizeParentToFit();
 
 }
+
+void CFbx2BinView::SetSkinedActive(BOOL b){
+	m_AnimeSampleStart.EnableWindow(b);
+	m_AnimeSampleEnd.EnableWindow(b);
+	m_AnimeSampleRate.EnableWindow(b);
+	m_RunSkin.EnableWindow(b);
+	m_SampleSpan.EnableWindow(b);
+	m_SaveFileSkinButton.EnableWindow(b);
+}
+
 
 
 // CFbx2BinView 診断
@@ -129,7 +147,9 @@ int CFbx2BinView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		////アプリケーションクラスの構築
 		App::GetApp(lpCreateStruct->hInstance, m_DxWindow.GetSafeHwnd(), false, 640, 480);
 		//シーンの追加登録
-		App::GetApp()->AddScene<Scene>();
+		auto PtrScene = App::GetApp()->AddScene<Scene>();
+		PtrScene->SetView(this);
+
 
 		m_TimerID = SetTimer(1, 10, NULL);
 	}
@@ -306,6 +326,149 @@ void CFbx2BinView::OnClickedButtonSavefile()
 
 
 	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+}
+
+
+
+
+
+
+void CFbx2BinView::OnClickedButtonSavefileSkin()
+{
+	if (!m_IsFbxReaded){
+		AfxMessageBox(L"FBXが読み込まれてません。\r\nすでにモデルが表示されている場合は、もう一度読み込んでみてください。");
+		return;
+	}
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	UpdateData(TRUE);
+	if (m_Directory == L"" || m_BinFileName == L"" || m_BinFileHeader == L""){
+		AfxMessageBox(L"ディレクトリ名か保存ファイル名かヘッダが空白です。");
+		return;
+	}
+	float Scale = 1.0f;
+	if (m_IsScaling){
+		if (m_Scale == L""){
+			AfxMessageBox(L"スケーリング保存されるようにチェックされてますが、スケーリングが空白です。");
+			return;
+		}
+		//縮尺率が浮動小数点になってるかチェック
+		Scale = (float)_wtof(m_Scale);
+		if (Scale <= 0.0f){
+			AfxMessageBox(L"縮尺率が無効です。0以下になってませんか？");
+			return;
+		}
+
+	}
+	wstring StrDir = m_Directory;
+	if (m_Directory.Right(0) != L"\\"){
+		StrDir += L"\\";
+	}
+	//ファイルが存在するかチェック
+	wstring ChkSrr = App::GetApp()->m_wstrRelativeDataPath + StrDir;
+	ChkSrr += m_BinFileName;
+
+	DWORD RetCode;
+	RetCode = GetFileAttributes(ChkSrr.c_str());
+	if (RetCode != 0xFFFFFFFF){
+		//ファイルが存在した
+		if (RetCode & FILE_ATTRIBUTE_DIRECTORY){
+			AfxMessageBox(L"ファイル名がディレクトリではありませんか？");
+			return;
+		}
+		else{
+			int i = AfxMessageBox(L"ファイルがありますが上書きしますか？", MB_OKCANCEL);
+			if (i != IDOK){
+				return;
+			}
+		}
+	}
+	//OK
+	auto gstage = App::GetApp()->GetScene<Scene>()->GetActiveStage();
+	auto PtrFbxObject = gstage->GetSharedGameObject<FbxMeshObject>(L"FbxMeshObject");
+	auto Data = make_shared<FbxMeshObjSaveData>();
+	Data->m_DataDir = App::GetApp()->m_wstrRelativeDataPath + StrDir;
+	Data->m_BinFileName = m_BinFileName;
+	Data->m_Header = m_BinFileHeader;
+	Data->m_Scale = Scale;
+	CString str;
+	m_AnimeSampleStart.GetWindowTextW(str);
+	Data->m_StartFrame = (UINT)_wtoi(str);
+	m_AnimeSampleEnd.GetWindowTextW(str);
+	Data->m_FrameCount = (UINT)_wtoi(str);
+	if (Data->m_FrameCount == 0){
+		AfxMessageBox(L"フレーム数が0個になってます");
+		return;
+	}
+	m_AnimeSampleRate.GetWindowTextW(str);
+	Data->m_FrameParSecond = (float)_wtof(str);
+	if (Data->m_FrameParSecond < 1.0f){
+		AfxMessageBox(L"秒あたりのフレーム数が1.0未満は指定できません。");
+		return;
+	}
+	m_SampleSpan.GetWindowTextW(str);
+	Data->m_SampleSpan = (float)_wtof(str);
+	if (Data->m_SampleSpan < 0.01f){
+		AfxMessageBox(L"秒あたりのサンプル数は0.01未満は指定できません。");
+		return;
+	}
+
+
+
+	gstage->PostEvent(0, gstage, PtrFbxObject, L"DataSaveSkin", SharedToVoid(Data));
+
+	wstring message = Data->m_DataDir + Data->m_BinFileName;
+	message += L"\r\nに保存しました。";
+	AfxMessageBox(message.c_str());
+
+}
+
+
+void CFbx2BinView::OnClickedButtonRunSkin()
+{
+	if (!m_IsFbxReaded){
+		AfxMessageBox(L"FBXが読み込まれてません。\r\nすでにモデルが表示されている場合は、もう一度読み込んでみてください。");
+		return;
+	}
+	// TODO: ここにコントロール通知ハンドラー コードを追加します。
+	UpdateData(TRUE);
+	float Scale = 1.0f;
+	if (m_IsScaling){
+		if (m_Scale == L""){
+			AfxMessageBox(L"スケーリング保存されるようにチェックされてますが、スケーリングが空白です。");
+			return;
+		}
+		//縮尺率が浮動小数点になってるかチェック
+		Scale = (float)_wtof(m_Scale);
+		if (Scale <= 0.0f){
+			AfxMessageBox(L"縮尺率が無効です。0以下になってませんか？");
+			return;
+		}
+
+	}
+	//OK
+	auto gstage = App::GetApp()->GetScene<Scene>()->GetActiveStage();
+	auto PtrFbxObject = gstage->GetSharedGameObject<FbxMeshObject>(L"FbxMeshObject");
+	auto Data = make_shared<FbxMeshObjSaveData>();
+	Data->m_DataDir = L"";
+	Data->m_BinFileName = L"";
+	Data->m_Header = L"";
+	Data->m_Scale = Scale;
+	CString str;
+	m_AnimeSampleStart.GetWindowTextW(str);
+	Data->m_StartFrame = (UINT)_wtoi(str);
+	m_AnimeSampleEnd.GetWindowTextW(str);
+	Data->m_FrameCount = (UINT)_wtoi(str);
+	if (Data->m_FrameCount == 0){
+		AfxMessageBox(L"フレーム数が0個になってます");
+		return;
+	}
+	m_AnimeSampleRate.GetWindowTextW(str);
+	Data->m_FrameParSecond = (float)_wtof(str);
+	if (Data->m_FrameParSecond < 1.0f){
+		AfxMessageBox(L"秒あたりのフレーム数が1.0未満は指定できません。");
+		return;
+	}
+	gstage->PostEvent(0, gstage, PtrFbxObject, L"RunSkin", SharedToVoid(Data));
 }
 
 

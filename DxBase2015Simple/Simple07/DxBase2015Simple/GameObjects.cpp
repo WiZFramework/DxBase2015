@@ -4,31 +4,31 @@
 namespace basedx11{
 
 	//--------------------------------------------------------------------------------------
-	//	class CBTexture3D : public ConstantBuffer<CBTexture3D,Texture3DConstantBuffer>;
+	//	class CBTextureSkin3D : public ConstantBuffer<CBTextureSkin3D, TextureSkin3DConstantBuffer>;
 	//	用途: コンスタントバッファ
 	//--------------------------------------------------------------------------------------
 	//シングルトン処理
-	unique_ptr<CBTexture3D, CBTexture3D::Deleter> CBTexture3D::m_Ptr;
+	unique_ptr<CBTextureSkin3D, CBTextureSkin3D::Deleter> CBTextureSkin3D::m_Ptr;
 
 	//--------------------------------------------------------------------------------------
-	//	class VSTexture3D : public VertexShader<VSTexture3D, VertexPositionNormalTexture>;
-	//	用途:  VSTexture3D頂点シェーダ
+	//	class VSTextureSkin3D : public VertexShader<VSTextureSkin3D, VertexPositionNormalTextureSkinning>;
+	//	用途:  VSTextureSkin3D頂点シェーダ
 	//--------------------------------------------------------------------------------------
 	//シングルトン処理
-	unique_ptr<VSTexture3D, VSTexture3D::Deleter> VSTexture3D::m_Ptr;
+	unique_ptr<VSTextureSkin3D, VSTextureSkin3D::Deleter> VSTextureSkin3D::m_Ptr;
 	//構築
-	VSTexture3D::VSTexture3D() :
-		VertexShader(App::GetApp()->m_wstrRelativeShadersPath + L"VSTexture3D.cso"){}
+	VSTextureSkin3D::VSTextureSkin3D() :
+		VertexShader(App::GetApp()->m_wstrRelativeShadersPath + L"VSTextureSkin3D.cso"){}
 
 	//--------------------------------------------------------------------------------------
-	//	class PSTexture3D : public PixelShader<PSTexture3D>;
-	//	用途: PSTexture3Dピクセルシェーダ
+	//	class PSTextureSkin3D : public PixelShader<PSTextureSkin3D>;
+	//	用途: PSTextureSkin3Dピクセルシェーダ
 	//--------------------------------------------------------------------------------------
 	//シングルトン処理
-	unique_ptr<PSTexture3D, PSTexture3D::Deleter> PSTexture3D::m_Ptr;
+	unique_ptr<PSTextureSkin3D, PSTextureSkin3D::Deleter> PSTextureSkin3D::m_Ptr;
 	//構築
-	PSTexture3D::PSTexture3D() :
-		PixelShader(App::GetApp()->m_wstrRelativeShadersPath + L"PSTexture3D.cso")
+	PSTextureSkin3D::PSTextureSkin3D() :
+		PixelShader(App::GetApp()->m_wstrRelativeShadersPath + L"PSTextureSkin3D.cso")
 	{
 	}
 
@@ -39,15 +39,18 @@ namespace basedx11{
 		m_GameStgae(GStage),
 		m_Scale(StartScale),
 		m_Quaternion(),
-		m_Position(StartPos)
+		m_Position(StartPos),
+		m_LoopTime(4.0f)
 	{
 		m_Quaternion.RotationRollPitchYawFromVector(StartRotation);
 	}
 
-	struct VertexPositionNormalTexturePOD{
+	struct VertexPositionNormalTextureSkinningPOD{
 		float position[3];
 		float normal[3];
 		float textureCoordinate[2];
+		uint32_t indices[4];
+		float weights[4];
 	};
 
 	struct MaterialExPOD{
@@ -65,9 +68,27 @@ namespace basedx11{
 		float m_Emissive[4];
 	};
 
+	struct	BonePOD
+	{
+		//!基本ポーズへの行列
+		float	m_BindPose[4][4];
+		//!現在の行列
+		float	m_CurrentPose[4][4];
+		//!計算された現在の行列
+		float	m_ConbinedPose[4][4];
+	};
+
+	struct	MatrixPOD
+	{
+		float	m_Mat[4][4];
+	};
+
+
+
 
 	//メッシュデータの読み込み
-	void GameObject::ReadMesh(vector<VertexPositionNormalTexture>& vertices, vector<uint16_t>& indices, vector<MaterialEx>& materials){
+	void GameObject::ReadMesh(vector<VertexPositionNormalTextureSkinning>& vertices, vector<uint16_t>& indices, vector<MaterialEx>& materials,
+		vector<Matrix4X4>& bonematrix){
 		auto MeshFileName = App::GetApp()->m_wstrRelativeDataPath + L"Chara_R.bin";
 		BinaryReader Reader(MeshFileName);
 		//ヘッダの読み込み
@@ -82,17 +103,17 @@ namespace basedx11{
 		}
 		//頂点の読み込み
 		auto blockHeader = Reader.Read<BlockHeader>();
-		if (blockHeader.m_Type != BlockType::Vertex){
+		if (blockHeader.m_Type != BlockType::SkinedVertex){
 			throw BaseException(
-				L"頂点のヘッダが違います",
+				L"頂点(スキンメッシュ)のヘッダが違います",
 				MeshFileName,
 				L"GameObject::ReadMesh()"
 				);
 		}
-		auto VerTexSize = blockHeader.m_Size / sizeof(VertexPositionNormalTexturePOD);
-		auto pVertex = Reader.ReadArray<VertexPositionNormalTexturePOD>((size_t)VerTexSize);
+		auto VerTexSize = blockHeader.m_Size / sizeof(VertexPositionNormalTextureSkinningPOD);
+		auto pVertex = Reader.ReadArray<VertexPositionNormalTextureSkinningPOD>((size_t)VerTexSize);
 		for (UINT i = 0; i < VerTexSize; i++){
-			VertexPositionNormalTexture v;
+			VertexPositionNormalTextureSkinning v;
 			v.position.x = pVertex[i].position[0];
 			v.position.y = pVertex[i].position[1];
 			v.position.z = pVertex[i].position[2];
@@ -101,6 +122,10 @@ namespace basedx11{
 			v.normal.z = pVertex[i].normal[2];
 			v.textureCoordinate.x = pVertex[i].textureCoordinate[0];
 			v.textureCoordinate.y = pVertex[i].textureCoordinate[1];
+			for (int j = 0; j < 4; j++){
+				v.indices[j] = pVertex[i].indices[j];
+				v.weights[j] = pVertex[i].weights[j];
+			}
 			vertices.push_back(v);
 		}
 
@@ -174,25 +199,61 @@ namespace basedx11{
 			ToM.m_ShaderResView = CreateShaderResView(TextureFileStr);
 			materials.push_back(ToM);
 		}
-
-		//Endの読み込み
+		//ボーン数
 		blockHeader = Reader.Read<BlockHeader>();
-		if (blockHeader.m_Type != BlockType::End){
+		if (blockHeader.m_Type != BlockType::BoneCount){
 			throw BaseException(
-				L"Endヘッダが違います",
+				L"ボーン数のヘッダが違います",
 				MeshFileName,
 				L"GameObject::ReadMesh()"
 				);
 		}
+		m_BoneCount = blockHeader.m_Size;
+		//ボーンアニメーション行列
+		blockHeader = Reader.Read<BlockHeader>();
+		if (blockHeader.m_Type != BlockType::AnimeMatrix){
+			throw BaseException(
+				L"アニメーション行列のヘッダが違います",
+				MeshFileName,
+				L"GameObject::ReadMesh()"
+				);
+		}
+		auto MatrixSize = blockHeader.m_Size / sizeof(MatrixPOD);
+		auto pAnimeMatrix = Reader.ReadArray<MatrixPOD>((size_t)MatrixSize);
+		for (UINT i = 0; i < MatrixSize; i++){
+			//ボーン単位ではなく行列単位で読み込む
+			Matrix4X4 mat;
+			for (int u = 0; u < 4; u++){
+				for (int v = 0; v < 4; v++){
+					mat(u, v) = pAnimeMatrix->m_Mat[u][v];
+				}
+			}
+			bonematrix.push_back(mat);
+			pAnimeMatrix++;
+		}
+		m_SampleCount = MatrixSize / m_BoneCount;
+
+		//End
+		blockHeader = Reader.Read<BlockHeader>();
+		if (blockHeader.m_Type != BlockType::End){
+			throw BaseException(
+				L"終了ヘッダが違います",
+				MeshFileName,
+				L"GameObject::ReadMesh()"
+				);
+		}
+
+
+
 	}
 
 
 	//メッシュの作成
 	void GameObject::CreateCustomMesh(){
 		//頂点を作成するための配列
-		vector<VertexPositionNormalTexture> vertices;
+		vector<VertexPositionNormalTextureSkinning> vertices;
 		vector<uint16_t> indices;
-		ReadMesh(vertices, indices, m_Materials);
+		ReadMesh(vertices, indices, m_Materials, m_SampleMatrix);
 		//頂点バッファの作成（頂点は変更できない）
 		VertexUtil::CreateVertexBuffer(m_VertexBuffer, vertices);
 		//頂点数の設定
@@ -201,6 +262,12 @@ namespace basedx11{
 		VertexUtil::CreateIndexBuffer(m_IndexBuffer, indices);
 		//インデックス数の設定
 		m_NumIndicis = static_cast<UINT>(indices.size());
+		//シェーダーに渡すボーン行列の初期化
+		m_LocalBonesMatrix.resize(m_BoneCount);
+		for (UINT i = 0; i < m_LocalBonesMatrix.size(); i++){
+			m_LocalBonesMatrix[i] = m_SampleMatrix[m_BoneCount * 15 + i];
+		}
+
 	}
 
 	//シェーダリソースビューの作成
@@ -240,8 +307,63 @@ namespace basedx11{
 		m_WorldMatrix.DefTransformation(m_Scale, m_Quaternion, m_Position);
 	}
 
+	void GameObject::InterpolationMatrix(const Matrix4X4& m1, const Matrix4X4& m2, float t, Matrix4X4& out){
+		Vector3 Scale1, Pos1;
+		Quaternion Qt1;
+		m1.Decompose(&Scale1, &Qt1, &Pos1);
+		Qt1.Normalize();
+
+		Vector3 Scale2, Pos2;
+		Quaternion Qt2;
+
+		m2.Decompose(&Scale2, &Qt2, &Pos2);
+		Qt2.Normalize();
+
+		Vector3 ScaleOut, PosOut;
+		Quaternion QtOut;
+
+		ScaleOut = Lerp::CalculateLerp(Scale1, Scale2, 0.0f, 1.0f, t, Lerp::Linear);
+		PosOut = Lerp::CalculateLerp(Pos1, Pos2, 0.0f, 1.0f, t, Lerp::Linear);
+		QtOut = QuaternionEX::Slerp(Qt1, Qt2, t);
+		out.DefTransformation(ScaleOut, QtOut, PosOut);
+	}
+
+
+	void GameObject::CalucLocalBonesMatrix(float TgtTime){
+		//1つのサンプルに要する時間を図る
+		auto OneSampleTime = m_LoopTime / m_SampleCount;
+		auto FLOATTgtSample = TgtTime / OneSampleTime;
+		UINT UITgtSample = (UINT)FLOATTgtSample;
+		if (UITgtSample >= (m_SampleCount - 1)){
+			UITgtSample = m_SampleCount - 1;
+			//最後のサンプルを表示
+			for (UINT i = 0; i < m_LocalBonesMatrix.size(); i++){
+				m_LocalBonesMatrix[i] = m_SampleMatrix[m_BoneCount * UITgtSample + i];
+			}
+		}
+		else{
+			//サンプルとサンプルの間の割合を計算
+			FLOATTgtSample -= (float)UITgtSample;
+			UINT UINextSample = UITgtSample + 1;
+			for (UINT i = 0; i < m_LocalBonesMatrix.size(); i++){
+				InterpolationMatrix(
+					m_SampleMatrix[m_BoneCount * UITgtSample + i],
+					m_SampleMatrix[m_BoneCount * UINextSample + i], 
+					FLOATTgtSample, m_LocalBonesMatrix[i]);
+			}
+		}
+	}
+
+
 	void GameObject::Update(){
+		//サンプルを変更する
 		float ElapsedTime = App::GetApp()->GetElapsedTime();
+		static float NowTime = 0.0f;
+		NowTime += ElapsedTime;
+		if (NowTime >= m_LoopTime){
+			NowTime = 0.0f;
+		}
+		CalucLocalBonesMatrix(NowTime);
 		Quaternion SpanQt;
 		SpanQt.RotationRollPitchYawFromVector(Vector3(0, ElapsedTime, 0));
 		m_Quaternion *= SpanQt;
@@ -272,7 +394,7 @@ namespace basedx11{
 		Proj = PtrCamera->GetProjMatrix();
 
 		//コンスタントバッファの設定
-		Texture3DConstantBuffer cb1;
+		TextureSkin3DConstantBuffer cb1;
 		//行列の設定(転置する)
 		cb1.Model = Matrix4X4EX::Transpose(m_WorldMatrix);
 		cb1.View = Matrix4X4EX::Transpose(View);
@@ -283,10 +405,23 @@ namespace basedx11{
 		cb1.LightDir = PtrLight->GetDirectional();
 		cb1.LightDir.w = 1.0f;
 
+		//ボーンの設定
+		size_t BoneSz = m_LocalBonesMatrix.size();
+		UINT cb_count = 0;
+		for (size_t b = 0; b < BoneSz; b++){
+			Matrix4X4 mat = m_LocalBonesMatrix[b];
+			mat.Transpose();
+			cb1.Bones[cb_count] = ((XMMATRIX)mat).r[0];
+			cb1.Bones[cb_count + 1] = ((XMMATRIX)mat).r[1];
+			cb1.Bones[cb_count + 2] = ((XMMATRIX)mat).r[2];
+			cb_count += 3;
+		}
+
+
 		//コンスタントバッファの更新
-		pID3D11DeviceContext->UpdateSubresource(CBTexture3D::GetPtr()->GetBuffer(), 0, nullptr, &cb1, 0, 0);
+		pID3D11DeviceContext->UpdateSubresource(CBTextureSkin3D::GetPtr()->GetBuffer(), 0, nullptr, &cb1, 0, 0);
 		//ストライドとオフセット
-		UINT stride = sizeof(VertexPositionNormalTexture);
+		UINT stride = sizeof(VertexPositionNormalTextureSkinning);
 		UINT offset = 0;
 		//頂点バッファの設定
 		pID3D11DeviceContext->IASetVertexBuffers(0, 1, m_VertexBuffer.GetAddressOf(), &stride, &offset);
@@ -299,8 +434,8 @@ namespace basedx11{
 		//デプスステンシルは使用する
 		pID3D11DeviceContext->OMSetDepthStencilState(RenderStatePtr->GetDepthDefault(), 0);
 		//シェーダの設定
-		pID3D11DeviceContext->VSSetShader(VSTexture3D::GetPtr()->GetShader(), nullptr, 0);
-		pID3D11DeviceContext->PSSetShader(PSTexture3D::GetPtr()->GetShader(), nullptr, 0);
+		pID3D11DeviceContext->VSSetShader(VSTextureSkin3D::GetPtr()->GetShader(), nullptr, 0);
+		pID3D11DeviceContext->PSSetShader(PSTextureSkin3D::GetPtr()->GetShader(), nullptr, 0);
 		//リニアサンプラーを設定
 		ID3D11SamplerState* samplerState = RenderStatePtr->GetLinearClamp();
 		pID3D11DeviceContext->PSSetSamplers(0, 1, &samplerState);
@@ -308,9 +443,9 @@ namespace basedx11{
 			//テクスチャを設定
 			pID3D11DeviceContext->PSSetShaderResources(0, 1, m.m_ShaderResView.GetAddressOf());
 			//インプットレイアウトの設定
-			pID3D11DeviceContext->IASetInputLayout(VSTexture3D::GetPtr()->GetInputLayout());
+			pID3D11DeviceContext->IASetInputLayout(VSTextureSkin3D::GetPtr()->GetInputLayout());
 			//コンスタントバッファの設定
-			ID3D11Buffer* pConstantBuffer = CBTexture3D::GetPtr()->GetBuffer();
+			ID3D11Buffer* pConstantBuffer = CBTextureSkin3D::GetPtr()->GetBuffer();
 			pID3D11DeviceContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 			pID3D11DeviceContext->PSSetConstantBuffers(0, 1, &pConstantBuffer);
 			//レンダリングステート

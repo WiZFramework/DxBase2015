@@ -6,6 +6,7 @@
 
 #include "resource.h"
 #include "DxWindow.h"
+#include "afxwin.h"
 
 
 class CFbx2BinView : public CFormView
@@ -26,6 +27,7 @@ public:
 
 // 操作
 public:
+	void SetSkinedActive(BOOL b);
 
 // オーバーライド
 public:
@@ -62,6 +64,14 @@ public:
 	CString m_BinFileNameExt;
 	BOOL m_IsScaling;
 
+	CEdit m_AnimeSampleStart;
+	CEdit m_AnimeSampleEnd;
+	CEdit m_AnimeSampleRate;
+	afx_msg void OnClickedButtonSavefileSkin();
+	CButton m_SaveFileSkinButton;
+	CButton m_RunSkin;
+	afx_msg void OnClickedButtonRunSkin();
+	CEdit m_SampleSpan;
 };
 
 #ifndef _DEBUG  // Fbx2BinView.cpp のデバッグ バージョン

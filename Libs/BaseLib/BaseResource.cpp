@@ -1393,6 +1393,10 @@ namespace basedx11{
 	const unique_ptr<FbxMesh, FbxMeshResource::FbxMeshDeleter>& FbxMeshResource::GetFbxMesh()const{
 		return pImpl->m_FbxMesh;
 	}
+	const unique_ptr<FbxSkin, FbxMeshResource::FbxSkinDeleter>& FbxMeshResource::GetFbxSkin() const{
+		return pImpl->m_FbxSkin;
+	}
+
 
 	UINT FbxMeshResource::GetNumBones() const{
 		return pImpl->m_NumBones;
@@ -1470,6 +1474,7 @@ namespace basedx11{
 				//‚»‚Ìƒf[ƒ^‚É·‚µ‘Ö‚¦
 				it->second.m_StartFrame = StartFrame;
 				it->second.m_FrameLength = FrameLength;
+				it->second.m_FramesParSecond = FramesParSecond;
 				it->second.m_IsLoop = Loop;
 			}
 			else{

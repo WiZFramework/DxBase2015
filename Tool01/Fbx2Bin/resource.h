@@ -18,6 +18,13 @@
 #define IDC_EDIT_BINFILENAME            1008
 #define IDC_CHECK1                      1009
 #define IDC_CHECK_IS_SCALING            1009
+#define IDC_BUTTON_SAVEFILE_SKIN        1010
+#define IDC_EDIT_ANIME_START            1011
+#define IDC_EDIT_ANIME_END              1012
+#define IDC_EDIT_ANIME_SAMPLE           1013
+#define IDC_BUTTON_RUN_SKIN             1014
+#define IDC_EDIT_ANIME_SAMPLE2          1015
+#define IDC_EDIT_ANIME_SAMPLE_SPAN      1015
 
 // Next default values for new objects
 // 

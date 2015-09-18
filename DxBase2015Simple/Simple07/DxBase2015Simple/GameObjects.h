@@ -4,48 +4,49 @@
 namespace basedx11{
 
 	//--------------------------------------------------------------------------------------
-	//	struct Texture3DConstantBuffer;
+	//	struct TextureSkin3DConstantBuffer;
 	//	用途: 入力バッファのCPU側構造体
 	//--------------------------------------------------------------------------------------
-	struct Texture3DConstantBuffer
+	struct TextureSkin3DConstantBuffer
 	{
 		Matrix4X4 Model;
 		Matrix4X4 View;
 		Matrix4X4 Projection;
 		Vector4 LightDir;
-		Texture3DConstantBuffer() {
-			memset(this, 0, sizeof(Texture3DConstantBuffer));
+		XMVECTOR Bones[3 * 72];
+		TextureSkin3DConstantBuffer() {
+			memset(this, 0, sizeof(TextureSkin3DConstantBuffer));
 		};
 	};
 
 	//--------------------------------------------------------------------------------------
-	//	class CBTexture3D : public ConstantBuffer<CBTexture3D,Texture3DConstantBuffer>;
+	//	class CBTextureSkin3D : public ConstantBuffer<CBTextureSkin3D, TextureSkin3DConstantBuffer>;
 	//	用途: コンスタントバッファ
 	//--------------------------------------------------------------------------------------
-	class CBTexture3D : public ConstantBuffer<CBTexture3D, Texture3DConstantBuffer>{
+	class CBTextureSkin3D : public ConstantBuffer<CBTextureSkin3D, TextureSkin3DConstantBuffer>{
 	public:
 	};
 
 
 
 	//--------------------------------------------------------------------------------------
-	//	class VSTexture3D : public VertexShader<VSTexture3D, VertexPositionNormalTexture>;
-	//	用途:  VSTexture3D頂点シェーダ
+	//	class VSTextureSkin3D : public VertexShader<VSTextureSkin3D, VertexPositionNormalTextureSkinning>;
+	//	用途:  VSTextureSkin3D頂点シェーダ
 	//--------------------------------------------------------------------------------------
-	class VSTexture3D : public VertexShader<VSTexture3D, VertexPositionNormalTexture>{
+	class VSTextureSkin3D : public VertexShader<VSTextureSkin3D, VertexPositionNormalTextureSkinning>{
 	public:
 		//構築
-		VSTexture3D();
+		VSTextureSkin3D();
 	};
 
 	//--------------------------------------------------------------------------------------
-	//	class PSTexture3D : public PixelShader<PSTexture3D>;
-	//	用途: PSTexture3Dピクセルシェーダ
+	//	class PSTextureSkin3D : public PixelShader<PSTextureSkin3D>;
+	//	用途: PSTextureSkin3Dピクセルシェーダ
 	//--------------------------------------------------------------------------------------
-	class PSTexture3D : public PixelShader<PSTexture3D>{
+	class PSTextureSkin3D : public PixelShader<PSTextureSkin3D>{
 	public:
 		//構築
-		PSTexture3D();
+		PSTextureSkin3D();
 	};
 
 	class GameStage;
@@ -83,8 +84,6 @@ namespace basedx11{
 		UINT m_Size;
 	};
 
-
-
 	//--------------------------------------------------------------------------------------
 	//	class GameObject : public Object, public SimpleInterface;
 	//	用途: ゲームオブジェクト
@@ -105,12 +104,26 @@ namespace basedx11{
 		UINT m_NumIndicis;
 		//マテリアルの配列
 		vector<MaterialEx> m_Materials;
+		//ボーンの数
+		UINT m_BoneCount;
+		//サンプリング数
+		UINT m_SampleCount;
+		//サンプリングされたボーン行列
+		vector<Matrix4X4> m_SampleMatrix;
+		//シェーダに渡すボーン行列
+		vector<Matrix4X4> m_LocalBonesMatrix;
+		//サンプルをひと回りするのに要する時間（秒）
+		float m_LoopTime;
 		//メッシュデータの読み込み
-		void ReadMesh(vector<VertexPositionNormalTexture>& vertices, vector<uint16_t>& indices, vector<MaterialEx>& materials);
+		void ReadMesh(vector<VertexPositionNormalTextureSkinning>& vertices, vector<uint16_t>& indices, 
+			vector<MaterialEx>& materials,vector<Matrix4X4>& bonematrix);
 		//メッシュの作成
 		void CreateCustomMesh();
 		//シェーダリソースビューの作成
 		ComPtr<ID3D11ShaderResourceView> CreateShaderResView(const wstring& TextureFileName);
+		//補間処理
+		void InterpolationMatrix(const Matrix4X4& m1, const Matrix4X4& m2, float t, Matrix4X4& out);
+		void CalucLocalBonesMatrix(float TgtTime);
 	public:
 		GameObject(const shared_ptr<GameStage>& GStage,
 			const Vector3& StartScale,

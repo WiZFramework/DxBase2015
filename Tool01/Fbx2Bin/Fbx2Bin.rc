@@ -80,20 +80,8 @@ IDR_MAINFRAME MENU
 BEGIN
     POPUP "ファイル(&F)"
     BEGIN
-        MENUITEM "新規作成(&N)\tCtrl+N",            ID_FILE_NEW
-        MENUITEM "開く(&O)...\tCtrl+O",           ID_FILE_OPEN
-        MENUITEM "上書き保存(&S)\tCtrl+S",           ID_FILE_SAVE
-        MENUITEM "名前を付けて保存(&A)...",             ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "アプリケーションの終了(&X)",             ID_APP_EXIT
-    END
-    POPUP "編集(&E)"
-    BEGIN
-        MENUITEM "元に戻す(&U)\tCtrl+Z",            ID_EDIT_UNDO
-        MENUITEM SEPARATOR
-        MENUITEM "切り取り(&T)\tCtrl+X",            ID_EDIT_CUT
-        MENUITEM "コピー(&C)\tCtrl+C",             ID_EDIT_COPY
-        MENUITEM "貼り付け(&P)\tCtrl+V",            ID_EDIT_PASTE
     END
     POPUP "ヘルプ(&H)"
     BEGIN
@@ -141,7 +129,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,113,41,50,14,WS_GROUP
 END
 
-IDD_FBX2BIN_FORM DIALOGEX 0, 0, 534, 391
+IDD_FBX2BIN_FORM DIALOGEX 0, 0, 534, 390
 STYLE DS_SETFONT | WS_CHILD
 FONT 9, "MS UI Gothic", 0, 0, 0x1
 BEGIN
@@ -165,8 +153,18 @@ BEGIN
     LTEXT           "ヘッダ(15文字以内。半角英数)",IDC_STATIC,14,269,95,8
     EDITTEXT        IDC_EDIT_BINFILEHEADER,15,284,124,16,ES_AUTOHSCROLL
     LTEXT           "＊ヘッダは他ファイルとく区別するための指標です",IDC_STATIC,14,307,134,8
-    CONTROL         "スケーリング後の値を保存する",IDC_CHECK_IS_SCALING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,324,103,14
-    PUSHBUTTON      "データ保存",IDC_BUTTON_SAVEFILE,15,344,124,16
+    CONTROL         "スケーリング後の値を保存する",IDC_CHECK_IS_SCALING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,340,103,14
+    PUSHBUTTON      "スタティックデータ保存",IDC_BUTTON_SAVEFILE,16,358,124,16
+    EDITTEXT        IDC_EDIT_ANIME_START,157,337,24,16,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "フレームから",IDC_STATIC,184,340,38,8
+    EDITTEXT        IDC_EDIT_ANIME_END,216,337,24,16,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "個(フレーム数)",IDC_STATIC,243,340,41,8
+    EDITTEXT        IDC_EDIT_ANIME_SAMPLE,286,337,24,16,ES_AUTOHSCROLL | WS_DISABLED
+    LTEXT           "フレーム/秒",IDC_STATIC,314,340,35,8
+    PUSHBUTTON      "動かしてみる",IDC_BUTTON_RUN_SKIN,157,357,182,16,WS_DISABLED
+    LTEXT           "サンプリング間隔(秒)",IDC_STATIC,377,340,67,8
+    EDITTEXT        IDC_EDIT_ANIME_SAMPLE_SPAN,438,337,24,16,ES_AUTOHSCROLL | WS_DISABLED
+    PUSHBUTTON      "スキンメッシュデータ保存",IDC_BUTTON_SAVEFILE_SKIN,375,357,124,16,WS_DISABLED
 END
 
 
@@ -230,7 +228,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 527
         TOPMARGIN, 7
-        BOTTOMMARGIN, 384
+        BOTTOMMARGIN, 383
     END
 END
 #endif    // APSTUDIO_INVOKED

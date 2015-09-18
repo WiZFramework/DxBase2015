@@ -759,6 +759,15 @@ namespace basedx11{
 		//--------------------------------------------------------------------------------------
 		const unique_ptr<FbxMesh, FbxMeshDeleter>& GetFbxMesh() const;
 		//--------------------------------------------------------------------------------------
+		//	const unique_ptr<FbxSkin, FbxSkinDeleter>& GetFbxSkin() const;
+		/*!
+		@breaf FBXスキンの取得
+		@param　なし
+		@return	FBXスキンのスマートポインタ
+		*/
+		//--------------------------------------------------------------------------------------
+		const unique_ptr<FbxSkin, FbxSkinDeleter>& GetFbxSkin() const;
+		//--------------------------------------------------------------------------------------
 		//	UINT GetNumBones() const;
 		/*!
 		@breaf ボーン数の取得
