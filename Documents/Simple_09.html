@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Trからのぷろansitional//EN">
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="css/main.css" rel="stylesheet" type="text/css">
+<title>DxBase2015ドキュメント(2015年)</title>
+</head>
+<body>
+<!-- 全体コンテナ　-->
+<div id="container">
+<div id="header">
+<h2>シンプルDxBase2015</h2>
+</div>
+<!-- コンテンツ　-->
+<div id="contents">
+<br/>
+<h3>Simple09．入力とステージ推移</h3>
+<br />
+<h4>入力デバイス</h4>
+　<b>DxBase2015Simple/Simple09</b>のソリューションを起動すると以下のような画面が現れます。
+<p>&nbsp;</p>
+<img src="img/Simple09a.jpg" width="80%"/>
+<p>図Simple09a</p>
+<p>&nbsp;</p>
+　ここで、コントローラのAもしくはBボタンを押す、あるいはキーボードのFかGを押下する、あるいはマウスの左クリックか右クリックをすると、オブジェクトが右か左方向に回転します。<br />
+　この機能を実装するためには、まず、<b>WinMain.cpp</b>の<b>MainLoop()関数</b>に、以下のように記述します。
+<div class="box1">
+<pre>
+int MainLoop(HINSTANCE hInstance, HWND hWnd, bool isFullScreen, int iClientWidth, int iClientHeight){
+    //中略
+    try{
+        //中略
+        //メッセージループ
+        MSG msg = { 0 };
+        while (WM_QUIT != msg.message){
+            if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)){
+                //メッセージがあればウインドウメッセージを得る
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+            <span class="red">//入力デバイスのリセット
+            //コントローラ
+            App::GetApp()->GetInputDevice().ResetControlerState();
+            vector&lt;DWORD> UseKeyVec = {
+                'F', 'G', VK_LBUTTON, VK_RBUTTON
+            };
+            //キーボードとマウス
+            App::GetApp()->GetInputDevice().ResetInputState(
+                App::GetApp()->GetHWnd(), UseKeyVec
+            );</span>
+            //更新描画処理
+            App::GetApp()->UpdateApp();
+            if (App::GetApp()->DrawApp()){
+                //フロイントバッファに転送
+                App::GetApp()->Present(1, 0);
+            }
+        }
+        //msg.wParamには終了コードが入っている
+        RetCode = (int)msg.wParam;
+    }
+    //中略
+}
+</pre>
+</div>
+　赤くなっているところが追加する記述です。<br />
+　キーボードは、使用するキーを指定してリセットします。<br />
+　そうしておいて、たとえばゲームオブジェクトのUpddate()関数に以下のように記述します。
+<div class="box1">
+<pre>
+    void GameObject::Update(){
+        //ゲームステージが無効ならリターン
+        if (m_GameStgae.expired()){
+            return;
+        }
+        <span class="red">//コントローラの取得
+        auto CntrolStateVec = App::GetApp()->GetInputDevice().GetControlerVec();
+        auto KeyState = App::GetApp()->GetInputDevice().GetKeyState();
+        int CntlState = 0;
+        if (CntrolStateVec[0].bConnected){
+            if (CntrolStateVec[0].wPressedButtons & XINPUT_GAMEPAD_X){
+                //Xボタンが押された瞬間なら
+                //ゲームステージの作成
+                auto Stage2 = Object::CreateObject&lt;GameStage2>();
+                //次のゲームステージとして設定
+                //SetNextStage()関数は次のUpdateApp()で有効になる。
+                App::GetApp()->SetNextStage(Stage2);
+                //ステージを変更した場合は必ずそこでUpdate終了
+                return;
+            }
+            //Aボタンが押された状態なら
+            else if (CntrolStateVec[0].wButtons & XINPUT_GAMEPAD_A){
+                CntlState = -1;
+            }
+            else if (CntrolStateVec[0].wButtons & XINPUT_GAMEPAD_B){
+                CntlState = 1;
+            }
+        }
+        float ElapsedTime = App::GetApp()->GetElapsedTime();
+        if (KeyState.m_bPushKeyTbl['F'] || KeyState.m_bPushKeyTbl[VK_LBUTTON] || CntlState &lt; 0){
+            m_RotVelocity += 0.05f;
+            if (m_RotVelocity > 10.0f){
+                m_RotVelocity = 10.0f;
+            }
+        }
+        else if (KeyState.m_bPushKeyTbl['G'] || KeyState.m_bPushKeyTbl[VK_RBUTTON] || CntlState > 0){
+            m_RotVelocity -= 0.05f;
+            if (m_RotVelocity &lt; -10.0f){
+                m_RotVelocity = -10.0f;
+            }
+        }</span>
+        Quaternion SpanQt;
+        SpanQt.RotationRollPitchYawFromVector(Vector3(0, ElapsedTime * m_RotVelocity, 0));
+        m_Quaternion *= SpanQt;
+        m_WorldMatrix.DefTransformation(m_Scale, m_Quaternion, m_Position);
+    }
+
+</pre>
+</div>
+　こんな感じで、<b>App::GetApp()->GetInputDevice()</b>で入力機器をとってこれるので、そこから目的の機器の状態にアクセスします。<br/>
+<br />
+<h4>ステージの推移</h4>
+　このサンプルには、ステージの推移が実装されています。<br />
+　図Simple09aの状態で、コントローラのXボタンを押すと以下のようなステージになります。
+<p>&nbsp;</p>
+<img src="img/Simple09b.jpg" width="80%"/>
+<p>図Simple09b</p>
+<p>&nbsp;</p>
+　上記のソース<b>Upddate()関数</b>の以下の部分でステージを変更しています。
+<div class="box1">
+<pre>
+        //中略
+        //コントローラの取得
+        auto CntrolStateVec = App::GetApp()->GetInputDevice().GetControlerVec();
+        auto KeyState = App::GetApp()->GetInputDevice().GetKeyState();
+        int CntlState = 0;
+        if (CntrolStateVec[0].bConnected){
+            if (CntrolStateVec[0].wPressedButtons & XINPUT_GAMEPAD_X){
+                //Xボタンが押された瞬間なら
+                //ゲームステージの作成
+                <span class="red">auto Stage2 = Object::CreateObject&lt;GameStage2>();
+                //次のゲームステージとして設定
+                //SetNextStage()関数は次のUpdateApp()で有効になる。
+                App::GetApp()->SetNextStage(Stage2);</span>
+                //ステージを変更した場合は必ずそこでUpdate終了
+                return;
+            }
+            //中略
+        }
+        //中略
+    }
+
+</pre>
+</div>
+　ステージを変更する場合は上記のように<b>新しいステージを作成し、App::GetApp()->SetNextStage()で設定</b>すれば、次のターンでそのステージに推移します。<br />
+<br />
+</div>
+<!-- /コンテンツ　-->
+<hr>
+<!-- フッタ　-->
+<ul class="foot_navi">
+<li><a href="Simple_08.html">前ページ</a></li>
+<li><a href="index.html">目次</a></li>
+</ul>
+<!-- /フッタ　-->
+
+
+</div>
+<!-- /全体コンテナ　-->
+</body>
+</html>

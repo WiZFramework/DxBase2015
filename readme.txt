@@ -3,11 +3,11 @@
 　WiZ（国際情報工科大学校）ホームページ
 　http://www.wiz.ac.jp/index.html
 
-　冒頭、いきなりですみませんが、「DxBase2015」を使用して学生が作成したゲームが「日本ゲーム大賞2015 アマチュア部門」の最終審査に残りました！！これで、何らかの賞が確定した形となります。
+　冒頭、いきなりですみませんが、「DxBase2015」を使用して学生が作成したゲームが「日本ゲーム大賞2015 アマチュア部門」の優秀賞をいただきました！！
 　みんな！おめでとー！！　
 
 　日本ゲーム大賞2015 アマチュア部門サイト
-　http://awards.cesa.or.jp/prize/prize_03_01.html
+　http://awards.cesa.or.jp/prize/prize_03.html
 
 　＊この中の「4D FOLLOWERS」（チーム名: Project 4D FOLLOWERS）が、WiZの学生が作成した作品です！
 

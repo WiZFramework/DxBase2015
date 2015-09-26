@@ -429,6 +429,8 @@ namespace basedx11{
 		unique_ptr<AudioManager> m_AudioManager;
 		//イベント配送クラス
 		shared_ptr<EventDispatcher> m_EventDispatcher;	
+		//キーボードとマウスとコントローラ
+		InputDevice m_InputDevice;
 		//構築と破棄
 		App(HINSTANCE hInstance, HWND hWnd, bool FullScreen, UINT Width, UINT Height);
 		virtual ~App(){}
@@ -460,6 +462,8 @@ namespace basedx11{
 		void SetDeviceResources(const shared_ptr<DeviceResources>& ptr){ m_DeviceResources = ptr; }
 		//!ゲームステージの取得
 		shared_ptr<StageBase> GetStageBase() const { return m_StageBase; }
+		//!入力デバイスの取得
+		InputDevice& GetInputDevice(){return m_InputDevice;}
 		//!ゲームステージの取得テンプレート
 		template<typename T>
 		shared_ptr<T> GetStage() const { 
