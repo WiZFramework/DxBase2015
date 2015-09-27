@@ -3,6 +3,7 @@
 #include "GameObjects.h"
 namespace basedx11{
 
+
 	//--------------------------------------------------------------------------------------
 	//	class CBTextureSkin3D : public ConstantBuffer<CBTextureSkin3D, TextureSkin3DConstantBuffer>;
 	//	用途: コンスタントバッファ
@@ -263,11 +264,11 @@ namespace basedx11{
 		//インデックス数の設定
 		m_NumIndicis = static_cast<UINT>(indices.size());
 		//シェーダーに渡すボーン行列の初期化
+		//先頭のボーン数の行列で初期化
 		m_LocalBonesMatrix.resize(m_BoneCount);
 		for (UINT i = 0; i < m_LocalBonesMatrix.size(); i++){
-			m_LocalBonesMatrix[i] = m_SampleMatrix[m_BoneCount * 15 + i];
+			m_LocalBonesMatrix[i] = m_SampleMatrix[i];
 		}
-
 	}
 
 	//シェーダリソースビューの作成
