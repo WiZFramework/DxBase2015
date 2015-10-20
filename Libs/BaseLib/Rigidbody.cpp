@@ -124,10 +124,19 @@ namespace basedx11{
 			auto PtrT = GetGameObject()->GetComponent<Transform>();
 			if (PtrT){
 				Vector3 Pos = PtrT->GetPosition();
-				if (Pos.y <= pImpl->m_BaseY){
-					Pos.y = pImpl->m_BaseY;
-					SetGravityVelocityZero();
-					pImpl->m_InvGravity = pImpl->m_Gravity * -1.0f;
+				if (pImpl->m_Gravity.y <= 0){
+					if (Pos.y <= pImpl->m_BaseY){
+						Pos.y = pImpl->m_BaseY;
+						SetGravityVelocityZero();
+						pImpl->m_InvGravity = pImpl->m_Gravity * -1.0f;
+					}
+				}
+				else{
+					if (Pos.y >= pImpl->m_BaseY){
+						Pos.y = pImpl->m_BaseY;
+						SetGravityVelocityZero();
+						pImpl->m_InvGravity = pImpl->m_Gravity * -1.0f;
+					}
 				}
 				//位置を設定
 				PtrT->SetPosition(Pos);
@@ -164,10 +173,19 @@ namespace basedx11{
 				//打消しの加速度
 				pImpl->m_GravityVelocity += pImpl->m_InvGravity * ElapsedTime;
 				Pos += pImpl->m_GravityVelocity * ElapsedTime;
-				if (Pos.y <= pImpl->m_BaseY){
-					Pos.y = pImpl->m_BaseY;
-					SetGravityVelocityZero();
-					SetInvGravityDefault();
+				if (pImpl->m_Gravity.y <= 0){
+					if (Pos.y <= pImpl->m_BaseY){
+						Pos.y = pImpl->m_BaseY;
+						SetGravityVelocityZero();
+						SetInvGravityDefault();
+					}
+				}
+				else{
+					if (Pos.y >= pImpl->m_BaseY){
+						Pos.y = pImpl->m_BaseY;
+						SetGravityVelocityZero();
+						SetInvGravityDefault();
+					}
 				}
 				//位置を設定
 				PtrT->SetPosition(Pos);
@@ -1898,20 +1916,37 @@ namespace basedx11{
 		SPHERE SrcSphere = GetSphere();
 		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
 
-		Vector3 StartPoint = Vector3(0, 0, 0);
-		StartPoint.y -= SrcSphere.m_Radius *0.9f;
-		StartPoint.Transform(DestObb.GetRotMatrix());
-		StartPoint += SrcSphere.m_Center;
-		Vector3 EndPoint = Vector3(0, 0, 0);
 		auto PtrGravity = GetGameObject()->GetComponent<Gravity>();
-		EndPoint.y -= SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
-		EndPoint.Transform(DestObb.GetRotMatrix());
-		EndPoint += SrcSphere.m_Center;
+		if (PtrGravity->GetGravity().y <= 0){
+			Vector3 StartPoint = Vector3(0, 0, 0);
+			StartPoint.y -= SrcSphere.m_Radius *0.9f;
+			StartPoint.Transform(DestObb.GetRotMatrix());
+			StartPoint += SrcSphere.m_Center;
+			Vector3 EndPoint = Vector3(0, 0, 0);
+			EndPoint.y -= SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
+			EndPoint.Transform(DestObb.GetRotMatrix());
+			EndPoint += SrcSphere.m_Center;
 
-		//上に乗ってるかどうかを検証
-		//レイを打ち込んでみる
-		if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-			return true;
+			//上に乗ってるかどうかを検証
+			//レイを打ち込んでみる
+			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+				return true;
+			}
+		}
+		else{
+			Vector3 StartPoint = Vector3(0, 0, 0);
+			StartPoint.y += SrcSphere.m_Radius *0.9f;
+			StartPoint.Transform(DestObb.GetRotMatrix());
+			StartPoint += SrcSphere.m_Center;
+			Vector3 EndPoint = Vector3(0, 0, 0);
+			EndPoint.y += SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
+			EndPoint.Transform(DestObb.GetRotMatrix());
+			EndPoint += SrcSphere.m_Center;
+			//下に乗ってるかどうかを検証
+			//レイを打ち込んでみる
+			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+				return true;
+			}
 		}
 		return false;
 	}
@@ -2208,21 +2243,40 @@ namespace basedx11{
 		SrcSphere.m_Radius = SrcSCapsule.m_Radius;
 		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
 
-		Vector3 StartPoint = Vector3(0, 0, 0);
-		StartPoint.y -= SrcSphere.m_Radius *0.9f;
-		StartPoint.Transform(DestObb.GetRotMatrix());
-		StartPoint += SrcSphere.m_Center;
-		Vector3 EndPoint = Vector3(0, 0, 0);
 		auto PtrGravity = GetGameObject()->GetComponent<Gravity>();
-		EndPoint.y -= SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
-		EndPoint.Transform(DestObb.GetRotMatrix());
-		EndPoint += SrcSphere.m_Center;
+		if (PtrGravity->GetGravity().y <= 0){
+			Vector3 StartPoint = Vector3(0, 0, 0);
+			StartPoint.y -= SrcSphere.m_Radius *0.9f;
+			StartPoint.Transform(DestObb.GetRotMatrix());
+			StartPoint += SrcSphere.m_Center;
+			Vector3 EndPoint = Vector3(0, 0, 0);
+			EndPoint.y -= SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
+			EndPoint.Transform(DestObb.GetRotMatrix());
+			EndPoint += SrcSphere.m_Center;
 
-		//上に乗ってるかどうかを検証
-		//レイを打ち込んでみる
-		if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-			return true;
+			//上に乗ってるかどうかを検証
+			//レイを打ち込んでみる
+			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+				return true;
+			}
 		}
+		else{
+			Vector3 StartPoint = Vector3(0, 0, 0);
+			StartPoint.y += SrcSphere.m_Radius *0.9f;
+			StartPoint.Transform(DestObb.GetRotMatrix());
+			StartPoint += SrcSphere.m_Center;
+			Vector3 EndPoint = Vector3(0, 0, 0);
+			EndPoint.y += SrcSphere.m_Radius * PtrGravity->GetRayUnderSize();
+			EndPoint.Transform(DestObb.GetRotMatrix());
+			EndPoint += SrcSphere.m_Center;
+			//下に乗ってるかどうかを検証
+			//レイを打ち込んでみる
+			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+				return true;
+			}
+		}
+
+
 		return false;
 	}
 
@@ -2509,26 +2563,53 @@ namespace basedx11{
 		//自分はOBB
 		OBB SrcObb = GetObb();
 		OBB DestObb = UnderObjectCollisionObbPtr->GetObb();
-		//SrcObbから底辺の４点を求める
-		//中心からの相対距離で作成する
-		vector<Vector3> BottomPoints = {
-			Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
-			Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
-			Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
-			Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
-		};
-		for (auto p : BottomPoints){
-			Vector3 StartPoint = p + Vector3(0, 0.1f, 0);
-			StartPoint.Transform(DestObb.GetRotMatrix());
-			StartPoint += SrcObb.m_Center;
-			Vector3 EndPoint = p + Vector3(0, -0.1f, 0);
-			EndPoint.Transform(DestObb.GetRotMatrix());
-			EndPoint += SrcObb.m_Center;
-			//上に乗ってるかどうかを検証
-			//レイを打ち込んでみる
-			if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
-				return true;
+		auto PtrGravity = GetGameObject()->GetComponent<Gravity>();
+		if (PtrGravity->GetGravity().y <= 0){
+			//SrcObbから底辺の４点を求める
+			//中心からの相対距離で作成する
+			vector<Vector3> BottomPoints = {
+				Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
+				Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, SrcObb.m_Size.z),
+				Vector3(SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
+				Vector3(-SrcObb.m_Size.x, -SrcObb.m_Size.y, -SrcObb.m_Size.z),
+			};
+			for (auto p : BottomPoints){
+				Vector3 StartPoint = p + Vector3(0, 0.1f, 0);
+				StartPoint.Transform(DestObb.GetRotMatrix());
+				StartPoint += SrcObb.m_Center;
+				Vector3 EndPoint = p + Vector3(0, -0.1f, 0);
+				EndPoint.Transform(DestObb.GetRotMatrix());
+				EndPoint += SrcObb.m_Center;
+				//上に乗ってるかどうかを検証
+				//レイを打ち込んでみる
+				if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+					return true;
+				}
 			}
+		}
+		else{
+			//SrcObbから上辺の４点を求める
+			//中心からの相対距離で作成する
+			vector<Vector3> BottomPoints = {
+				Vector3(SrcObb.m_Size.x, SrcObb.m_Size.y, SrcObb.m_Size.z),
+				Vector3(-SrcObb.m_Size.x, SrcObb.m_Size.y, SrcObb.m_Size.z),
+				Vector3(SrcObb.m_Size.x, SrcObb.m_Size.y, -SrcObb.m_Size.z),
+				Vector3(-SrcObb.m_Size.x, SrcObb.m_Size.y, -SrcObb.m_Size.z),
+			};
+			for (auto p : BottomPoints){
+				Vector3 StartPoint = p + Vector3(0, 0.1f, 0);
+				StartPoint.Transform(DestObb.GetRotMatrix());
+				StartPoint += SrcObb.m_Center;
+				Vector3 EndPoint = p + Vector3(0, 0.1f, 0);
+				EndPoint.Transform(DestObb.GetRotMatrix());
+				EndPoint += SrcObb.m_Center;
+				//上に乗ってるかどうかを検証
+				//レイを打ち込んでみる
+				if (HitTest::SEGMENT_OBB(StartPoint, EndPoint, DestObb)){
+					return true;
+				}
+			}
+
 		}
 		return false;
 	}
