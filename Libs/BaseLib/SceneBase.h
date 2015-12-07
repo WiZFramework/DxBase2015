@@ -1186,6 +1186,28 @@ namespace basedx11{
 
 		shared_ptr<GameObjectGroup> CreateSharedObjectGroup(const wstring& Key);
 		shared_ptr<GameObjectGroup> GetSharedObjectGroup(const wstring& Key,bool ExceptionActive = true)const;
+		template<typename T>
+		shared_ptr<T> GetSharedObjectGroup(const wstring& Key, bool ExceptionActive = true)const{
+			auto RetPtr = dynamic_pointer_cast<T>(GetSharedObjectGroup(Key, ExceptionActive));
+			if (RetPtr){
+				return RetPtr;
+			}
+			else{
+				if (ExceptionActive){
+					//例外発生
+					wstring keyerr = Key;
+					throw BaseException(
+						L"指定のきーのグループはT型に変換できません",
+						keyerr,
+						L"Stage::GetSharedObjectGroup<T>()"
+						);
+				}
+			}
+			return nullptr;
+		}
+
+
+		void SetSharedObjectGroup(const wstring& Key, const shared_ptr<GameObjectGroup>& NewPtr);
 
 		//デフォルトのレンダリングターゲット類を準備する
 		void CreateDefaultRenderTargets();

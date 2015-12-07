@@ -1447,7 +1447,7 @@ namespace basedx11{
 				//例外発生
 				wstring keyerr = Key;
 				throw BaseException(
-					L"オブジェクトが見つかりません",
+					L"指定のキーが見つかりません",
 					keyerr,
 					L"Stage::GetSharedObjectGroup() const"
 					);
@@ -1455,6 +1455,26 @@ namespace basedx11{
 		}
 		return nullptr;
 	}
+
+	void Stage::SetSharedObjectGroup(const wstring& Key, const shared_ptr<GameObjectGroup>& NewPtr){
+		//重複キーの検査
+		auto it = pImpl->m_SharedGroupMap.find(Key);
+		if (it != pImpl->m_SharedGroupMap.end()) {
+			//例外発生
+			wstring keyerr = Key;
+			throw BaseException(
+				L"同名のシェアオブジェクト配列があります",
+				keyerr,
+				L"Stage::SetSharedObjectGroup()"
+				);
+		}
+		else{
+			//指定の名前が見つからなかった
+			//登録できる
+			pImpl->m_SharedGroupMap[Key] = NewPtr;
+		}
+	}
+
 
 
 
