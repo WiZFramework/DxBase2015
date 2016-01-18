@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+
 namespace basedx11{
 
 	//ローカル関数
@@ -325,59 +326,6 @@ namespace basedx11{
 			return SS5Util::SsInterpolate(Type, (float)tgtFrame, Start, End, nullptr);
 		}
 	}
-
-	float SS5AnimeFloatVal::GetScaleValue(float Time){
-		if (pImpl->line.size() <= 0){
-			return 1.0f;
-		}
-		size_t TgtVecIndex = 0;
-		SsInterpolationType::_enum Type;
-		Type = SsInterpolationType::none;
-
-		float Start = 1.0f;
-		float End = 1.0f;
-
-		float StartTime = 0;
-		float EndTime = 0;
-		SsCurve curve;
-		for (auto ptr : pImpl->line){
-			if (ptr.time <= Time){
-				Start = ptr.val;
-				StartTime = ptr.time;
-				Type = ptr.ipType;
-				curve = ptr.curve;
-			}
-		}
-		End = Start;
-		EndTime = StartTime;
-		for (auto ptr : pImpl->line){
-			if (ptr.time > Time){
-				End = ptr.val;
-				EndTime = ptr.time;
-				break;
-			}
-		}
-
-		if (Type == SsInterpolationType::bezier)
-		{
-			// ベジェのみキーの開始・終了時間が必要
-			curve.startKeyTime = StartTime;
-			curve.endKeyTime = EndTime;
-		}
-		double spanFreme = Time - StartTime;
-		double totalFrame = abs(EndTime - StartTime);
-		double tgtFrame = 0;
-		if (totalFrame > 0){
-			tgtFrame = spanFreme / totalFrame;
-		}
-		if (SS5Util::SsNeedsCurveParams(Type)){
-			return SS5Util::SsInterpolate(Type, (float)tgtFrame, Start, End, &curve);
-		}
-		else{
-			return SS5Util::SsInterpolate(Type, (float)tgtFrame, Start, End, nullptr);
-		}
-	}
-
 
 	//--------------------------------------------------------------------------------------
 	//	struct SS5AnimeCellVal::Impl;
@@ -900,8 +848,6 @@ namespace basedx11{
 		Vertex2DAnimeData GetVirtex2DData();
 
 		void GetIfFloatVal(bool b, shared_ptr<SS5AnimeLine>& ptr, float& dest, float AnimeFrame);
-		void GetIfFloatScaleVal(bool b, shared_ptr<SS5AnimeLine>& ptr, float& dest, float AnimeFrame);
-
 	};
 
 	SS5PartAnimation::Impl::Impl(IXMLDOMNodePtr TgtNode, SS5Animation* pSS5Animation) :
@@ -962,14 +908,6 @@ namespace basedx11{
 			dest = v->GetValue(AnimeFrame);
 		}
 	}
-
-	void SS5PartAnimation::Impl::GetIfFloatScaleVal(bool b, shared_ptr<SS5AnimeLine>& ptr, float& dest, float AnimeFrame){
-		if (b){
-			auto v = dynamic_pointer_cast<SS5AnimeFloatVal>(ptr);
-			dest = v->GetScaleValue(AnimeFrame);
-		}
-	}
-
 
 	bool SS5PartAnimation::Impl::GetHide(){
 		bool ret = false;
@@ -1043,8 +981,8 @@ namespace basedx11{
 			GetIfFloatVal(ptr->GetType() == SsAttributeKind::rotx, ptr, Rot.x, AnimeFrame);
 			GetIfFloatVal(ptr->GetType() == SsAttributeKind::roty, ptr, Rot.y, AnimeFrame);
 			GetIfFloatVal(ptr->GetType() == SsAttributeKind::rotz, ptr, Rot.z, AnimeFrame);
-			GetIfFloatScaleVal(ptr->GetType() == SsAttributeKind::sclx, ptr, Scale.x, AnimeFrame);
-			GetIfFloatScaleVal(ptr->GetType() == SsAttributeKind::scly, ptr, Scale.y, AnimeFrame);
+			GetIfFloatVal(ptr->GetType() == SsAttributeKind::sclx, ptr, Scale.x, AnimeFrame);
+			GetIfFloatVal(ptr->GetType() == SsAttributeKind::scly, ptr, Scale.y, AnimeFrame);
 		}
 
 		Pos.x /= m_pSS5Animation->get_gridSize();
@@ -1358,10 +1296,6 @@ namespace basedx11{
 		//スプライトの1メートル当たりのピクセル
 		float m_SpritePixelParMeter;
 
-		//ライティングしないかどうか（デフォルトtrue）
-		bool m_TextureOnlyNoLight;
-
-
 		//頂点変更時のデータ
 		Vertex2DAnimeData m_Vertex2DAnimeData;
 		//構築と破棄
@@ -1387,8 +1321,7 @@ namespace basedx11{
 		m_Prio(0),
 		m_Alpha(1.0f),
 		m_SpriteType(SpriteType),
-		m_SpritePixelParMeter(8.0f),
-		m_TextureOnlyNoLight(true)
+		m_SpritePixelParMeter(8.0f)
 	{
 		try{
 			name = SS5Util::TextToWstr(TgtNode, L"name");
@@ -1464,7 +1397,7 @@ namespace basedx11{
 				if (!m_SS5ssae.expired()){
 					auto SS5ssaePtr = m_SS5ssae.lock();
 					ret *= SS5ssaePtr->GetToAnimeMatrix();
-					auto mat = SS5ssaePtr->GetComponent<Transform>()->GetWorldMatrix();
+					auto mat = SS5ssaePtr->GetComponent<Transform>()->GetLocalMatrix();
 					ret *= mat;
 				}
 				else{
@@ -1564,18 +1497,6 @@ namespace basedx11{
 			ptr->SetSpritePixelParMeter(f);
 		}
 	}
-
-	void SSPart::SetTextureOnlyNoLight(bool b){
-		pImpl->m_TextureOnlyNoLight = b;
-	}
-	bool SSPart::GetTextureOnlyNoLight() const{
-		return pImpl->m_TextureOnlyNoLight;
-	}
-
-	bool SSPart::IsTextureOnlyNoLight() const{
-		return pImpl->m_TextureOnlyNoLight;
-	}
-
 
 
 	//アニメーションを変更する
@@ -1782,7 +1703,6 @@ namespace basedx11{
 					PtrDraw->SetMeshResource(pImpl->m_SquareRes);
 					PtrDraw->SetDiffuse(Color4(1.0f, 1.0f, 1.0f, pImpl->m_Alpha));
 					PtrDraw->SetTextureResource(pImpl->m_TextureResource);
-					PtrDraw->SetTextureOnlyNoLight(pImpl->m_TextureOnlyNoLight);
 					PtrDraw->Draw();
 				}
 			}
@@ -1794,6 +1714,7 @@ namespace basedx11{
 	//	用途: SS5ssaeクラス内イディオム
 	//--------------------------------------------------------------------------------------
 	struct SS5ssae::Impl{
+
 		wstring m_StartAnimeName;
 
 
@@ -1824,9 +1745,6 @@ namespace basedx11{
 		//スプライトかどうか
 		bool m_SpriteType;
 
-		//ライティングしないかどうか（デフォルトtrue）
-		bool m_TextureOnlyNoLight;
-
 		//構築と破棄
 		Impl(const shared_ptr<Stage>& StagePtr, const wstring& BaseDir, const wstring& Xmlfilename, const wstring& StartAnimeName,bool SpriteType);
 		~Impl(){}
@@ -1843,14 +1761,12 @@ namespace basedx11{
 		m_NowAnimation(L""),
 		m_NowAnimationPtr(nullptr),
 		m_ToAnimeMatrix(),
-		m_SpriteType(SpriteType),
-		m_TextureOnlyNoLight(true)
+		m_SpriteType(SpriteType)
 	{
 		try{
 
 			//インスタンスナンバー
-			//スタティック変数
-			static size_t stInstansNumber = 0;
+			static size_t m_InstansNumber = 0;
 
 			XmlDocReader doc(basedir + fname);
 			//ベースデータ
@@ -1862,10 +1778,8 @@ namespace basedx11{
 					L"SS5ssae::Impl::Impl()"
 					);
 			}
-			name = SS5Util::TextToWstr(BaseSetting, L"name") + Util::UintToWStr(stInstansNumber);
-			//インスタンスナンバーのインクリメント
-			stInstansNumber++;
-
+			name = SS5Util::TextToWstr(BaseSetting, L"name") + Util::UintToWStr(m_InstansNumber);
+			m_InstansNumber++;
 			//基本データ
 			auto Setting = doc.GetSelectSingleNode(L"SpriteStudioAnimePack/settings");
 			if (!Setting){
@@ -2105,18 +2019,6 @@ namespace basedx11{
 		pImpl->m_RootPart->SetSpritePixelParMeter(f);
 	}
 
-	void SS5ssae::SetTextureOnlyNoLight(bool b){
-		pImpl->m_TextureOnlyNoLight = b;
-	}
-	bool SS5ssae::GetTextureOnlyNoLight() const{
-		return pImpl->m_TextureOnlyNoLight;
-	}
-
-	bool SS5ssae::IsTextureOnlyNoLight() const{
-		return pImpl->m_TextureOnlyNoLight;
-	}
-
-
 
 
 	bool ZSortModelFunc(SSPart* rLeft, SSPart* rRight){
@@ -2127,8 +2029,6 @@ namespace basedx11{
 	}
 
 	void SS5ssae::Draw(){
-		//コンポーネント描画
-		ComponentDraw();
 		vector<SSPart*> PartVec;
 		pImpl->m_RootPart->SetPartInVector(PartVec);
 		std::sort(PartVec.begin(), PartVec.end(), ZSortModelFunc);
@@ -2141,11 +2041,10 @@ namespace basedx11{
 			float count = 0;
 			for (auto ptr : PartVec){
 				auto PtrT = ptr->GetComponent<Transform>();
-				auto Pos = PtrT->GetPosition();
+				Vector3 Pos = PtrT->GetPosition();
 				Vector3 Z(0, 0, count);
 				Pos += Z;
 				PtrT->SetPosition(Pos);
-				ptr->SetTextureOnlyNoLight(pImpl->m_TextureOnlyNoLight);
 				ptr->Draw();
 				count -= 0.001f;
 			}

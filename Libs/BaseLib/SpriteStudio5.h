@@ -2,7 +2,6 @@
 
 #include "StdAfx.h"
 
-
 namespace basedx11{
 	//---------------------------------------------------------------
 	/// ソートモード
@@ -545,8 +544,8 @@ namespace basedx11{
 	};
 
 	//--------------------------------------------------------------------------------------
-	//	class SS5AnimeLine;
-	//	用途: アニメーションライン（基底クラス）
+	//	struct SS5AnimeLine;
+	//	用途: アニメーションライン（基底構造体）
 	//--------------------------------------------------------------------------------------
 	class SS5AnimeLine{
 	protected:
@@ -555,14 +554,6 @@ namespace basedx11{
 		virtual ~SS5AnimeLine();
 	public:
 		SsAttributeKind::_enum GetType()const{ return type; }
-	private:
-		//コピー禁止
-		SS5AnimeLine(const  SS5AnimeLine&) = delete;
-		SS5AnimeLine& operator=(const  SS5AnimeLine&) = delete;
-		//ムーブ禁止
-		SS5AnimeLine(const  SS5AnimeLine&&) = delete;
-		SS5AnimeLine& operator=(const  SS5AnimeLine&&) = delete;
-
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -579,6 +570,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5AnimeBoolVal(SS5AnimeBoolVal const&);
+		SS5AnimeBoolVal& operator=(SS5AnimeBoolVal const&);
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -591,11 +585,13 @@ namespace basedx11{
 		virtual ~SS5AnimeFloatVal();
 		//設定された補間をもとに指定時間の値を返す
 		float GetValue(float Time);
-		float GetScaleValue(float Time);
 	private:
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5AnimeFloatVal(SS5AnimeFloatVal const&);
+		SS5AnimeFloatVal& operator=(SS5AnimeFloatVal const&);
 	};
 
 	struct AnimeCell{
@@ -617,6 +613,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5AnimeCellVal(SS5AnimeCellVal const&);
+		SS5AnimeCellVal& operator=(SS5AnimeCellVal const&);
 	};
 
 
@@ -636,6 +635,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5AnimeWstrVal(SS5AnimeWstrVal const&);
+		SS5AnimeWstrVal& operator=(SS5AnimeWstrVal const&);
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -652,6 +654,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5AnimeColorVal(SS5AnimeColorVal const&);
+		SS5AnimeColorVal& operator=(SS5AnimeColorVal const&);
 	};
 
 	struct Vertex2DAnimeData{
@@ -680,6 +685,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5AnimeVector3Val(SS5AnimeVector3Val const&);
+		SS5AnimeVector3Val& operator=(SS5AnimeVector3Val const&);
 	};
 
 
@@ -705,11 +713,8 @@ namespace basedx11{
 		struct Impl;
 		unique_ptr<Impl> pImpl;
 		//コピー禁止
-		SS5Cell(const SS5Cell&) = delete;
-		SS5Cell& operator=(const SS5Cell&) = delete;
-		//ムーブ禁止
-		SS5Cell(const SS5Cell&&) = delete;
-		SS5Cell& operator=(const SS5Cell&&) = delete;
+		SS5Cell(SS5Cell const&);
+		SS5Cell& operator=(SS5Cell const&);
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -732,16 +737,14 @@ namespace basedx11{
 		//テクスチャ
 		shared_ptr<TextureResource> GetTexture() const;
 
+
 	private:
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
 		//コピー禁止
-		SS5ssce(const SS5ssce&) = delete;
-		SS5ssce& operator=(const SS5ssce&) = delete;
-		//ムーブ禁止
-		SS5ssce(const SS5ssce&&) = delete;
-		SS5ssce& operator=(const SS5ssce&&) = delete;
+		SS5ssce(SS5ssce const&);
+		SS5ssce& operator=(SS5ssce const&);
 	};
 
 
@@ -778,11 +781,8 @@ namespace basedx11{
 		struct Impl;
 		unique_ptr<Impl> pImpl;
 		//コピー禁止
-		SS5PartAnimation(const SS5PartAnimation&) = delete;
-		SS5PartAnimation& operator=(const SS5PartAnimation&) = delete;
-		//ムーブ禁止
-		SS5PartAnimation(const SS5PartAnimation&&) = delete;
-		SS5PartAnimation& operator=(const SS5PartAnimation&&) = delete;
+		SS5PartAnimation(SS5PartAnimation const&);
+		SS5PartAnimation& operator=(SS5PartAnimation const&);
 	};
 
 
@@ -857,11 +857,6 @@ namespace basedx11{
 		float GetSpritePixelParMeter() const;
 		void SetSpritePixelParMeter(float f);
 
-		void SetTextureOnlyNoLight(bool b);
-		bool GetTextureOnlyNoLight() const;
-		bool IsTextureOnlyNoLight() const;
-
-
 		//操作
 		//アニメーションを変更する
 		void ChangeAnimation(shared_ptr<SS5Animation> AnimationPtr);
@@ -879,6 +874,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SSPart(SSPart const&);
+		SSPart& operator=(SSPart const&);
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -914,9 +912,6 @@ namespace basedx11{
 		//現在選択されているアニメーションが実行終了したかどうか
 		bool IsAnimeEnd() const;
 
-		void SetTextureOnlyNoLight(bool b);
-		bool GetTextureOnlyNoLight() const;
-		bool IsTextureOnlyNoLight() const;
 
 
 		//操作
@@ -933,6 +928,9 @@ namespace basedx11{
 		//Implイディオム
 		struct Impl;
 		unique_ptr<Impl> pImpl;
+		//コピー禁止
+		SS5ssae(SS5ssae const&);
+		SS5ssae& operator=(SS5ssae const&);
 	};
 
 
