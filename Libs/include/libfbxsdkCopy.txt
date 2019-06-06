@@ -1,5 +1,0 @@
-ここに、fbxsdkのヘッダ
-fbxsdk.h
-と
-fbxsdkディレクトリをコピーしてください。
-詳しくはDocumentを参照ください。
